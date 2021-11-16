@@ -1,0 +1,883 @@
+.gridcontainer {
+  height: 360px;
+}
+.status_ok {
+  color: #00990f;
+}
+.status_error {
+  color: #a00002;
+}
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
+}
+body {
+  color: #1c6ca7;
+  background-color: #ffffff;
+}
+body.x-body {
+  color: #1c6ca7;
+  background-color: #ffffff;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-size: 100%;
+}
+h1 {
+    margin: 0;
+    padding: 8px 0;
+}
+input,
+textarea.extliketextarea {
+  border: 1px solid #cecece;
+  padding: 4px 6px 3px 6px;
+  font: 300 13px/15px helvetica, arial, verdana, sans-serif;
+  vertical-align: middle;
+  min-height: 22px;
+}
+/* textarea.extliketextarea {
+  height: auto !important;
+} */
+.x-form-checkbox, .x-form-radio, .x-tree-checkbox {
+    min-height: 0;
+}
+input[type="radio"],
+input[type="checkbox"] {
+  background: none;
+  border: 0px none;
+  padding: 0px;
+  height: auto;
+  min-height: 0;
+  margin-top: 3px;
+  margin-bottom: 5px;
+}
+input[type="submit"],
+.extlikebutton {
+  background-color: #f5f5f5;
+  border: 1px solid #d8d8d8;
+  border-radius: 3px;
+  padding: 3px 4px;
+  color: #000000;
+  cursor: pointer;
+  height: auto;
+}
+input[type="submit"]:hover,
+.extlikebutton:hover {
+  background-color: #ebebeb;
+  border-color: #cfcfcf;
+}
+.submitbuttons {
+  margin-top: 10px;
+}
+.formtable > tr > td,
+.formtable > tbody > tr > td {
+  padding-top: 5px;
+  padding-right: 15px;
+}
+#formcontent.insidePanel {
+  margin: 10px;
+  margin-top: 5px;
+}
+#header {
+  background-color: #1c6ca7;
+  width: 100%;
+  position: absolute;
+  min-width: 960px;
+}
+#header #menu {
+  height: 40px;
+  color: #ffffff;
+  font-weight: bold;
+}
+#header #menu ul {
+  position: absolute;
+  z-index: 90;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+#header #menu ul li {
+  float: left;
+  display: block;
+  background-color: #1c6ca7;
+}
+#header #menu ul li a {
+  display: block;
+  height: 40px;
+  padding: 10px;
+  color: #ffffff;
+  float: left;
+  text-decoration: none;
+}
+#header #menu ul li a:hover {
+  background-color: #207abd;
+}
+#header #menu ul li ul {
+  display: none;
+  float: left;
+  position: relative;
+  background-color: #1c6ca7;
+}
+#header #menu ul li ul li a {
+  background-color: #dddddd;
+  border: none;
+  color: #1c6ca7;
+}
+#header #menu ul li ul li a:hover {
+  background-color: #eaeaea;
+}
+#header #menu ul li ul li a.active {
+  background-color: #ffffff;
+}
+#header #menu ul li ul li ul {
+  float: none;
+  position: absolute;
+  margin-top: 40px;
+  margin-right: -2px;
+  border: 2px solid #1c6ca7;
+  border-top: 0px none;
+  z-index: 99999;
+}
+#header #menu ul li ul li ul li {
+  width: 100%;
+  min-width: 300px;
+}
+#header #menu ul li ul li ul li a {
+  width: 100%;
+  float: right;
+  text-align: left;
+  border-top: 1px solid #ffffff;
+}
+#header #menu ul li.menuclicked ul {
+  display: block;
+}
+#header #menu ul li.menuclicked ul li ul {
+  display: none;
+}
+#header #menu ul li.menuclicked ul li:hover ul {
+  display: block;
+}
+#header #userinfo {
+  position: absolute;
+  height: 40px;
+  padding: 10px;
+  color: white;
+  right: 0px;
+  z-index: 80;
+}
+#header #userinfo a:hover {
+  text-decoration: none;
+}
+#content {
+  padding-top: 50px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 10px;
+  height: 100%;
+  min-width: 960px;
+}
+#content > h1 {
+    position: absolute;
+}
+.textcontent {
+    padding: 10px;
+    padding-top: 0px;
+}
+.textcontent h1, .textcontent h2, .textcontent h3 {
+    margin-top: 10px;
+}
+.textcontent p {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.textcontent td, .textcontent th {
+    padding: 3px;
+}
+.textcontent thead td, .textcontent thead th {
+    font-weight: bold;
+}
+
+.formContent{
+    position: relative;
+    top: 50px;
+}
+
+#tree-container {
+  width: 350px;
+  float: left;
+  margin-top: 40px;
+}
+#form-container.services {
+  overflow: hidden;
+  height: 100%;
+  padding-top: 40px;
+  padding-bottom: 20px;
+}
+#form-container.documenten {
+  overflow: hidden;
+  height: 55%;
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+#form-container.attributesources {
+  overflow: hidden;
+  height: 55%;
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+#form-container.applicaties {
+  overflow: hidden;
+  height: 55%;
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+#form-container.attribute {
+  overflow: hidden;
+  height: 40%;
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+#form-container.groups {
+  overflow: hidden;
+  height: 55%;
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+#form-container.user {
+  overflow: hidden;
+  height: 55%;
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+#form-container iframe {
+  width: 100%;
+  height: 100%;
+  border: 0px none;
+}
+#grid-container {
+  min-height: 395px;
+  height: 300px;
+  padding-top: 40px;
+}
+#grid-container + #form-container {
+    position: absolute;
+    bottom: 20px;
+    height: auto;
+    top: 445px;
+    min-height: 250px;
+    left: 10px;
+    right: 10px;
+}
+.errors ~ #grid-container + #form-container {
+    top: 495px;
+}
+#layoutManagerTitle {
+  width: 250px;
+  float: left;
+  margin-top: 10px;
+  margin-top: 0px;
+}
+#layoutManagerApplicationSettings {
+  overflow: hidden;
+  padding-left: 12px;
+}
+#layoutManagerApplicationSettings input {
+  width: 50px;
+}
+#layoutManagerApplicationSettings input[type=checkbox] {
+  width: auto;
+}
+#layoutManagerApplicationSettings input.wide, #layoutManagerApplicationSettings select.wide {
+  width: 150px;
+}
+#component-container {
+  width: 250px;
+  float: left;
+  margin-top: 10px;
+  border: 2px solid #1c6ca7;
+  margin-right: 10px;
+  height: 90%;
+  overflow: auto;
+}
+#component-container .component-view .component-block {
+  margin: 10px;
+  padding: 3px;
+  border: 2px solid #1c6ca7;
+  text-align: center;
+}
+#component-container .component-view .component-block .wrangler,
+#component-container .component-view .component-block .remove,
+#component-container .component-view .component-block .draghandle,
+.x-dd-drag-ghost .component-block .wrangler,
+.x-dd-drag-ghost .component-block .remove,
+.x-dd-drag-ghost .component-block .draghandle{
+  display: none;
+}
+#component-container .component-view .component-block.component-added {
+  border: 2px solid #cccccc;
+  color: #cccccc;
+}
+.headerCollapsed,
+.x-headerCollapsed {
+  cursor: pointer;
+}
+.headerCollapsed:hover .x-title-text,
+.x-headerCollapsed:hover .x-title-text {
+  color: #333;
+}
+.headerCollapsed:hover .x-fa,
+.x-headerCollapsed:hover .x-fa {
+  color: #333;
+}
+#layout-container {
+  overflow: hidden;
+  height: 90%;
+  padding-top: 10px;
+  padding-bottom: 20px;
+  border: 2px solid #1c6ca7;
+  margin-top: 10px;
+  padding-top: 0px;
+  overflow: auto;
+}
+#layout-container .content-container {
+  border: 2px dashed #cccccc;
+  padding: 10px;
+}
+#layout-container .content-container.dropallowed {
+  background-color: #EEEEEE;
+}
+.globalconfig {
+    margin: 5px;
+    border: 1px solid #1c6ca7;
+    background-color: White;
+    padding: 5px;
+    float: left;
+    position: absolute;
+    display: none;
+    margin-left: 75px;
+    margin-top: 1px;
+    padding: 10px 15px 5px 15px;
+    z-index: 50;
+}
+.globalconfig label {
+    width: 140px;
+    display: inline-block;
+}
+.globalconfig .configrow {
+    margin-bottom: 5px;
+    padding: 3px;
+}
+.globalconfig .configrow:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+.globalconfig .configrow .extliketextarea {
+    width: 100%;
+    min-height: 75px;
+    display: block;
+}
+#layout-container .content-container .regionconfig input {
+  width: 25px;
+}
+#layout-container .content-container .regionconfig input[type='checkbox'] {
+  width: auto;
+}
+#layout-container .content-container .component-block {
+    margin-top: 10px;
+    padding: 3px;
+    border: 2px solid #1c6ca7;
+    background-color: White;
+    text-align: center;
+    position: relative;
+    height: 27px;
+}
+#layout-container .content-container .component-block span {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 10;
+}
+.icon, .helplink {
+    font: normal normal normal 15px/1 FontAwesome;
+    text-rendering: auto;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing:antialiased;
+    text-decoration: none;
+}
+#layout-container .content-container .component-block .icon {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    display: none;
+    z-index: 11;
+}
+#layout-container .content-container .component-block .wrangler {
+    left: 24px;
+}
+#layout-container .content-container .component-block .remove {
+    color: #cb1e1b;
+}
+#layout-container .content-container .component-block .draghandle {
+    left: auto;
+    right: 4px;
+    color: #333333;
+}
+#layout-container .content-container .component-block:hover .icon {
+    display: block;
+}
+#layout-container .content-container .hide-draghandle .component-block:hover .draghandle {
+    display: none;
+}
+#layout_top_menu.content-container .component-block:hover span {
+    left: 40px;
+}
+#layout_left_menu.content-container .component-block:hover span {
+    left: 40px;
+    right: 20px;
+}
+#layout-container .content-container.content-container-hover {
+  border: 2px dashed #1c6ca7;
+}
+#layout-container #layout-north,
+#layout-container #layout-south {
+  margin: 10px;
+}
+#layout-container #layout-center {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+#layout-container #layout-center #center_left,
+#layout-container #layout-center #center_right {
+  width: 180px;
+  float: left;
+  margin-right: 10px;
+}
+#layout-container #layout-center #center_left .top,
+#layout-container #layout-center #center_right .top {
+  height: 40%;
+  margin-bottom: 10px;
+}
+#layout-container #layout-center #center_left .bottom,
+#layout-container #layout-center #center_right .bottom {
+  height: 60%;
+}
+#layout-container #layout-center #center_right {
+  float: right;
+  margin-right: 0px;
+  margin-left: 10px;
+}
+#layout-container #layout-center #center_center {
+  overflow: hidden;
+}
+#layout-container #layout-center #center_center #layout_left_menu {
+  float: left;
+  margin-right: 10px;
+  width: 120px;
+}
+#layout-container #layout-center #center_center #center_center_center {
+  overflow: hidden;
+}
+#layout-container #layout-center #center_center #center_center_center #layout_top_menu,
+#layout-container #layout-center #center_center #center_center_center #layout_content,
+#layout-container #layout-center #center_center #center_center_center #layout_content_bottom {
+  margin-bottom: 10px;
+}
+#layout-container #layout-center #center_center #center_center_center #layout_top_menu .floatwrapper {
+  padding-right: 15px;
+  overflow: auto;
+}
+.tabdiv {
+  visibility: hidden;
+}
+.tree-selection-tree {
+  float: left;
+}
+.tree-selection-buttons {
+  float: left;
+  padding-top: 150px;
+  padding-left: 6px;
+  width: 45px;
+}
+.tree-selection-buttons div {
+  display: block;
+  margin-top: 5px;
+}
+/* Slider config */
+.main-slider-container.row_odd {
+  background-color: #dddddd;
+}
+.main-slider-container .label {
+  float: left;
+  width: 200px;
+}
+.main-slider-container .slider-container {
+  float: left;
+}
+.main-slider-container .slider-container .sliderbox {
+  text-align: center;
+  float: left;
+  width: 65px;
+}
+#sliderheader-container .sliderheader {
+  text-align: center;
+  float: left;
+  width: 65px;
+}
+.appSettingsRight {
+  float: left;
+}
+.helplink {
+    width: 16px;
+    height: 16px;
+    display: block;
+    float: right;
+    color: #1c6ca7;
+    margin-left: 5px;
+    margin-top: 1px;
+}
+.helplink:before {
+    content: "\f059" !important;
+}
+.helplink::before {
+    content: "\f059" !important;
+}
+.helpBlock {
+  margin: 5px;
+  padding: 5px;
+  border: 1px solid #cccccc;
+}
+.helpBlock h1 {
+  padding: 5px;
+  background-color: #1c6ca7;
+  color: #FFFFFF;
+}
+.helpBlock p {
+  margin-top: 5px;
+}
+.flamingoLogo{
+    margin: 20px;
+}
+.striped-table tr:nth-child(even) {
+    background-color: #EEEEEE;
+}
+.checkbox-table {
+    width: 100%;
+}
+.checkbox-table input[type=checkbox] {
+    margin-left: 8px;
+}
+.plain-button {
+    background-color: #f5f5f5 !important;
+    border-color: #d8d8d8 !important;
+}
+.plain-button .x-btn-icon, .plain-button .x-btn-icon-el-default-small {
+    color: #777;
+}
+/* messages */
+
+.box {
+    padding: 5px;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+.messages .box {
+    width: 400px;
+    padding: 5px;
+    margin: 10px;
+    margin-left: 0px;
+}
+
+.wideMessages .box {
+    width: 700px;
+    padding: 5px;
+    margin: 10px;
+    margin-left: 0px;
+}
+
+.box div {
+    padding-left: 20px;
+    padding-bottom: 1px;
+}
+
+.security {
+    border: 1px solid #7f7f00;
+    background-color: #ffffee;
+}
+
+.security div {
+    background: url(../images/lock.gif) no-repeat;
+    color: #7f7f00;
+}
+
+.errors {
+    border: 1px solid red;
+	background-color: #fff5f5;
+}
+
+.errors div {
+    background: url(../images/error.gif) no-repeat;
+    color: red;
+}
+
+.info {
+    border: 1px solid blue;
+    background-color: #f5f5ff;
+}
+
+.info div {
+    background: url(../images/info.gif) no-repeat;
+    color: blue;
+}
+
+.warnings {
+    border: 1px solid #7f7f00;
+    background-color: #ffffee;
+}
+
+.warnings div {
+    background: url(../images/warning.gif) no-repeat;
+    color: #7f7f00;
+}
+
+/* validation styles */
+
+input.error, textarea.error {
+    color: red;
+    background-color: #ffffaa;
+}
+
+input.error[type="radio"], input.error[type="checkbox"], select.error {
+    background-color: white;
+    border: 2px solid red;
+}
+
+.attributeListClass{
+    width: 30%;
+    float: left;
+    overflow: auto; 
+    height: 200px;
+}
+#attributeContainer{
+    margin-top: 10px;
+    padding: 10px;
+    border-top: #D0D0D0 solid 1px;
+    width: 100%;
+    height: 100px;
+}
+.relation_left_side{
+    margin-right: 40px;
+}
+.relation_right_side{
+    margin-left: 40px;
+}
+
+.usageMatrixFeatureSource{
+    float: left;
+    clear: both;    
+    width: 100%;
+    margin-bottom: 20px;
+}
+.usageMatrixFeatureSource table{    
+    width: 100%;
+}
+.usageMatrixFeatureSource table td{
+    width: 25%;
+}
+.usageMatrixFeatureSource table th{
+    font-weight: bold;
+    background-color: lightgray;
+    color: black;
+}
+.featureType-missing{
+    color: red;
+}
+.featureType-new{
+    color: green;
+}
+.featureType-updated{
+    font-weight: bold;
+}
+.featureType-unmodified{
+    
+}
+
+.disabledTextField input{
+    opacity: .3;
+    -moz-opacity: .3;
+    filter: alpha(opacity=30);
+}
+
+#startmapform {
+    margin-top: 40px;
+}
+
+.inline-help {
+    max-width: 400px;
+    padding: 10px;
+    border: 1px solid #d8d8d8;
+}
+
+/* At page init Ext context menus take some space at the bottom, resulting in a scrollbar? */
+.x-menu {
+    top: 0;
+    left: 0;
+}
+/* Extra help text which can be defined in the components.json */
+.extra-help-text {
+    margin-top: 10px;
+    width: 740px;
+}
+/** Fixes Ext issue with scrollbar in tree's */
+.x-tree-view > .x-grid-item-container {
+    width: 100% !important;
+}
+
+.maximize {
+    width: 100%;
+    height: 100%;
+}
+
+.x-gridheaderfilters-filter-container .x-anchor-form-item {
+    margin-bottom: 0;
+}
+
+.x-grid-item-container .removed, .x-grid-item-container .removed .x-grid-item-focused {
+    color: #BBBBBB;
+    text-decoration: line-through;
+}
+
+.disable-selection {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/** Overrides the sprite position of HTML editor buttons. */
+.x-html-editor-tb .x-edit-bold, .x-menu-item div.x-edit-bold {
+    background-position: 2px 0;
+}
+.x-html-editor-tb .x-edit-italic, .x-menu-item div.x-edit-italic {
+    background-position: -15px 0;
+}
+.x-html-editor-tb .x-edit-underline, .x-menu-item div.x-edit-underline {
+    background-position: -30px 0;
+}
+.x-html-editor-tb .x-edit-increasefontsize, .x-menu-item div.x-edit-increasefontsize {
+    background-position: -45px 0;
+}
+.x-html-editor-tb .x-edit-decreasefontsize, .x-menu-item div.x-edit-decreasefontsize {
+    background-position: -61px 0;
+}
+.x-html-editor-tb .x-edit-forecolor, .x-menu-item div.x-edit-forecolor {
+    background-position: -158px 0;
+}
+.x-html-editor-tb .x-edit-backcolor, .x-menu-item div.x-edit-backcolor {
+    background-position: -174px 0;
+}
+.x-html-editor-tb .x-edit-justifyleft, .x-menu-item div.x-edit-justifyleft {
+    background-position: -110px 0;
+}
+.x-html-editor-tb .x-edit-justifycenter, .x-menu-item div.x-edit-justifycenter {
+    background-position: -125px 0;
+}
+.x-html-editor-tb .x-edit-justifyright, .x-menu-item div.x-edit-justifyright {
+    background-position: -141px 0;
+}
+
+/** Override Ext scrolling behaviour for tree's. This appears to be a bug in Ext.
+    Horizontal scrolling is disabled even when scrollable is set to true */
+.x-tree-view.x-tree-view-default.x-scroller {
+    overflow: auto !important;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+}
+.x-tree-icon {
+    pointer-events: none;
+}
+
+.filterableCheckboxesLabel{
+    border: 1px solid black;
+}
+/** Overrides for Tailormap */
+.tailormap {
+    color: #E5E5E5;
+    color: #d6eee2;
+    color: #fad4d7;
+    
+    color: #ef5765;
+    color: #ff6666;
+}
+.fla5geocms {
+    color: #1c6ca7;	
+    color: #207abd;
+}
+.extjsfla5 {
+   color: #1c6ca7;	
+    color: #00FFFF;
+    color: #5fa2dd;
+    color: #7fb5e4;
+    color: #a4cf6d;
+}
+
+body {
+ color: #ef5765;
+}
+body.x-body {
+ color: #ef5765;
+}
+#header {
+ background-color: #ef5765;
+}
+#header #menu ul li {
+ background-color: #ef5765;
+}
+#header #menu ul li a:hover {
+  background-color: #ff6666;
+}
+#header #menu ul li ul {
+ background-color: #ef5765;
+}
+#header #menu ul li ul li a {
+ color: #ef5765;
+}
+#header #menu ul li ul li ul {
+ border: 2px solid #ef5765;
+}
+#component-container {
+ border: 2px solid #ef5765;
+}
+#component-container .component-view .component-block {
+ border: 2px solid #ef5765;
+}
+#layout-container {
+ border: 2px solid #ef5765;
+}
+.globalconfig {
+ border: 1px solid #ef5765;
+}
+#layout-container .content-container .component-block {
+ border: 2px solid #ef5765;
+}
+#layout-container .content-container.content-container-hover {
+ border: 2px dashed #ef5765;
+}
+.helplink {
+ color: #ef5765;
+}
+.helpBlock h1 {
+ background-color: #ef5765;
+}
+
+.form-container{
+    display: flex;
+    flex-direction: row;
+}
