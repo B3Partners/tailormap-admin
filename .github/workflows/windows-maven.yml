@@ -27,10 +27,6 @@ jobs:
           java-version: 11
           distribution: 'temurin'
 
-      - name: Priming build
-        run: |
-          mvn --% install -DskipTests -Dtest.skip.integrationtests=true -B -V -fae
-
       - name: Test with Maven
         run: |
           mvn --% -e -fae clean test -B

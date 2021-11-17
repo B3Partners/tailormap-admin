@@ -101,7 +101,6 @@
     <test.junit-jupiter.version>5.8.1</test.junit-jupiter.version>
     <test.hamcrest.version>2.2</test.hamcrest.version>
     <maven.surefire.version>3.0.0-M5</maven.surefire.version>
-    <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
     <cargo-maven3-plugin.version>1.9.8</cargo-maven3-plugin.version>
     <tomcat.localDatasource>false</tomcat.localDatasource>
     <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
@@ -114,8 +113,8 @@
     <docker-deploy-repo>docker.b3p.nl</docker-deploy-repo>
     <!-- skip QA checks -->
     <skipQA>false</skipQA>
-    <pmd.version>6.40.0</pmd.version>
-    <errorProne.version>2.10.0</errorProne.version>
+    <!--    <pmd.version>6.40.0</pmd.version>-->
+    <!--    <errorProne.version>2.10.0</errorProne.version>-->
     <errorProneFlags></errorProneFlags>
     <compiler.lint>deprecation,unchecked</compiler.lint>
     <fmt.action>format</fmt.action>
@@ -352,6 +351,12 @@
     <pluginManagement>
       <plugins>
         <plugin>
+          <groupId>io.fabric8</groupId>
+          <artifactId>docker-maven-plugin</artifactId>
+          <version>0.38.0</version>
+        </plugin>
+
+        <plugin>
           <artifactId>maven-war-plugin</artifactId>
           <version>3.3.2</version>
         </plugin>
@@ -372,11 +377,6 @@
           <groupId>com.github.ekryd.sortpom</groupId>
           <artifactId>sortpom-maven-plugin</artifactId>
           <version>3.0.0</version>
-        </plugin>
-        <plugin>
-          <groupId>io.fabric8</groupId>
-          <artifactId>docker-maven-plugin</artifactId>
-          <version>0.38.0</version>
         </plugin>
         <plugin>
           <artifactId>maven-scm-publish-plugin</artifactId>
@@ -455,6 +455,83 @@
     </pluginManagement>
     <plugins>
       <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>pre-unit-test</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+            <configuration>
+              <propertyName>surefireArgLine</propertyName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>pre-integration-test</id>
+            <goals>
+              <goal>prepare-agent-integration</goal>
+            </goals>
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <propertyName>failsafeArgLine</propertyName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>post-unit-test</id>
+            <goals>
+              <goal>report</goal>
+            </goals>
+            <phase>test</phase>
+            <configuration></configuration>
+          </execution>
+          <execution>
+            <id>post-integration-test</id>
+            <goals>
+              <goal>report-integration</goal>
+            </goals>
+            <phase>post-integration-test</phase>
+            <configuration></configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <pushChanges>true</pushChanges>
+          <releaseProfiles>release</releaseProfiles>
+          <tagNameFormat>tailormap-admin-@{project.version}</tagNameFormat>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.8,)</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>${java.version}</version>
+                </requireJavaVersion>
+                <bannedDependencies>
+                  <excludes>
+                    <exclude>junit:junit</exclude>
+                    <exclude>org.hamcrest:hamcrest-core</exclude>
+                    <exclude>commons-lang:commons-lang</exclude>
+                  </excludes>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>com.github.ekryd.sortpom</groupId>
         <artifactId>sortpom-maven-plugin</artifactId>
         <configuration>
@@ -477,7 +554,9 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <compilerArguments></compilerArguments>
+          <compilerArgs>
+            <arg>-Xlint:${compiler.lint}</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>
@@ -550,11 +629,17 @@
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+          <excludes>
+            <exclude>**/*IntegrationTest.java</exclude>
+          </excludes>
+          <skipTests>${skipQA}</skipTests>
           <systemPropertyVariables>
             <test.persistence.unit>${test.persistence.unit}</test.persistence.unit>
           </systemPropertyVariables>
+          <!--suppress UnresolvedMavenProperty -->
           <argLine>${surefireArgLine}</argLine>
         </configuration>
+
       </plugin>
       <!--            <plugin>-->
       <!--                <groupId>com.github.eirslett</groupId>-->
@@ -602,7 +687,7 @@
       <!--            </plugin>-->
       <plugin>
         <!-- not bound to any lifecycle, but can be run from commandline using:
-                mvn -U install -DskipTests -DskipITs -Ddocker.skip=true org.owasp:dependency-check-maven:check -->
+                        mvn -U install -DskipTests -DskipITs -Ddocker.skip=true org.owasp:dependency-check-maven:check -->
         <groupId>org.owasp</groupId>
         <artifactId>dependency-check-maven</artifactId>
         <configuration>
@@ -659,7 +744,71 @@
       </plugin>
     </plugins>
   </build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco-maven-plugin.version}</version>
+        <configuration>
+          <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+          <dataFileIncludes>
+            <dataFileInclude>${project.build.directory}/jacoco-ut.exec</dataFileInclude>
+            <dataFileInclude>${project.build.directory}/jacoco-it.exec</dataFileInclude>
+          </dataFileIncludes>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <version>${dependency-check-maven.version}</version>
+        <configuration>
+          <name>OWASP Dependency Check</name>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
   <profiles>
+    <profile>
+      <!-- use this profile to deactivate QA actions and docker builds -->
+      <id>developing</id>
+      <properties>
+        <docker.skip>true</docker.skip>
+        <skipQA>true</skipQA>
+      </properties>
+    </profile>
+    <profile>
+      <!-- this profile will be activated in case the flag -DskipQA=true is passed to maven -->
+      <id>qa-skip</id>
+      <activation>
+        <property>
+          <name>skipQA</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <properties>
+        <skipQA>true</skipQA>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <compilerArgs>
+                <arg>-Xlint:${compiler.lint}</arg>
+              </compilerArgs>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <!-- automagically activated during release with maven-release-plugin -->
       <id>release</id>
@@ -702,6 +851,7 @@
       <id>gh-action</id>
       <properties>
         <tomcat.localDatasource>true</tomcat.localDatasource>
+        <test.persistence.unit>viewer-config-postgresql</test.persistence.unit>
       </properties>
       <dependencies>
         <dependency>

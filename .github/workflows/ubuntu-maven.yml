@@ -36,7 +36,7 @@ jobs:
           sudo -u postgres psql -a -c 'ALTER DATABASE flamingo4 OWNER TO flamingo4;'
 
       - name: Priming build with Maven
-        run: mvn install -DskipTests -Dtest.skip.integrationtests=true -B -V -fae
+        run: mvn install -DskipTests -DskipITs -B -V -fae
 
       - name: Test with Maven
         run: |

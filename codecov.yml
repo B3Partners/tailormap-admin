@@ -1,0 +1,23 @@
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  precision: 0
+  round: down
+  range: "50...100"
+
+parsers:
+  gcov:
+    branch_detection:
+      conditional: true
+      loop: true
+      method: false
+      macro: false
+
+comment:
+  layout: "reach,diff,flags,files,footer"
+  behavior: default
+  require_changes: true
+
+github_checks:
+  annotations: false

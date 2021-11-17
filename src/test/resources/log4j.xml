@@ -7,7 +7,7 @@ LEVELS: debug, info, warn, error, fatal en off, all -->
     <appender name="consoleAppender" class="org.apache.log4j.ConsoleAppender">
         <param name="Threshold" value="debug" />
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{HH:mm:ss} Flamingo-viewer-admin-test: %5p (%C#%M:%L) - %m%n" />
+            <param name="ConversionPattern" value="%d{HH:mm:ss} tailormap-admin-test: %5p (%C#%M:%L) - %m%n" />
         </layout>
     </appender>
     <logger name="nl.tailormap.viewer.admin.stripes">
