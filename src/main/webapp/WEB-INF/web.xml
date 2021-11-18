@@ -14,7 +14,7 @@
     <context-param>
         <description>
             The (relative or absolute) URL to the viewer webapp. Needed for when
-            the viewer-admin needs to link to it, for example for image uploads.
+            the tailormap-admin needs to link to it, for example for image uploads.
         </description>
         <param-name>viewer.url</param-name>
         <param-value>/viewer</param-value>
@@ -29,7 +29,7 @@
 
             The viewer webapp must be reachable by ServletContext.getContext().
             For Tomcat, set crossContext="true" on the Context for the
-            viewer-admin webapp. Other servlet containers may require different
+            tailormap-admin webapp. Other servlet containers may require different
             configuration.
         </description>
         <param-name>componentregistry.crosscontext</param-name>
@@ -60,19 +60,20 @@
     </context-param>
     <context-param>
         <description>
-            Configure the directory at which the tailormap data directory is located. This application must have permissions to write/read to that directory. In this directory
-            the solr configuration and index will be located.
+            Configure the directory at which the tailormap data directory is located.
+            This application must have permissions to write/read to that directory.
         </description>
         <param-name>tailormap.data.dir</param-name>
         <param-value>PATH/TO/DATA/DIRECTORY</param-value>
     </context-param>
+
     <context-param>
         <description>
-            Configure whether or not this web application had to create the directory structure for solr. Default is false. Set to true for the viewer-admin, because the
-            viewer-admin has the resources for a new server/core istance to be created.
+            Configure whether or not this web application had to create the directory structure for solr. Default is false. Set to true for the tailormap-admin, because the
+            tailormap-admin has the resources for a new server/core istance to be created.
         </description>
         <param-name>tailormap.solr.setup</param-name>
-        <param-value>true</param-value>
+        <param-value>false</param-value>
     </context-param>
     <context-param>
         <description>
@@ -90,6 +91,7 @@
         <param-name>tailormap.solr.url</param-name>
         <param-value>http://SERVER/solr</param-value>
     </context-param>
+
     <context-param>
         <description>
             List of supported language codes (comma-separated)
@@ -125,23 +127,23 @@
     <listener>
         <listener-class>nl.tailormap.web.stripes.StripersistCleanupListener</listener-class>
     </listener>
-    <listener>
-        <description>The class which initializes (and if configured sets up) the solr instance.</description>
-        <listener-class>nl.tailormap.viewer.solr.SolrInitializer</listener-class>
-    </listener>
-    <listener>
-        <description>The class which initializes (and if configured sets up) the solr instance.</description>
-        <listener-class>nl.tailormap.viewer.solr.SolrUpdaterListener</listener-class>
-    </listener>
-    <context-param>
-        <description>interval (in minutes) to use for refreshing SPOTinfo access tokens, default 60 minutes</description>
-        <param-name>spotinfo.token.refresh.interval</param-name>
-        <param-value>60</param-value>
-    </context-param>
-    <listener>
-        <description>Update access tokens for SPOTinfo / omgevingsserver.nl</description>
-        <listener-class>nl.tailormap.viewer.admin.processes.SPOTinfoTokenRefresherListener</listener-class>
-    </listener>
+<!--    <listener>-->
+<!--        <description>The class which initializes (and if configured sets up) the solr instance.</description>-->
+<!--        <listener-class>nl.tailormap.viewer.solr.SolrInitializer</listener-class>-->
+<!--    </listener>-->
+<!--    <listener>-->
+<!--        <description>The class which initializes (and if configured sets up) the solr instance.</description>-->
+<!--        <listener-class>nl.tailormap.viewer.solr.SolrUpdaterListener</listener-class>-->
+<!--    </listener>-->
+<!--    <context-param>-->
+<!--        <description>interval (in minutes) to use for refreshing SPOTinfo access tokens, default 60 minutes</description>-->
+<!--        <param-name>spotinfo.token.refresh.interval</param-name>-->
+<!--        <param-value>60</param-value>-->
+<!--    </context-param>-->
+<!--    <listener>-->
+<!--        <description>Update access tokens for SPOTinfo / omgevingsserver.nl</description>-->
+<!--        <listener-class>nl.tailormap.viewer.admin.processes.SPOTinfoTokenRefresherListener</listener-class>-->
+<!--    </listener>-->
     <!-- Localization context for the likes of the <fmt:message> JSTL tag -->
     <context-param>
         <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
@@ -233,6 +235,12 @@
         <servlet-name>StripesDispatcher</servlet-name>
         <servlet-class>net.sourceforge.stripes.controller.DispatcherServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <!-- no mapping for this servlet: it init;s the database on startup of the application -->
+        <servlet-name>DatabaseSynchronizer</servlet-name>
+        <servlet-class>nl.tailormap.viewer.util.databaseupdate.DatabaseSynchronizer</servlet-class>
+        <load-on-startup>2</load-on-startup>
     </servlet>
     <servlet-mapping>
         <servlet-name>StripesDispatcher</servlet-name>

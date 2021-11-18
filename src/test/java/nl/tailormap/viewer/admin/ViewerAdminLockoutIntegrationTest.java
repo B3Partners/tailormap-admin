@@ -64,7 +64,7 @@ public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
     /**
      * the viewer url. {@value}
      */
-    private static final String BASE_TEST_URL = "http://localhost:9090/viewer-admin/";
+    private static final String BASE_TEST_URL = "http://localhost:9090/tailormap-admin/";
 
     /**
      * our test client.
@@ -100,7 +100,7 @@ public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
     }
 
     /**
-     * Test if the Flamingo viewer-admin application has started and can be
+     * Test if the tailormap-admin application has started and can be
      * reached.
      *
      * @throws IOException                  if any

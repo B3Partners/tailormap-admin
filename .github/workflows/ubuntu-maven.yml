@@ -10,6 +10,18 @@ jobs:
     name: Ubuntu Java 11 Build
     runs-on: ubuntu-20.04
 
+    services:
+      postgres:
+        # docker run -h tailormap --name tailormap -it --rm -d -e POSTGRES_USER=tailormap -e POSTGRES_DB=tailormap -e POSTGRES_PASSWORD=tailormap -p 5432:5432 postgres:14.1-alpine
+        image: postgres:14.1-alpine
+        env:
+          POSTGRES_USER: tailormap
+          POSTGRES_PASSWORD: tailormap
+          POSTGRES_DB: tailormap
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 15s --health-timeout 5s --health-retries 5
+
     steps:
       - uses: actions/checkout@v2
 
@@ -25,15 +37,6 @@ jobs:
         with:
           java-version: 11
           distribution: 'temurin'
-
-      - name: setup database
-        run: |
-          sudo systemctl start postgresql.service
-          psql --version
-          sudo -u postgres psql -d postgres -c 'SELECT Version();' || true
-          sudo -u postgres psql -a -c "CREATE ROLE flamingo4 LOGIN PASSWORD 'flamingo4' SUPERUSER CREATEDB;"
-          sudo -u postgres psql -a -c 'CREATE DATABASE flamingo4;'
-          sudo -u postgres psql -a -c 'ALTER DATABASE flamingo4 OWNER TO flamingo4;'
 
       - name: Priming build with Maven
         run: mvn install -DskipTests -DskipITs -B -V -fae

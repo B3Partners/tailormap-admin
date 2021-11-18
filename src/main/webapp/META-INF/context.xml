@@ -3,10 +3,10 @@
 more about the available context attributes:
   https://tomcat.apache.org/tomcat-9.0-doc/config/context.html
 
-crossContext="true" is required to enable the viewer-admin to load the
+crossContext="true" is required to enable the tailormap-admin to load the
   components.json file and component config javascript sources from the viewer
 -->
-<Context crossContext="true" path="/viewer-admin" antiResourceLocking="false">
+<Context crossContext="true" path="/tailormap-admin" antiResourceLocking="false">
     <Parameter name="componentregistry.path" override="false" value="/viewer-html/components"/>
     <Parameter name="tailormap.data.dir" override="false" value="/opt/tailormap_data"/>
     <Parameter name="tailormap.solr.url" override="false" value="https://tailormap.nl/solr/"/>
@@ -20,7 +20,7 @@ crossContext="true" is required to enable the viewer-admin to load the
     <!--Parameter name="monitoring.mail.from.email" value="no-reply@b3partners.nl" override="false"/-->
     <!--Parameter name="monitoring.mail.from.name" value="Geo services monitoring" override="false"/-->
     <!--Parameter name="monitoring.schedule.minutes" value="30" override="false"/-->
-    <!--Parameter name="tailormap.data.dir" value="/opt/flamingo_data" override="false"/-->
+    <!--Parameter name="tailormap.data.dir" value="/opt/tailormap_data" override="false"/-->
     <!--  <Parameter name="spotinfo.token.refresh.interval" override="false" value="15"/>-->
     <!-- For Tomcat: define datasource in server.xml, for example:
       NOTE:
@@ -34,9 +34,9 @@ crossContext="true" is required to enable the viewer-admin to load the
                     driverClassName="org.postgresql.Driver"
                     type="javax.sql.DataSource"
                     name="jdbc/geo_viewer"
-                    url="jdbc:postgresql://localhost:5432/flamingo4"
-                    username="flamingo4"
-                    password="flamingo4"
+                    url="jdbc:postgresql://localhost:5432/tailormap"
+                    username="tailormap"
+                    password="tailormap"
                     timeBetweenEvictionRunsMillis="30000"
                     maxWaitMillis="15000"
                     minEvictableIdleTimeMillis="5000"
