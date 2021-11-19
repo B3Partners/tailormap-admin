@@ -8,72 +8,20 @@ crossContext="true" is required to enable the tailormap-admin to load the
 -->
 <Context crossContext="true" path="/tailormap-admin" antiResourceLocking="false">
     <Parameter name="componentregistry.path" override="false" value="/viewer-html/components"/>
+    <Parameter name="componentregistry.crosscontext" override="false" value="/tailormap-admin"/>
+
     <Parameter name="tailormap.data.dir" override="false" value="/opt/tailormap_data"/>
-    <Parameter name="tailormap.solr.url" override="false" value="https://tailormap.nl/solr/"/>
+
+
     <Parameter name="tailormap.i18n.languagecodes" override="false" value="nl_NL,en_US"/>
     <Parameter name="tailormap.projections.epsgcodes" override="false"
                value="EPSG:28992[+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.237,50.0087,465.658,-0.406857,0.350733,-1.87035,4.0812 +units=m +no_defs];EPSG:4326[]"/>
 
+    <Parameter name="tailormap.solr.url" override="false" value=""/>
+    <Parameter name="tailormap.solr.schedule" value="-1" override="false"/>
+    <Parameter name="tailormap.solr.setup" value="false" override="false"/>
 
-    <!-- Customized context parameters; see also: web.xml -->
-    <!--Parameter name="viewer.url" value="/viewer" override="false"/-->
-    <!--Parameter name="monitoring.mail.from.email" value="no-reply@b3partners.nl" override="false"/-->
-    <!--Parameter name="monitoring.mail.from.name" value="Geo services monitoring" override="false"/-->
-    <!--Parameter name="monitoring.schedule.minutes" value="30" override="false"/-->
-    <!--Parameter name="tailormap.data.dir" value="/opt/tailormap_data" override="false"/-->
-    <!--  <Parameter name="spotinfo.token.refresh.interval" override="false" value="15"/>-->
-    <!-- For Tomcat: define datasource in server.xml, for example:
-      NOTE:
-          each version of tomcat comes with it's own version of the pooling library
-          that can have subtle differences so you must check for your version:
-          - https://tomcat.apache.org/tomcat-9.0-doc/jndi-datasource-examples-howto.html
-
-      <Server ...>
-        <GlobalNamingResources>
-          <Resource auth="Container"
-                    driverClassName="org.postgresql.Driver"
-                    type="javax.sql.DataSource"
-                    name="jdbc/geo_viewer"
-                    url="jdbc:postgresql://localhost:5432/tailormap"
-                    username="tailormap"
-                    password="tailormap"
-                    timeBetweenEvictionRunsMillis="30000"
-                    maxWaitMillis="15000"
-                    minEvictableIdleTimeMillis="5000"
-                    maxTotal="40"
-                    validationQuery="select 1"
-          />
-
-        </GlobalNamingResources>
-      </Server>
-
-      NOTE: each JDBC driver version and each version of Tomcat will have different options that can/must be set
-
-      -->
     <ResourceLink global="jdbc/geo_viewer" name="jdbc/geo_viewer" type="javax.sql.DataSource"/>
-    <!-- For Tomcat: define JavaMail resource in server.xml. See:
-
-      https://tomcat.apache.org/tomcat-9.0-doc/jndi-resources-howto.html#JavaMail_Sessions
-
-      Don't forget to put mail.jar in the Tomcat lib directory.
-
-      To configure your mail server, use attributes like "mail.smtp.host" for
-      the Resource element. See Appendix A of the JavaMail spec for which
-      attributes you can use, possibly accessible at
-      http://www.oracle.com/technetwork/java/javamail/index-141777.html
-
-      <Server ...>
-          ...
-          <GlobalNamingResources>
-              <Resource name="mail/session"
-                      auth="Container"
-                      type="javax.mail.Session"
-                      mail.smtp.host="smtp.mycompany.com"
-              />
-          </GlobalNamingResources>
-          ...
-      </Server>
-      -->
     <ResourceLink global="mail/session" name="mail/session" type="javax.mail.Session"/>
     <!-- voor productie aanpassen in onderstaande Realm:
         localDataSource="false"
@@ -93,20 +41,5 @@ crossContext="true" is required to enable the tailormap-admin to load the
                                algorithm="SHA-1"
             />
         </Realm>
-        <!-- Use JNDIRealm for authenticating against a LDAP server (such as
-                 Active Directory):
-                 http://tomcat.apache.org/tomcat-9.0-doc/config/realm.html
-                 http://tomcat.apache.org/tomcat-9.0-doc/realm-howto.html#JNDIRealm
-            -->
-        <!--Realm className="org.apache.catalina.realm.JNDIRealm"
-                allRolesMode="authOnly"
-                connectionURL="ldap://ldap:389"
-                connectionName="cn=ServiceUser,ou=Services,o=MyOrg"
-                connectionPassword=""
-                userBase="o=MyOrg"
-                userSubtree="true"
-                userSearch="cn={0}"
-                commonRole="ExtendedUser"
-            /-->
     </Realm>
 </Context>
