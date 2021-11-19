@@ -1,7 +1,7 @@
 name: Windows Maven build
 
 env:
-  MAVEN_OPTS: -Djava.awt.headless=true -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3 -Dbrmo.persistence.microsoftsqlserver
+  MAVEN_OPTS: -Djava.awt.headless=true
 
 on:
   pull_request:
@@ -27,6 +27,10 @@ jobs:
           java-version: 11
           distribution: 'temurin'
 
+      - name: Priming build
+        run: |
+          mvn --% install -DskipTests -DskipITs -B -V -fae
+
       - name: Test with Maven
         run: |
           mvn --% -e -fae clean test -B
@@ -37,4 +41,4 @@ jobs:
 
       - name: Cleanup build artifacts and snapshots
         run: |
-          cmd --% /c for /f %i in ('dir /a:d /s /b %userprofile%\*SNAPSHOT*') do rd /s /q %i
+          mvn --% clean build-helper:remove-project-artifact

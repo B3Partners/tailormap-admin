@@ -966,7 +966,7 @@
       </properties>
     </profile>
     <profile>
-      <id>gh-action</id>
+      <id>integration-testing</id>
       <properties>
         <tomcat.localDatasource>true</tomcat.localDatasource>
         <test.persistence.unit>viewer-config-postgresql</test.persistence.unit>
