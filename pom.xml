@@ -86,6 +86,8 @@
     <project.build.outputTimestamp>2021-11-16T16:01:17Z</project.build.outputTimestamp>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
+    <!-- must be kept in sync with tailormap version -->
+    <geotools.version>26.0</geotools.version>
     <tailormap.version>5.9.11</tailormap.version>
     <b3p-commons-csw.version>7.1</b3p-commons-csw.version>
     <hsqldb.version>2.6.1</hsqldb.version>
@@ -130,83 +132,85 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>org.tailormap</groupId>
+        <artifactId>tailormap</artifactId>
+        <version>${tailormap.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
     <dependency>
-      <groupId>commons-fileupload</groupId>
-      <artifactId>commons-fileupload</artifactId>
-      <version>1.4</version>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
     </dependency>
+    <!--    <dependency>-->
+    <!--      <groupId>commons-fileupload</groupId>-->
+    <!--      <artifactId>commons-fileupload</artifactId>-->
+    <!--      <version>1.4</version>-->
+    <!--    </dependency>-->
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
-      <version>1.2</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>1.2.17</version>
     </dependency>
     <dependency>
       <groupId>org.quartz-scheduler</groupId>
       <artifactId>quartz</artifactId>
-      <version>2.3.2</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.12.0</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.stripes</groupId>
       <artifactId>stripes</artifactId>
-      <version>1.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.stripesstuff</groupId>
       <artifactId>stripersist</artifactId>
-      <version>1.0.3</version>
     </dependency>
     <dependency>
       <groupId>org.stripesstuff</groupId>
       <artifactId>stripesstuff</artifactId>
-      <version>0.6.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-      <version>3.0.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>jakarta.mail</groupId>
       <artifactId>jakarta.mail-api</artifactId>
-      <version>${jakarta.mail.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.sun.activation</groupId>
       <artifactId>jakarta.activation</artifactId>
-      <version>${activation.api.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>jakarta.mail</artifactId>
-      <version>${jakarta.mail.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${postgresql.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish.web</groupId>
       <artifactId>javax.servlet.jsp.jstl</artifactId>
-      <version>1.2.5</version>
       <exclusions>
         <exclusion>
           <!-- drags in servlet api 2.5 -->
@@ -221,92 +225,103 @@
     </dependency>
     <dependency>
       <groupId>org.tailormap</groupId>
+      <artifactId>viewer-commons</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.tailormap</groupId>
       <artifactId>viewer-config-persistence</artifactId>
-      <version>${tailormap.version}</version>
     </dependency>
     <dependency>
       <groupId>org.tailormap</groupId>
       <artifactId>solr-commons</artifactId>
-      <version>${tailormap.version}</version>
     </dependency>
     <dependency>
       <groupId>org.tailormap</groupId>
       <artifactId>web-commons</artifactId>
-      <version>${tailormap.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>${apache.commons-codec.version}</version>
     </dependency>
     <dependency>
       <groupId>org.tailormap</groupId>
       <artifactId>form</artifactId>
-      <version>${tailormap.version}</version>
     </dependency>
     <dependency>
       <groupId>org.tailormap</groupId>
       <artifactId>viewer-helpers</artifactId>
-      <version>${tailormap.version}</version>
     </dependency>
     <dependency>
       <groupId>nl.b3p</groupId>
       <artifactId>b3p-commons-csw</artifactId>
-      <version>${b3p-commons-csw.version}</version>
     </dependency>
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20210307</version>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-ooxml</artifactId>
-      <version>${apache.poi.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
-      <version>${apache.poi.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-solrj</artifactId>
-      <version>4.6.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-cql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-wfs-ng</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-main</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-xml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-opengis</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>${apache.httpcomponents.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient-cache</artifactId>
-      <version>${apache.httpcomponents.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>fluent-hc</artifactId>
-      <version>${apache.httpcomponents.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpmime</artifactId>
-      <version>${apache.httpcomponents.version}</version>
-      <scope>test</scope>
-    </dependency>
+    <!--    <dependency>-->
+    <!--      <groupId>org.apache.httpcomponents</groupId>-->
+    <!--      <artifactId>httpclient-cache</artifactId>-->
+    <!--      <version>${apache.httpcomponents.version}</version>-->
+    <!--      <scope>test</scope>-->
+    <!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>org.apache.httpcomponents</groupId>-->
+    <!--      <artifactId>fluent-hc</artifactId>-->
+    <!--      <version>${apache.httpcomponents.version}</version>-->
+    <!--      <scope>test</scope>-->
+    <!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>org.apache.httpcomponents</groupId>-->
+    <!--      <artifactId>httpmime</artifactId>-->
+    <!--      <version>${apache.httpcomponents.version}</version>-->
+    <!--      <scope>test</scope>-->
+    <!--    </dependency>-->
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <version>4.4.14</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
+      <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -317,33 +332,28 @@
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
-      <version>${test.hamcrest.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hsqldb</groupId>
       <artifactId>hsqldb</artifactId>
-      <version>${hsqldb.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.tailormap</groupId>
       <artifactId>viewer-config-persistence</artifactId>
-      <version>${tailormap.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.tailormap</groupId>
       <artifactId>viewer-helpers</artifactId>
-      <version>${tailormap.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>4.0.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
