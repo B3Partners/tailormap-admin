@@ -1,5 +1,16 @@
 name: Ubuntu Maven build
 
+env:
+  PG_PORT: 5432
+  PG_HOST: 127.0.0.1
+  DB_NAME: tailormap
+  DB_USER: tailormap
+  DB_PASS: tailormap
+  MAIL_FROM: noreply@b3partners.nl
+  MAIL_HOST: mail.b3partners.nl
+  TM_DATA_DIR: /opt/tailormap_data
+  CATALINA_OPTS: "-DPG_PORT=$PG_PORT -DPG_HOST=$PG_HOST -DDB_NAME=$DB_NAME -DDB_USER=$DB_USER -DDB_PASS=$DB_PASS -DMAIL_FROM=$MAIL_FROM -DMAIL_HOST=$MAIL_HOST -DTM_DATA_DIR=$TM_DATA_DIR"
+
 on:
   push:
   pull_request:
@@ -12,12 +23,13 @@ jobs:
 
     services:
       postgres:
-        # docker run -h tailormap --name tailormap -it --rm -d -e POSTGRES_USER=tailormap -e POSTGRES_DB=tailormap -e POSTGRES_PASSWORD=tailormap -p 5432:5432 postgres:14.1-alpine
+        # docker run -h tailormap-db --name tailormap-db -it --rm -d \
+        #  -e POSTGRES_USER=${DB_USER} -e POSTGRES_DB=${DB_NAME} -e POSTGRES_PASSWORD=tailormap${DB_PASS} -p 5432:5432 postgres:14.1-alpine
         image: postgres:14.1-alpine
         env:
-          POSTGRES_USER: tailormap
-          POSTGRES_PASSWORD: tailormap
-          POSTGRES_DB: tailormap
+          POSTGRES_USER: ${DB_USER}
+          POSTGRES_PASSWORD: ${DB_PASS}
+          POSTGRES_DB: ${DB_NAME}
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 15s --health-timeout 5s --health-retries 5
@@ -54,6 +66,25 @@ jobs:
 
       - name: Build test javadoc
         run: mvn javadoc:test-javadoc
+
+      - name: Try Created Docker image
+        #        PG_PORT=5432
+        #        PG_HOST=127.0.0.1
+        #        DB_NAME=tailormap
+        #        DB_USER=tailormap
+        #        DB_PASS=tailormap
+        #        MAIL_FROM=noreply@b3partners.nl
+        #        MAIL_HOST=mail.b3partners.nl
+        #        TM_DATA_DIR=/opt/tailormap_data
+        #        CATALINA_OPTS="-DPG_PORT=$PG_PORT -DPG_HOST=$PG_HOST -DDB_NAME=$DB_NAME -DDB_USER=$DB_USER -DDB_PASS=$DB_PASS -DMAIL_FROM=$MAIL_FROM -DMAIL_HOST=$MAIL_HOST -DTM_DATA_DIR=$TM_DATA_DIR"
+        # note that the docker repo is also defined in the pom file properties as "docker.deploy.repo"
+        run: |
+          docker run --rm -it -d -p 8080:8080 -e "CATALINA_OPTS=${CATALINA_OPTS}" --network host docker.b3p.nl/b3partners/tailormap-admin:snapshot
+          curl http://localhost:8080/tailormap-admin/action/admin/upgradecheck/ping
+          res=$?
+          if test "$res" != "0"; then
+             echo "the curl command failed with: $res"
+          fi
 
       - name: Cleanup snapshots
         run: |

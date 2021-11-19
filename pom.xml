@@ -109,10 +109,6 @@
     <versions-maven-plugin.version>2.8.1</versions-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
     <dependency-check-maven.version>6.5.0</dependency-check-maven.version>
-    <!-- alternatively ghcr.io  -->
-    <docker-deploy-repo>docker.b3p.nl</docker-deploy-repo>
-    <!-- skip QA checks -->
-    <skipQA>false</skipQA>
     <!--    <pmd.version>6.40.0</pmd.version>-->
     <!--    <errorProne.version>2.10.0</errorProne.version>-->
     <errorProneFlags></errorProneFlags>
@@ -122,6 +118,8 @@
     <docker.skip>false</docker.skip>
     <!-- skip QA checks/actions -->
     <skipQA>false</skipQA>
+    <!-- alternatively ghcr.io  -->
+    <docker.deploy.repo>docker.b3p.nl</docker.deploy.repo>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -184,6 +182,18 @@
     <dependency>
       <groupId>jakarta.mail</groupId>
       <artifactId>jakarta.mail-api</artifactId>
+      <version>${jakarta.mail.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.activation</groupId>
+      <artifactId>jakarta.activation</artifactId>
+      <version>${activation.api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>jakarta.mail</artifactId>
       <version>${jakarta.mail.version}</version>
       <scope>provided</scope>
     </dependency>
@@ -355,7 +365,6 @@
           <artifactId>docker-maven-plugin</artifactId>
           <version>0.38.0</version>
         </plugin>
-
         <plugin>
           <artifactId>maven-war-plugin</artifactId>
           <version>3.3.2</version>
@@ -580,24 +589,49 @@
       </plugin>
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
-        <!--                <executions>-->
-        <!--                    <execution>-->
-        <!--                        <phase>validate</phase>-->
-        <!--                        <goals>-->
-        <!--                            <goal>copy</goal>-->
-        <!--                        </goals>-->
-        <!--                        <configuration>-->
-        <!--                            <outputDirectory>${endorsed.dir}</outputDirectory>-->
-        <!--                            <silent>true</silent>-->
-        <!--                            <artifactItems>-->
-        <!--                                <artifactItem>-->
-        <!--                                    <groupId>javax</groupId>-->
-        <!--                                    <artifactId>javaee-endorsed-api</artifactId>-->
-        <!--                                </artifactItem>-->
-        <!--                            </artifactItems>-->
-        <!--                        </configuration>-->
-        <!--                    </execution>-->
-        <!--                </executions>-->
+        <executions>
+          <execution>
+            <id>copy-for-docker</id>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <!-- copy necessary files for tomcat lib so dockerfile can pick them up -->
+              <outputDirectory>${project.build.directory}/tomcat-lib</outputDirectory>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.postgresql</groupId>
+                  <artifactId>postgresql</artifactId>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.sun.activation</groupId>
+                  <artifactId>jakarta.activation</artifactId>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.sun.mail</groupId>
+                  <artifactId>jakarta.mail</artifactId>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+          <!--                    <execution>-->
+          <!--                        <phase>validate</phase>-->
+          <!--                        <goals>-->
+          <!--                            <goal>copy</goal>-->
+          <!--                        </goals>-->
+          <!--                        <configuration>-->
+          <!--                            <outputDirectory>${endorsed.dir}</outputDirectory>-->
+          <!--                            <silent>true</silent>-->
+          <!--                            <artifactItems>-->
+          <!--                                <artifactItem>-->
+          <!--                                    <groupId>javax</groupId>-->
+          <!--                                    <artifactId>javaee-endorsed-api</artifactId>-->
+          <!--                                </artifactItem>-->
+          <!--                            </artifactItems>-->
+          <!--                        </configuration>-->
+          <!--                    </execution>-->
+        </executions>
       </plugin>
       <plugin>
         <groupId>io.github.git-commit-id</groupId>
@@ -639,7 +673,18 @@
           <!--suppress UnresolvedMavenProperty -->
           <argLine>${surefireArgLine}</argLine>
         </configuration>
-
+      </plugin>
+      <plugin>
+        <!-- not bound to any lifecycle, but can be run from commandline using:
+             mvn -U install -DskipTests -DskipITs -Ddocker.skip=true org.owasp:dependency-check-maven:check -->
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <configuration>
+          <skip>${skipQA}</skip>
+          <suppressionFile>${project.basedir}/build/qa/owasp-suppression.xml</suppressionFile>
+          <hintsFile>${project.basedir}/build/qa/owasp-hints.xml</hintsFile>
+          <format>ALL</format>
+        </configuration>
       </plugin>
       <!--            <plugin>-->
       <!--                <groupId>com.github.eirslett</groupId>-->
@@ -685,61 +730,93 @@
       <!--                    </execution>-->
       <!--                </executions>-->
       <!--            </plugin>-->
+      <!--      <plugin>-->
+      <!--        <artifactId>maven-resources-plugin</artifactId>-->
+      <!--        <executions>-->
+      <!--                    <execution>-->
+      <!--                        <id>copy-resources - components config</id>-->
+      <!--                        <phase>prepare-package</phase>-->
+      <!--                        <goals>-->
+      <!--                            <goal>copy-resources</goal>-->
+      <!--                        </goals>-->
+      <!--                        <configuration>-->
+      <!--                            <outputDirectory>${project.build.directory}/${project.artifactId}-${project.version}/tailormap-components-config</outputDirectory>-->
+      <!--                            <resources>-->
+      <!--                                <resource>-->
+      <!--                                    <directory>${tailormap-components-config.dist.dir}/</directory>-->
+      <!--                                    <filtering>false</filtering>-->
+      <!--                                    &lt;!&ndash;includes>-->
+      <!--                                       <include>... misschien *.js</include>-->
+      <!--                                   </includes&ndash;&gt;-->
+      <!--                                </resource>-->
+      <!--                            </resources>-->
+      <!--                        </configuration>-->
+      <!--                    </execution>-->
+      <!--                    <execution>-->
+      <!--                        <id>copy-resources - admin config</id>-->
+      <!--                        <phase>prepare-package</phase>-->
+      <!--                        <goals>-->
+      <!--                            <goal>copy-resources</goal>-->
+      <!--                        </goals>-->
+      <!--                        <configuration>-->
+      <!--                            <outputDirectory>-->
+      <!--                                ${project.build.directory}/${project.artifactId}-${project.version}/tailormap-admin-config-->
+      <!--                            </outputDirectory>-->
+      <!--                            <resources>-->
+      <!--                                <resource>-->
+      <!--                                    <directory>${tailormap-admin-config.dist.dir}/</directory>-->
+      <!--                                    <filtering>false</filtering>-->
+      <!--                                    &lt;!&ndash;includes>-->
+      <!--                                        <include>... misschien *.js</include>-->
+      <!--                                    </includes&ndash;&gt;-->
+      <!--                                </resource>-->
+      <!--                            </resources>-->
+      <!--                        </configuration>-->
+      <!--                    </execution>-->
+      <!--        </executions>-->
+      <!--      </plugin>-->
       <plugin>
-        <!-- not bound to any lifecycle, but can be run from commandline using:
-                        mvn -U install -DskipTests -DskipITs -Ddocker.skip=true org.owasp:dependency-check-maven:check -->
-        <groupId>org.owasp</groupId>
-        <artifactId>dependency-check-maven</artifactId>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <extensions>true</extensions>
         <configuration>
-          <skip>${skipQA}</skip>
-          <suppressionFile>${project.basedir}/build/qa/owasp-suppression.xml</suppressionFile>
-          <hintsFile>${project.basedir}/build/qa/owasp-hints.xml</hintsFile>
-          <format>ALL</format>
+          <skip>${docker.skip}</skip>
+          <verbose>true</verbose>
+          <imagePullPolicy>IfNotPresent</imagePullPolicy>
+          <images>
+            <image>
+              <!-- deploy snapshot tag -->
+              <name>${docker.deploy.repo}/b3partners/%a:snapshot</name>
+              <build>
+                <!-- default location -->
+                <dockerFile>${project.basedir}/src/main/docker/Dockerfile</dockerFile>
+                <contextDir>${project.basedir}</contextDir>
+                <args>
+                  <TM_VERSION>${project.version}</TM_VERSION>
+                </args>
+                <noCache>true</noCache>
+              </build>
+            </image>
+          </images>
         </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
         <executions>
-          <!--                    <execution>-->
-          <!--                        <id>copy-resources - components config</id>-->
-          <!--                        <phase>prepare-package</phase>-->
-          <!--                        <goals>-->
-          <!--                            <goal>copy-resources</goal>-->
-          <!--                        </goals>-->
-          <!--                        <configuration>-->
-          <!--                            <outputDirectory>${project.build.directory}/${project.artifactId}-${project.version}/tailormap-components-config</outputDirectory>-->
-          <!--                            <resources>-->
-          <!--                                <resource>-->
-          <!--                                    <directory>${tailormap-components-config.dist.dir}/</directory>-->
-          <!--                                    <filtering>false</filtering>-->
-          <!--                                    &lt;!&ndash;includes>-->
-          <!--                                       <include>... misschien *.js</include>-->
-          <!--                                   </includes&ndash;&gt;-->
-          <!--                                </resource>-->
-          <!--                            </resources>-->
-          <!--                        </configuration>-->
-          <!--                    </execution>-->
-          <!--                    <execution>-->
-          <!--                        <id>copy-resources - admin config</id>-->
-          <!--                        <phase>prepare-package</phase>-->
-          <!--                        <goals>-->
-          <!--                            <goal>copy-resources</goal>-->
-          <!--                        </goals>-->
-          <!--                        <configuration>-->
-          <!--                            <outputDirectory>-->
-          <!--                                ${project.build.directory}/${project.artifactId}-${project.version}/tailormap-admin-config-->
-          <!--                            </outputDirectory>-->
-          <!--                            <resources>-->
-          <!--                                <resource>-->
-          <!--                                    <directory>${tailormap-admin-config.dist.dir}/</directory>-->
-          <!--                                    <filtering>false</filtering>-->
-          <!--                                    &lt;!&ndash;includes>-->
-          <!--                                        <include>... misschien *.js</include>-->
-          <!--                                    </includes&ndash;&gt;-->
-          <!--                                </resource>-->
-          <!--                            </resources>-->
-          <!--                        </configuration>-->
-          <!--                    </execution>-->
+          <execution>
+            <id>docker-build</id>
+            <goals>
+              <goal>build</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+          <execution>
+            <id>docker-push</id>
+            <goals>
+              <goal>push</goal>
+            </goals>
+            <!-- NB for deploy/push login is required on ghcr.io or docker.b3p.nl repository with
+                 docker - whatever value is ${docker.deploy.repo}
+                 see: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry -->
+            <phase>deploy</phase>
+          </execution>
         </executions>
       </plugin>
     </plugins>
@@ -821,6 +898,47 @@
                 <arg>-Xlint:${compiler.lint}</arg>
               </compilerArgs>
             </configuration>
+          </plugin>
+          <plugin>
+            <!-- deploy latest and versioned tag -->
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <configuration>
+              <verbose>true</verbose>
+              <images>
+                <image>
+                  <name>${docker.deploy.repo}/b3partners/%a:%l</name>
+                </image>
+              </images>
+            </configuration>
+            <executions>
+              <execution>
+                <id>docker-tag</id>
+                <goals>
+                  <goal>tag</goal>
+                </goals>
+                <phase>verify</phase>
+                <configuration>
+                  <tagName>latest</tagName>
+                  <repo>${docker.deploy.repo}/b3partners</repo>
+                </configuration>
+              </execution>
+              <execution>
+                <id>docker-push-latest</id>
+                <goals>
+                  <goal>push</goal>
+                </goals>
+                <phase>deploy</phase>
+                <configuration>
+                  <verbose>true</verbose>
+                  <images>
+                    <image>
+                      <name>${docker.deploy.repo}/b3partners/%a:latest</name>
+                    </image>
+                  </images>
+                </configuration>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>
