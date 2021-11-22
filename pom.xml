@@ -1,0 +1,1130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>nl.b3p.tailormap</groupId>
+  <artifactId>tailormap-admin</artifactId>
+  <version>0.1</version>
+  <packaging>war</packaging>
+  <name>Tailormap Admin</name>
+  <description>Tailormap Admin provides the administration application for Tailormap</description>
+  <licenses>
+    <license>
+      <name>GNU Affero General Public License v3.0</name>
+      <url>https://raw.githubusercontent.com/b3partners/tailormap/master/LICENSE.txt</url>
+      <distribution>repo</distribution>
+      <comments>For any parts of the Tailormap Admin codebase</comments>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>matthijsln</id>
+      <name>Matthijs Laan</name>
+      <email>matthijslaan@b3partners.nl</email>
+      <organization>B3Partners B.V.</organization>
+      <organizationUrl>https://www.b3partners.nl</organizationUrl>
+    </developer>
+    <developer>
+      <id>mprins</id>
+      <name>Mark Prins</name>
+      <email>mark@b3partners.nl</email>
+      <organization>B3Partners B.V.</organization>
+      <organizationUrl>https://www.b3partners.nl</organizationUrl>
+    </developer>
+    <developer>
+      <id>mvdstruijk</id>
+      <name>Martijn van de Struijk</name>
+      <email>martijn@b3partners.nl</email>
+      <organization>B3Partners B.V.</organization>
+      <organizationUrl>https://www.b3partners.nl</organizationUrl>
+    </developer>
+    <developer>
+      <id>geertplaisier</id>
+      <name>Geert Plaisier</name>
+      <email>geert@b3partners.nl</email>
+      <organization>Gnamic</organization>
+      <organizationUrl>https://www.gnamic.nl/</organizationUrl>
+    </developer>
+  </developers>
+  <contributors></contributors>
+  <scm>
+    <connection>scm:git:git@github.com:B3Partners/tailormap-admin.git</connection>
+    <developerConnection>scm:git:git@github.com:B3Partners/tailormap-admin.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://github.com/B3Partners/tailormap-admin/</url>
+  </scm>
+  <issueManagement>
+    <system>Jira</system>
+    <url>https://b3partners.atlassian.net/browse/TM</url>
+  </issueManagement>
+  <ciManagement>
+    <system>Github Actions</system>
+    <url>https://github.com/B3Partners/tailormap-admin/actions</url>
+  </ciManagement>
+  <distributionManagement>
+    <repository>
+      <id>repo.b3p.nl</id>
+      <name>B3Partners releases repository</name>
+      <url>https://repo.b3p.nl/nexus/repository/releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>repo.b3p.nl</id>
+      <name>B3Partners snapshots repository</name>
+      <url>https://repo.b3p.nl/nexus/repository/snapshots/</url>
+    </snapshotRepository>
+    <site>
+      <id>gh-pages</id>
+      <name>github pages site</name>
+      <url>scm:git:ssh://git@github.com/b3partners/tailormap-admin.git</url>
+    </site>
+  </distributionManagement>
+  <properties>
+    <java.version>11</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <project.build.sourceVersion>${java.version}</project.build.sourceVersion>
+    <project.build.targetVersion>${java.version}</project.build.targetVersion>
+    <project.build.outputTimestamp>2021-11-16T16:01:17Z</project.build.outputTimestamp>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <!-- must be kept in sync with tailormap version -->
+    <geotools.version>26.0</geotools.version>
+    <tailormap.version>5.9.11</tailormap.version>
+    <b3p-commons-csw.version>7.1</b3p-commons-csw.version>
+    <hsqldb.version>2.6.1</hsqldb.version>
+    <test.persistence.unit>viewer-config-hsqldb</test.persistence.unit>
+    <postgresql.version>42.3.1</postgresql.version>
+    <!--        <mssql.version>9.4.0.jre11</mssql.version>-->
+    <!--        <oracle.version>21.3.0.0</oracle.version>-->
+    <apache.poi.version>5.1.0</apache.poi.version>
+    <jakarta.mail.version>1.6.6</jakarta.mail.version>
+    <apache.httpcomponents.version>4.5.13</apache.httpcomponents.version>
+    <apache.commons-codec.version>1.15</apache.commons-codec.version>
+    <activation.api.version>1.2.2</activation.api.version>
+    <test.junit-jupiter.version>5.8.1</test.junit-jupiter.version>
+    <test.hamcrest.version>2.2</test.hamcrest.version>
+    <maven.surefire.version>3.0.0-M5</maven.surefire.version>
+    <cargo-maven3-plugin.version>1.9.8</cargo-maven3-plugin.version>
+    <tomcat.localDatasource>false</tomcat.localDatasource>
+    <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
+    <maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version>
+    <maven-pmd-plugin.version>3.15.0</maven-pmd-plugin.version>
+    <versions-maven-plugin.version>2.8.1</versions-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+    <dependency-check-maven.version>6.5.0</dependency-check-maven.version>
+    <!--    <pmd.version>6.40.0</pmd.version>-->
+    <!--    <errorProne.version>2.10.0</errorProne.version>-->
+    <errorProneFlags></errorProneFlags>
+    <compiler.lint>deprecation,unchecked</compiler.lint>
+    <fmt.action>format</fmt.action>
+    <pom.fmt.action>sort</pom.fmt.action>
+    <docker.skip>false</docker.skip>
+    <!-- skip QA checks/actions -->
+    <skipQA>false</skipQA>
+    <!-- alternatively ghcr.io  -->
+    <docker.deploy.repo>docker.b3p.nl</docker.deploy.repo>
+  </properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${test.junit-jupiter.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.tailormap</groupId>
+        <artifactId>tailormap</artifactId>
+        <version>${tailormap.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+    <!--    <dependency>-->
+    <!--      <groupId>commons-fileupload</groupId>-->
+    <!--      <artifactId>commons-fileupload</artifactId>-->
+    <!--      <version>1.4</version>-->
+    <!--    </dependency>-->
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.quartz-scheduler</groupId>
+      <artifactId>quartz</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.sourceforge.stripes</groupId>
+      <artifactId>stripes</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.stripesstuff</groupId>
+      <artifactId>stripersist</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.stripesstuff</groupId>
+      <artifactId>stripesstuff</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.mail</groupId>
+      <artifactId>jakarta.mail-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.activation</groupId>
+      <artifactId>jakarta.activation</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>jakarta.mail</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.web</groupId>
+      <artifactId>javax.servlet.jsp.jstl</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- drags in servlet api 2.5 -->
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.servlet.jsp</groupId>
+          <artifactId>jsp-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.tailormap</groupId>
+      <artifactId>viewer-commons</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.tailormap</groupId>
+      <artifactId>viewer-config-persistence</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.tailormap</groupId>
+      <artifactId>solr-commons</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.tailormap</groupId>
+      <artifactId>web-commons</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.tailormap</groupId>
+      <artifactId>form</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.tailormap</groupId>
+      <artifactId>viewer-helpers</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>nl.b3p</groupId>
+      <artifactId>b3p-commons-csw</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-solrj</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-cql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-wfs-ng</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-main</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-xml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-opengis</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!--    <dependency>-->
+    <!--      <groupId>org.apache.httpcomponents</groupId>-->
+    <!--      <artifactId>httpclient-cache</artifactId>-->
+    <!--      <version>${apache.httpcomponents.version}</version>-->
+    <!--      <scope>test</scope>-->
+    <!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>org.apache.httpcomponents</groupId>-->
+    <!--      <artifactId>fluent-hc</artifactId>-->
+    <!--      <version>${apache.httpcomponents.version}</version>-->
+    <!--      <scope>test</scope>-->
+    <!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>org.apache.httpcomponents</groupId>-->
+    <!--      <artifactId>httpmime</artifactId>-->
+    <!--      <version>${apache.httpcomponents.version}</version>-->
+    <!--      <scope>test</scope>-->
+    <!--    </dependency>-->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hsqldb</groupId>
+      <artifactId>hsqldb</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.tailormap</groupId>
+      <artifactId>viewer-config-persistence</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.tailormap</groupId>
+      <artifactId>viewer-helpers</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <repositories>
+    <repository>
+      <id>B3Partners</id>
+      <name>Releases hosted by B3Partners</name>
+      <url>https://repo.b3p.nl/nexus/repository/public/</url>
+    </repository>
+  </repositories>
+  <build>
+    <defaultGoal>install</defaultGoal>
+    <!-- no version number on jar makes building docker image easier -->
+    <finalName>${project.artifactId}</finalName>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>io.fabric8</groupId>
+          <artifactId>docker-maven-plugin</artifactId>
+          <version>0.38.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>3.3.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.owasp</groupId>
+          <artifactId>dependency-check-maven</artifactId>
+          <version>${dependency-check-maven.version}</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>3.0.0-M1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>3.1.0</version>
+        </plugin>
+        <plugin>
+          <groupId>com.github.ekryd.sortpom</groupId>
+          <artifactId>sortpom-maven-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-scm-publish-plugin</artifactId>
+          <version>3.1.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.9.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.3.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.2.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>3.0.0-M1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>3.0.0-M4</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.2.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.2.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven.surefire.version}</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven.surefire.version}</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.2.1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${maven-javadoc-plugin.version}</version>
+          <configuration>
+            <notimestamp>true</notimestamp>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+        <plugin>
+          <groupId>io.github.git-commit-id</groupId>
+          <artifactId>git-commit-id-maven-plugin</artifactId>
+          <version>5.0.0</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>pre-unit-test</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+            <configuration>
+              <propertyName>surefireArgLine</propertyName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>pre-integration-test</id>
+            <goals>
+              <goal>prepare-agent-integration</goal>
+            </goals>
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <propertyName>failsafeArgLine</propertyName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>post-unit-test</id>
+            <goals>
+              <goal>report</goal>
+            </goals>
+            <phase>test</phase>
+            <configuration></configuration>
+          </execution>
+          <execution>
+            <id>post-integration-test</id>
+            <goals>
+              <goal>report-integration</goal>
+            </goals>
+            <phase>post-integration-test</phase>
+            <configuration></configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <pushChanges>true</pushChanges>
+          <releaseProfiles>release</releaseProfiles>
+          <tagNameFormat>tailormap-admin-@{project.version}</tagNameFormat>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.8,)</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>${java.version}</version>
+                </requireJavaVersion>
+                <bannedDependencies>
+                  <excludes>
+                    <exclude>junit:junit</exclude>
+                    <exclude>org.hamcrest:hamcrest-core</exclude>
+                    <exclude>commons-lang:commons-lang</exclude>
+                  </excludes>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.ekryd.sortpom</groupId>
+        <artifactId>sortpom-maven-plugin</artifactId>
+        <configuration>
+          <skip>${skipQA}</skip>
+          <keepBlankLines>true</keepBlankLines>
+          <spaceBeforeCloseEmptyElement>false</spaceBeforeCloseEmptyElement>
+          <createBackupFile>false</createBackupFile>
+          <verifyFail>stop</verifyFail>
+          <verifyFailOn>strict</verifyFailOn>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>${pom.fmt.action}</goal>
+            </goals>
+            <phase>verify</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <compilerArgs>
+            <arg>-Xlint:${compiler.lint}</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <configuration>
+          <filters>
+            <filter>${basedir}/src/main/resources/git.properties</filter>
+          </filters>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+          <webResources>
+            <resource>
+              <directory>src/main/webapp</directory>
+              <filtering>true</filtering>
+              <includes>
+                <include>about.jsp</include>
+                <include>META-INF/context.xml</include>
+              </includes>
+            </resource>
+          </webResources>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-for-docker</id>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <!-- copy necessary files for tomcat lib so dockerfile can pick them up -->
+              <outputDirectory>${project.build.directory}/tomcat-lib</outputDirectory>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.postgresql</groupId>
+                  <artifactId>postgresql</artifactId>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.sun.activation</groupId>
+                  <artifactId>jakarta.activation</artifactId>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.sun.mail</groupId>
+                  <artifactId>jakarta.mail</artifactId>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+          <!--                    <execution>-->
+          <!--                        <phase>validate</phase>-->
+          <!--                        <goals>-->
+          <!--                            <goal>copy</goal>-->
+          <!--                        </goals>-->
+          <!--                        <configuration>-->
+          <!--                            <outputDirectory>${endorsed.dir}</outputDirectory>-->
+          <!--                            <silent>true</silent>-->
+          <!--                            <artifactItems>-->
+          <!--                                <artifactItem>-->
+          <!--                                    <groupId>javax</groupId>-->
+          <!--                                    <artifactId>javaee-endorsed-api</artifactId>-->
+          <!--                                </artifactItem>-->
+          <!--                            </artifactItems>-->
+          <!--                        </configuration>-->
+          <!--                    </execution>-->
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>io.github.git-commit-id</groupId>
+        <artifactId>git-commit-id-maven-plugin</artifactId>
+        <configuration>
+          <prefix>builddetails</prefix>
+          <dateFormat>dd.MM.yyyy '@' HH:mm:ss z</dateFormat>
+          <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+          <skipPoms>true</skipPoms>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
+          <failOnNoGitDirectory>false</failOnNoGitDirectory>
+          <gitDescribe>
+            <skip>true</skip>
+            <always>true</always>
+            <abbrev>7</abbrev>
+            <dirty>-dirty</dirty>
+            <forceLongFormat>false</forceLongFormat>
+          </gitDescribe>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/*IntegrationTest.java</exclude>
+          </excludes>
+          <skipTests>${skipQA}</skipTests>
+          <systemPropertyVariables>
+            <test.persistence.unit>${test.persistence.unit}</test.persistence.unit>
+          </systemPropertyVariables>
+          <!--suppress UnresolvedMavenProperty -->
+          <argLine>${surefireArgLine}</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!-- not bound to any lifecycle, but can be run from commandline using:
+             mvn -U install -DskipTests -DskipITs -Ddocker.skip=true org.owasp:dependency-check-maven:check -->
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <configuration>
+          <skip>${skipQA}</skip>
+          <suppressionFile>${project.basedir}/build/qa/owasp-suppression.xml</suppressionFile>
+          <hintsFile>${project.basedir}/build/qa/owasp-hints.xml</hintsFile>
+          <format>ALL</format>
+        </configuration>
+      </plugin>
+      <!--            <plugin>-->
+      <!--                <groupId>com.github.eirslett</groupId>-->
+      <!--                <artifactId>frontend-maven-plugin</artifactId>-->
+      <!--                <configuration>-->
+      <!--                    <nodeVersion>${node.version}</nodeVersion>-->
+      <!--                    <npmVersion>${npm.version}</npmVersion>-->
+      <!--                    <installDirectory>${project.build.directory}/</installDirectory>-->
+      <!--                </configuration>-->
+      <!--                <executions>-->
+      <!--                    &lt;!&ndash; components config install &ndash;&gt;-->
+      <!--                    <execution>-->
+      <!--                        <id>install node and npm</id>-->
+      <!--                        <goals>-->
+      <!--                            <goal>install-node-and-npm</goal>-->
+      <!--                        </goals>-->
+      <!--                        <phase>initialize</phase>-->
+      <!--                        <configuration>-->
+      <!--                            <workingDirectory>${tailormap-components-config.source.dir}</workingDirectory>-->
+      <!--                        </configuration>-->
+      <!--                    </execution>-->
+      <!--                    <execution>-->
+      <!--                        <id>Run npm install</id>-->
+      <!--                        <goals>-->
+      <!--                            <goal>npm</goal>-->
+      <!--                        </goals>-->
+      <!--                        <phase>generate-sources</phase>-->
+      <!--                        <configuration>-->
+      <!--                            <arguments>run install-all</arguments>-->
+      <!--                            <workingDirectory>${tailormap-components-config.source.dir}</workingDirectory>-->
+      <!--                        </configuration>-->
+      <!--                    </execution>-->
+      <!--                    <execution>-->
+      <!--                        <id>Build tailormap-components-config artifacts</id>-->
+      <!--                        <goals>-->
+      <!--                            <goal>npm</goal>-->
+      <!--                        </goals>-->
+      <!--                        <phase>process-resources</phase>-->
+      <!--                        <configuration>-->
+      <!--                            <arguments>run build-prod</arguments>-->
+      <!--                            <workingDirectory>${tailormap-components-config.source.dir}</workingDirectory>-->
+      <!--                        </configuration>-->
+      <!--                    </execution>-->
+      <!--                </executions>-->
+      <!--            </plugin>-->
+      <!--      <plugin>-->
+      <!--        <artifactId>maven-resources-plugin</artifactId>-->
+      <!--        <executions>-->
+      <!--                    <execution>-->
+      <!--                        <id>copy-resources - components config</id>-->
+      <!--                        <phase>prepare-package</phase>-->
+      <!--                        <goals>-->
+      <!--                            <goal>copy-resources</goal>-->
+      <!--                        </goals>-->
+      <!--                        <configuration>-->
+      <!--                            <outputDirectory>${project.build.directory}/${project.artifactId}-${project.version}/tailormap-components-config</outputDirectory>-->
+      <!--                            <resources>-->
+      <!--                                <resource>-->
+      <!--                                    <directory>${tailormap-components-config.dist.dir}/</directory>-->
+      <!--                                    <filtering>false</filtering>-->
+      <!--                                    &lt;!&ndash;includes>-->
+      <!--                                       <include>... misschien *.js</include>-->
+      <!--                                   </includes&ndash;&gt;-->
+      <!--                                </resource>-->
+      <!--                            </resources>-->
+      <!--                        </configuration>-->
+      <!--                    </execution>-->
+      <!--                    <execution>-->
+      <!--                        <id>copy-resources - admin config</id>-->
+      <!--                        <phase>prepare-package</phase>-->
+      <!--                        <goals>-->
+      <!--                            <goal>copy-resources</goal>-->
+      <!--                        </goals>-->
+      <!--                        <configuration>-->
+      <!--                            <outputDirectory>-->
+      <!--                                ${project.build.directory}/${project.artifactId}-${project.version}/tailormap-admin-config-->
+      <!--                            </outputDirectory>-->
+      <!--                            <resources>-->
+      <!--                                <resource>-->
+      <!--                                    <directory>${tailormap-admin-config.dist.dir}/</directory>-->
+      <!--                                    <filtering>false</filtering>-->
+      <!--                                    &lt;!&ndash;includes>-->
+      <!--                                        <include>... misschien *.js</include>-->
+      <!--                                    </includes&ndash;&gt;-->
+      <!--                                </resource>-->
+      <!--                            </resources>-->
+      <!--                        </configuration>-->
+      <!--                    </execution>-->
+      <!--        </executions>-->
+      <!--      </plugin>-->
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <skip>${docker.skip}</skip>
+          <verbose>true</verbose>
+          <imagePullPolicy>IfNotPresent</imagePullPolicy>
+          <images>
+            <image>
+              <!-- deploy snapshot tag -->
+              <name>${docker.deploy.repo}/b3partners/%a:snapshot</name>
+              <build>
+                <!-- default location -->
+                <dockerFile>${project.basedir}/src/main/docker/Dockerfile</dockerFile>
+                <contextDir>${project.basedir}</contextDir>
+                <args>
+                  <TM_VERSION>${project.version}</TM_VERSION>
+                </args>
+                <noCache>true</noCache>
+              </build>
+            </image>
+          </images>
+        </configuration>
+        <executions>
+          <execution>
+            <id>docker-build</id>
+            <goals>
+              <goal>build</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+          <execution>
+            <id>docker-push</id>
+            <goals>
+              <goal>push</goal>
+            </goals>
+            <!-- NB for deploy/push login is required on ghcr.io or docker.b3p.nl repository with
+                 docker - whatever value is ${docker.deploy.repo}
+                 see: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry -->
+            <phase>deploy</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco-maven-plugin.version}</version>
+        <configuration>
+          <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+          <dataFileIncludes>
+            <dataFileInclude>${project.build.directory}/jacoco-ut.exec</dataFileInclude>
+            <dataFileInclude>${project.build.directory}/jacoco-it.exec</dataFileInclude>
+          </dataFileIncludes>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <version>${dependency-check-maven.version}</version>
+        <configuration>
+          <name>OWASP Dependency Check</name>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+  <profiles>
+    <profile>
+      <!-- use this profile to deactivate QA actions and docker builds -->
+      <id>developing</id>
+      <properties>
+        <docker.skip>true</docker.skip>
+        <skipQA>true</skipQA>
+      </properties>
+    </profile>
+    <profile>
+      <!-- this profile will be activated in case the flag -DskipQA=true is passed to maven -->
+      <id>qa-skip</id>
+      <activation>
+        <property>
+          <name>skipQA</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <properties>
+        <skipQA>true</skipQA>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <compilerArgs>
+                <arg>-Xlint:${compiler.lint}</arg>
+              </compilerArgs>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <!-- automagically activated during release with maven-release-plugin -->
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <compilerArgs>
+                <arg>-Xlint:${compiler.lint}</arg>
+              </compilerArgs>
+            </configuration>
+          </plugin>
+          <plugin>
+            <!-- deploy latest and versioned tag -->
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <configuration>
+              <verbose>true</verbose>
+              <images>
+                <image>
+                  <name>${docker.deploy.repo}/b3partners/%a:%l</name>
+                </image>
+              </images>
+            </configuration>
+            <executions>
+              <execution>
+                <id>docker-tag</id>
+                <goals>
+                  <goal>tag</goal>
+                </goals>
+                <phase>verify</phase>
+                <configuration>
+                  <tagName>latest</tagName>
+                  <repo>${docker.deploy.repo}/b3partners</repo>
+                </configuration>
+              </execution>
+              <execution>
+                <id>docker-push-latest</id>
+                <goals>
+                  <goal>push</goal>
+                </goals>
+                <phase>deploy</phase>
+                <configuration>
+                  <verbose>true</verbose>
+                  <images>
+                    <image>
+                      <name>${docker.deploy.repo}/b3partners/%a:latest</name>
+                    </image>
+                  </images>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>macos</id>
+      <activation>
+        <os>
+          <family>mac</family>
+        </os>
+      </activation>
+      <properties>
+        <docker.skip>true</docker.skip>
+      </properties>
+    </profile>
+    <profile>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <properties>
+        <docker.skip>true</docker.skip>
+      </properties>
+    </profile>
+    <profile>
+      <id>integration-testing</id>
+      <properties>
+        <tomcat.localDatasource>true</tomcat.localDatasource>
+        <test.persistence.unit>viewer-config-postgresql</test.persistence.unit>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <version>${postgresql.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.sun.activation</groupId>
+          <artifactId>jakarta.activation</artifactId>
+          <version>${activation.api.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.sun.mail</groupId>
+          <artifactId>jakarta.mail</artifactId>
+          <version>${jakarta.mail.version}</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <filters>
+          <filter>${project.basedir}/src/test/resources/postgres.properties</filter>
+        </filters>
+        <testResources>
+          <testResource>
+            <filtering>true</filtering>
+            <directory>${project.basedir}/src/test/tomcatconf/</directory>
+          </testResource>
+          <testResource>
+            <directory>${project.basedir}/src/test/resources/</directory>
+          </testResource>
+        </testResources>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco-maven-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>prepare-agent-integration-cargo</id>
+                <goals>
+                  <goal>prepare-agent-integration</goal>
+                </goals>
+                <phase>pre-integration-test</phase>
+                <configuration>
+                  <destFile>${project.build.directory}/jacoco-cargo.exec</destFile>
+                  <propertyName>cargoArgLine</propertyName>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>**/*IntegrationTest.java</include>
+              </includes>
+              <trimStackTrace>false</trimStackTrace>
+              <systemPropertyVariables>
+                <test.persistence.unit>${test.persistence.unit}</test.persistence.unit>
+                <database.properties.file>postgres.properties</database.properties.file>
+              </systemPropertyVariables>
+              <useFile>false</useFile>
+              <!--suppress UnresolvedMavenProperty -->
+              <argLine>${failsafeArgLine}</argLine>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-maven3-plugin</artifactId>
+            <version>${cargo-maven3-plugin.version}</version>
+            <configuration>
+              <container>
+                <containerId>tomcat9x</containerId>
+                <type>embedded</type>
+                <output>${project.build.directory}/tomcat9x.log</output>
+                <log>${project.build.directory}/cargo.log</log>
+                <dependencies>
+                  <dependency>
+                    <groupId>com.sun.activation</groupId>
+                    <artifactId>jakarta.activation</artifactId>
+                  </dependency>
+                  <dependency>
+                    <groupId>com.sun.mail</groupId>
+                    <artifactId>jakarta.mail</artifactId>
+                  </dependency>
+                </dependencies>
+              </container>
+              <configuration>
+                <properties>
+                  <!-- zie: https://codehaus-cargo.github.io/cargo/Tomcat+9.x.html -->
+                  <cargo.logging>high</cargo.logging>
+                  <cargo.servlet.port>9090</cargo.servlet.port>
+                  <!--suppress UnresolvedMavenProperty -->
+                  <cargo.start.jvmargs>${cargoArgLine}</cargo.start.jvmargs>
+                </properties>
+                <configfiles>
+                  <configfile>
+                    <file>${project.build.directory}/test-classes/context.xml</file>
+                    <tofile>conf/context.xml</tofile>
+                    <configfile>true</configfile>
+                    <overwrite>true</overwrite>
+                  </configfile>
+                </configfiles>
+              </configuration>
+            </configuration>
+            <executions>
+              <execution>
+                <id>start-server</id>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+                <phase>pre-integration-test</phase>
+              </execution>
+              <execution>
+                <id>stop-server</id>
+                <goals>
+                  <goal>stop</goal>
+                </goals>
+                <phase>post-integration-test</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <!-- for Looks Good To Me service -->
+      <id>lgtm</id>
+      <properties>
+        <docker.skip>true</docker.skip>
+      </properties>
+    </profile>
+  </profiles>
+</project>

@@ -1,0 +1,44 @@
+name: Windows Maven build
+
+env:
+  MAVEN_OPTS: -Djava.awt.headless=true
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    name: Windows Java 11
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            maven-
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: 'temurin'
+
+      - name: Priming build
+        run: |
+          mvn --% install -DskipTests -DskipITs -B -V -fae
+
+      - name: Test with Maven
+        run: |
+          mvn --% -e -fae clean test -B
+          mvn --% -e verify -B
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+
+      - name: Cleanup build artifacts and snapshots
+        run: |
+          mvn --% clean build-helper:remove-project-artifact

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+more about the available context attributes:
+  https://tomcat.apache.org/tomcat-9.0-doc/config/context.html
+
+crossContext="true" is required to enable the tailormap-admin to load the
+  components.json file and component config javascript sources from the viewer
+-->
+<Context crossContext="true" path="/tailormap-admin" antiResourceLocking="false">
+    <Parameter name="componentregistry.path" override="false" value="/viewer-html/components"/>
+    <Parameter name="componentregistry.crosscontext" override="false" value="/tailormap-admin"/>
+
+    <Parameter name="tailormap.data.dir" override="false" value="/opt/tailormap_data"/>
+
+
+    <Parameter name="tailormap.i18n.languagecodes" override="false" value="nl_NL,en_US"/>
+    <Parameter name="tailormap.projections.epsgcodes" override="false"
+               value="EPSG:28992[+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.237,50.0087,465.658,-0.406857,0.350733,-1.87035,4.0812 +units=m +no_defs];EPSG:4326[]"/>
+
+    <Parameter name="tailormap.solr.url" override="false" value=""/>
+    <Parameter name="tailormap.solr.schedule" value="-1" override="false"/>
+    <Parameter name="tailormap.solr.setup" value="false" override="false"/>
+
+    <ResourceLink global="jdbc/geo_viewer" name="jdbc/geo_viewer" type="javax.sql.DataSource"/>
+    <ResourceLink global="mail/session" name="mail/session" type="javax.mail.Session"/>
+    <!-- voor productie aanpassen in onderstaande Realm:
+        localDataSource="false"
+    -->
+    <Realm className="org.apache.catalina.realm.LockOutRealm">
+        <Realm className="org.apache.catalina.realm.DataSourceRealm"
+               dataSourceName="jdbc/geo_viewer"
+               userTable="user_"
+               userCredCol="password"
+               userNameCol="username"
+               userRoleTable="user_groups"
+               roleNameCol="group_"
+               allRolesMode="authOnly"
+               localDataSource="${tomcat.localDatasource}"
+        >
+            <CredentialHandler className="org.apache.catalina.realm.MessageDigestCredentialHandler"
+                               algorithm="SHA-1"
+            />
+        </Realm>
+    </Realm>
+</Context>

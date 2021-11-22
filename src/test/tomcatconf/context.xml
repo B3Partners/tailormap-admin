@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <!--
+    Global Resources
+    properties below are expanded at runtime and are available in ../resources/postgres.properties
+    -->
+    <Resource
+            name="jdbc/geo_viewer"
+            auth="Container"
+            type="javax.sql.DataSource"
+            username="${testdb.username}"
+            password="${testdb.password}"
+            driverClassName="org.postgresql.Driver"
+            url="${testdb.url}"
+            maxTotal="40"
+            validationQuery="select 1"
+            timeBetweenEvictionRunsMillis="30000"
+            minEvictableIdleTimeMillis="5000"
+    />
+
+    <Resource name="mail/session"
+              auth="Container"
+              type="javax.mail.Session"
+              mail.smtp.host="localhost"
+              mail.smtp.from="no-reply@b3partners.nl"
+    />
+</Context>
