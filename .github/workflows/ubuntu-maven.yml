@@ -24,7 +24,7 @@ jobs:
     services:
       postgres:
         # docker run -h tailormap-db --name tailormap-db -it --rm -d \
-        #  -e POSTGRES_USER=${DB_USER} -e POSTGRES_DB=${DB_NAME} -e POSTGRES_PASSWORD=tailormap${DB_PASS} -p 5432:5432 postgres:14.1-alpine
+        #  -e POSTGRES_USER=${DB_USER} -e POSTGRES_DB=${DB_NAME} -e POSTGRES_PASSWORD=${DB_PASS} -p 5432:5432 postgres:14.1-alpine
         image: postgres:14.1-alpine
         env:
           POSTGRES_USER: ${{ env.DB_USER }}
