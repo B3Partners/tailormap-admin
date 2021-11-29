@@ -100,7 +100,7 @@
     <apache.httpcomponents.version>4.5.13</apache.httpcomponents.version>
     <apache.commons-codec.version>1.15</apache.commons-codec.version>
     <activation.api.version>1.2.2</activation.api.version>
-    <test.junit-jupiter.version>5.8.1</test.junit-jupiter.version>
+    <test.junit-jupiter.version>5.8.2</test.junit-jupiter.version>
     <test.hamcrest.version>2.2</test.hamcrest.version>
     <maven.surefire.version>3.0.0-M5</maven.surefire.version>
     <cargo-maven3-plugin.version>1.9.8</cargo-maven3-plugin.version>
