@@ -35,7 +35,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 15s --health-timeout 5s --health-retries 5
 
     steps:
-      - name: ckeck database
+      - name: check database
         run: |
           psql --version
           echo ${{ env.CATALINA_OPTS }}
@@ -90,7 +90,16 @@ jobs:
           sleep 10
           curl http://localhost:8080/tailormap-admin/action/admin/upgradecheck/ping
 
-      - name: Cleanup snapshots
+      - name: Deploy artifacts
+        env:
+          REPO_B3P_ACTOR: ${{ secrets.REPO_B3P_ACTOR }}
+          REPO_B3P_TOKEN: ${{ secrets.REPO_B3P_TOKEN }}
+          GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: mvn -Pqa-skip --settings .github/maven-settings.xml deploy
+
+      - name: Cleanup Maven cache
+        if: ${{ always() }}
         run: |
           find ~/.m2/repository -name "*SNAPSHOT*" -type d | xargs rm -rf {}
 
