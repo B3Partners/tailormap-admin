@@ -120,8 +120,8 @@
     <docker.skip>false</docker.skip>
     <!-- skip QA checks/actions -->
     <skipQA>false</skipQA>
-    <!-- alternatively ghcr.io  -->
-    <docker.deploy.repo>docker.b3p.nl</docker.deploy.repo>
+    <!-- docker.b3p.nl or alternatively ghcr.io  -->
+    <docker.deploy.repo>ghcr.io</docker.deploy.repo>
   </properties>
   <dependencyManagement>
     <dependencies>

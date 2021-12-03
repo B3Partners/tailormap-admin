@@ -33,7 +33,7 @@ running Tailormap Admin
   docker run --rm -it -d --network host \
     -e "CATALINA_OPTS=${CATALINA_OPTS}" \
     -h tailormap-admin --name tailormap-admin \
-    docker.b3p.nl/b3partners/tailormap-admin:snapshot
+    ghcr.io/b3partners/tailormap-admin:snapshot
   ``` 
   Assuming the same shell that was used to start the database so the environment variables are set
 - point your browser to http://localhost:8080/tailormap-admin/ to login

@@ -35,7 +35,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 15s --health-timeout 5s --health-retries 5
 
     steps:
-      - name: ckeck database
+      - name: check database
         run: |
           psql --version
           echo ${{ env.CATALINA_OPTS }}
@@ -86,10 +86,20 @@ jobs:
         # note that the docker repo is also defined in the pom file properties as "docker.deploy.repo"
         # echo ${{ env.CATALINA_OPTS }}
         run: |
-          docker run --rm -d -e CATALINA_OPTS="-DPG_PORT=${{ env.PG_PORT }} -DPG_HOST=${{ env.PG_HOST }} -DDB_NAME=${{ env.DB_NAME }} -DDB_USER=${{ env.DB_USER }} -DDB_PASS=${{ env.DB_PASS }} -DMAIL_FROM=${{ env.MAIL_FROM }} -DMAIL_HOST=${{ env.MAIL_HOST }} -DTM_DATA_DIR=${{ env.TM_DATA_DIR }}" --network host docker.b3p.nl/b3partners/tailormap-admin:snapshot
+          docker run --rm -d -e CATALINA_OPTS="-DPG_PORT=${{ env.PG_PORT }} -DPG_HOST=${{ env.PG_HOST }} -DDB_NAME=${{ env.DB_NAME }} -DDB_USER=${{ env.DB_USER }} -DDB_PASS=${{ env.DB_PASS }} -DMAIL_FROM=${{ env.MAIL_FROM }} -DMAIL_HOST=${{ env.MAIL_HOST }} -DTM_DATA_DIR=${{ env.TM_DATA_DIR }}" --network host ghcr.io/b3partners/tailormap-admin:snapshot
           sleep 10
           curl http://localhost:8080/tailormap-admin/action/admin/upgradecheck/ping
 
-      - name: Cleanup snapshots
+      - name: Deploy artifacts
+        env:
+          REPO_B3P_ACTOR: ${{ secrets.REPO_B3P_ACTOR }}
+          REPO_B3P_TOKEN: ${{ secrets.REPO_B3P_TOKEN }}
+          GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: mvn -Pqa-skip --settings .github/maven-settings.xml deploy
+
+      - name: Cleanup Maven cache
+        if: ${{ always() }}
         run: |
           find ~/.m2/repository -name "*SNAPSHOT*" -type d | xargs rm -rf {}
+
