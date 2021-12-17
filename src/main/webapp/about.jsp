@@ -98,6 +98,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <tr>
             <td><b><fmt:message key="viewer_admin.about.14" />:</b></td>
             <td><jsp:expression>getServletContext().getServerInfo()</jsp:expression></td>
+        </tr>
+        <tr>
+            <td><b>Absolute URL:</b></td>
+            <td><c:out value="${absoluteURIPrefix}${contextPath}/"/> </td>
+        </tr>
+    <tr>
+        <td><b>Remote address:</b></td>
+        <td><c:out value="${pageContext.request.remoteAddr}"/>
+            <c:if test="${!empty header['x-forwarded-for']}">
+                (forwarded for <c:out value="${header['x-forwarded-for']}"/>)
+            </c:if>
+        </td>
     </tr>
 </table>
 <script>
