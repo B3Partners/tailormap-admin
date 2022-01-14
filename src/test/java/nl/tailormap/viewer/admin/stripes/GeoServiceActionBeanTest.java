@@ -42,7 +42,7 @@ public class GeoServiceActionBeanTest extends TestUtil {
 
     @Test
     public void addWMSService() {
-        String url = "https://geodata.nationaalgeoregister.nl/au/wms?SERVICE=WMS&";
+    String url = "https://service.pdok.nl/kadaster/au/wms/v2_0?language=dut&";
         try {
             Category cat = new Category();
             cat.setId(1L);
