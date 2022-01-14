@@ -103,7 +103,7 @@
     <test.junit-jupiter.version>5.8.2</test.junit-jupiter.version>
     <test.hamcrest.version>2.2</test.hamcrest.version>
     <maven.surefire.version>3.0.0-M5</maven.surefire.version>
-    <cargo-maven3-plugin.version>1.9.8</cargo-maven3-plugin.version>
+    <cargo-maven3-plugin.version>1.9.9</cargo-maven3-plugin.version>
     <tomcat.localDatasource>false</tomcat.localDatasource>
     <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
     <maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version>
