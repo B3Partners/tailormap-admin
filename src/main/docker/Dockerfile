@@ -1,4 +1,4 @@
-FROM tomcat:9.0.55-jre11-temurin
+FROM tomcat:9.0.56-jre11-temurin
 
 ENV PG_PORT=5432
 ENV PG_HOST=127.0.0.1
@@ -37,9 +37,11 @@ EXPOSE 8080
 
 HEALTHCHECK CMD curl -f http://localhost:8080/tailormap-admin/action/admin/upgradecheck/ping || exit 1
 
-LABEL maintainer=B3Partners \
-      nl.b3p.vendor=B3Partners \
-      nl.b3p.image="Tailormap admin" \
-      nl.b3p.version=$TM_VERSION
+LABEL org.opencontainers.image.authors="support@b3partners.nl" \
+      org.opencontainers.image.description="Tailormap admin to administer the Tailormap configuration database" \
+      org.opencontainers.image.vendor="B3Partners BV" \
+      org.opencontainers.image.title="Tailormap admin" \
+      org.opencontainers.image.documentation="https://github.com/B3Partners/tailormap/wiki/Documentation" \
+      org.opencontainers.image.version=$TM_VERSION
 
 VOLUME ["$TM_DATA_DIR", "/usr/local/tomcat/logs"]

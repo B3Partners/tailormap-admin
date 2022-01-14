@@ -57,7 +57,7 @@ updates:
   - backport v5.8.x
 
 - package-ecosystem: "docker"
-  directory: "/src/main/docker/Dockerfile"
+  directory: "/src/main/docker/"
   schedule:
     interval: weekly
     timezone: Europe/Amsterdam
