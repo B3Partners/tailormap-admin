@@ -54,7 +54,9 @@ updates:
       timezone: Europe/Amsterdam
     labels:
       - build infrastructure
-      - backport v5.8.x
+    assignees:
+      - mprins
+
 
   - package-ecosystem: "docker"
     directory: "/src/main/docker/"
@@ -73,4 +75,4 @@ updates:
       # stay on Tomcat 9 for now
       - dependency-name: "tomcat"
         versions:
-          - "10.x"
+          - ">= 10"
