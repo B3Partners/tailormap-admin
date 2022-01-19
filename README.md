@@ -10,7 +10,6 @@ running Tailormap Admin
   DB_NAME=tailormap
   DB_USER=tailormap
   DB_PASS=tailormap
-  URL_SCHEME=http
   MAIL_FROM=noreply@b3partners.nl
   MAIL_HOST=mail.b3partners.nl
   TM_DATA_DIR=/opt/tailormap_data
@@ -30,7 +29,7 @@ running Tailormap Admin
   add the option `-Ddocker.skip=false` if you want to build the docker image
 - start a container using:
   ```shell
-  CATALINA_OPTS="-DPG_PORT=${PG_PORT} -DPG_HOST=${PG_HOST} -DDB_NAME=${DB_NAME} -DDB_USER=${DB_USER} -DDB_PASS=${DB_PASS} -DURL_SCHEME=${URL_SCHEME} -DMAIL_FROM=${MAIL_FROM} -DMAIL_HOST=${MAIL_HOST} -DTM_DATA_DIR=${TM_DATA_DIR}"
+  CATALINA_OPTS="-DPG_PORT=${PG_PORT} -DPG_HOST=${PG_HOST} -DDB_NAME=${DB_NAME} -DDB_USER=${DB_USER} -DDB_PASS=${DB_PASS} -DMAIL_FROM=${MAIL_FROM} -DMAIL_HOST=${MAIL_HOST} -DTM_DATA_DIR=${TM_DATA_DIR}"
   docker run --rm -it -d --network host \
          -e "CATALINA_OPTS=${CATALINA_OPTS}" \
          -h tailormap-admin --name tailormap-admin \
