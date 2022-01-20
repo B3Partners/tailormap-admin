@@ -19,7 +19,7 @@ running Tailormap Admin
           -e POSTGRES_USER=${DB_USER} \
           -e POSTGRES_DB=${DB_NAME} \
           -e POSTGRES_PASSWORD=${DB_PASS} \
-          -p ${PG_PORT}:5432 postgres:14.1-alpine
+          -p ${PG_PORT}:5432 postgres:14.1-alpine3.15
   ``` 
   optionally add the `--rm` option if you want the database to be dropped after stopping
 - build the docker image using Maven

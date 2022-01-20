@@ -277,6 +277,10 @@
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
+      <artifactId>gt-http</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
       <artifactId>gt-wfs-ng</artifactId>
     </dependency>
     <dependency>
@@ -294,30 +298,22 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <scope>test</scope>
     </dependency>
-    <!--    <dependency>-->
-    <!--      <groupId>org.apache.httpcomponents</groupId>-->
-    <!--      <artifactId>httpclient-cache</artifactId>-->
-    <!--      <version>${apache.httpcomponents.version}</version>-->
-    <!--      <scope>test</scope>-->
-    <!--    </dependency>-->
-    <!--    <dependency>-->
-    <!--      <groupId>org.apache.httpcomponents</groupId>-->
-    <!--      <artifactId>fluent-hc</artifactId>-->
-    <!--      <version>${apache.httpcomponents.version}</version>-->
-    <!--      <scope>test</scope>-->
-    <!--    </dependency>-->
-    <!--    <dependency>-->
-    <!--      <groupId>org.apache.httpcomponents</groupId>-->
-    <!--      <artifactId>httpmime</artifactId>-->
-    <!--      <version>${apache.httpcomponents.version}</version>-->
-    <!--      <scope>test</scope>-->
-    <!--    </dependency>-->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient-cache</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>fluent-hc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -696,95 +692,6 @@
           <format>ALL</format>
         </configuration>
       </plugin>
-      <!--            <plugin>-->
-      <!--                <groupId>com.github.eirslett</groupId>-->
-      <!--                <artifactId>frontend-maven-plugin</artifactId>-->
-      <!--                <configuration>-->
-      <!--                    <nodeVersion>${node.version}</nodeVersion>-->
-      <!--                    <npmVersion>${npm.version}</npmVersion>-->
-      <!--                    <installDirectory>${project.build.directory}/</installDirectory>-->
-      <!--                </configuration>-->
-      <!--                <executions>-->
-      <!--                    &lt;!&ndash; components config install &ndash;&gt;-->
-      <!--                    <execution>-->
-      <!--                        <id>install node and npm</id>-->
-      <!--                        <goals>-->
-      <!--                            <goal>install-node-and-npm</goal>-->
-      <!--                        </goals>-->
-      <!--                        <phase>initialize</phase>-->
-      <!--                        <configuration>-->
-      <!--                            <workingDirectory>${tailormap-components-config.source.dir}</workingDirectory>-->
-      <!--                        </configuration>-->
-      <!--                    </execution>-->
-      <!--                    <execution>-->
-      <!--                        <id>Run npm install</id>-->
-      <!--                        <goals>-->
-      <!--                            <goal>npm</goal>-->
-      <!--                        </goals>-->
-      <!--                        <phase>generate-sources</phase>-->
-      <!--                        <configuration>-->
-      <!--                            <arguments>run install-all</arguments>-->
-      <!--                            <workingDirectory>${tailormap-components-config.source.dir}</workingDirectory>-->
-      <!--                        </configuration>-->
-      <!--                    </execution>-->
-      <!--                    <execution>-->
-      <!--                        <id>Build tailormap-components-config artifacts</id>-->
-      <!--                        <goals>-->
-      <!--                            <goal>npm</goal>-->
-      <!--                        </goals>-->
-      <!--                        <phase>process-resources</phase>-->
-      <!--                        <configuration>-->
-      <!--                            <arguments>run build-prod</arguments>-->
-      <!--                            <workingDirectory>${tailormap-components-config.source.dir}</workingDirectory>-->
-      <!--                        </configuration>-->
-      <!--                    </execution>-->
-      <!--                </executions>-->
-      <!--            </plugin>-->
-      <!--      <plugin>-->
-      <!--        <artifactId>maven-resources-plugin</artifactId>-->
-      <!--        <executions>-->
-      <!--                    <execution>-->
-      <!--                        <id>copy-resources - components config</id>-->
-      <!--                        <phase>prepare-package</phase>-->
-      <!--                        <goals>-->
-      <!--                            <goal>copy-resources</goal>-->
-      <!--                        </goals>-->
-      <!--                        <configuration>-->
-      <!--                            <outputDirectory>${project.build.directory}/${project.artifactId}-${project.version}/tailormap-components-config</outputDirectory>-->
-      <!--                            <resources>-->
-      <!--                                <resource>-->
-      <!--                                    <directory>${tailormap-components-config.dist.dir}/</directory>-->
-      <!--                                    <filtering>false</filtering>-->
-      <!--                                    &lt;!&ndash;includes>-->
-      <!--                                       <include>... misschien *.js</include>-->
-      <!--                                   </includes&ndash;&gt;-->
-      <!--                                </resource>-->
-      <!--                            </resources>-->
-      <!--                        </configuration>-->
-      <!--                    </execution>-->
-      <!--                    <execution>-->
-      <!--                        <id>copy-resources - admin config</id>-->
-      <!--                        <phase>prepare-package</phase>-->
-      <!--                        <goals>-->
-      <!--                            <goal>copy-resources</goal>-->
-      <!--                        </goals>-->
-      <!--                        <configuration>-->
-      <!--                            <outputDirectory>-->
-      <!--                                ${project.build.directory}/${project.artifactId}-${project.version}/tailormap-admin-config-->
-      <!--                            </outputDirectory>-->
-      <!--                            <resources>-->
-      <!--                                <resource>-->
-      <!--                                    <directory>${tailormap-admin-config.dist.dir}/</directory>-->
-      <!--                                    <filtering>false</filtering>-->
-      <!--                                    &lt;!&ndash;includes>-->
-      <!--                                        <include>... misschien *.js</include>-->
-      <!--                                    </includes&ndash;&gt;-->
-      <!--                                </resource>-->
-      <!--                            </resources>-->
-      <!--                        </configuration>-->
-      <!--                    </execution>-->
-      <!--        </executions>-->
-      <!--      </plugin>-->
       <plugin>
         <groupId>io.fabric8</groupId>
         <artifactId>docker-maven-plugin</artifactId>
