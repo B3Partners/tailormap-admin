@@ -16,6 +16,7 @@
  */
 package nl.tailormap.viewer.admin;
 
+import nl.tailormap.viewer.admin.stripes.UserActionBean;
 import nl.tailormap.viewer.util.LoggingTestUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,6 +40,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Properties;
 import java.util.Scanner;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -60,6 +67,9 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
 
+    private static final String USER = "admin";
+    private static final String PASSWORD = "tailormap";
+
     private static final Log LOG = LogFactory.getLog(ViewerAdminLockoutIntegrationTest.class);
     /**
      * the viewer url. {@value}
@@ -77,13 +87,34 @@ public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
     private HttpResponse response;
 
     /**
+     * setup the application user account in the database
+     */
+    @BeforeAll
+    public static void setupUser() throws NoSuchAlgorithmException, IOException, ClassNotFoundException, SQLException {
+        /* we need to update the default password created by tailormap-persistence which fills it with a SHA-1 hashed
+           password (used in older tailormap versions), but we use PBKDF2WithHmacSHA512
+         */
+        Properties p = new Properties();
+        p.load(ViewerAdminLockoutIntegrationTest.class.getClassLoader().getResourceAsStream("postgres.properties"));
+        Class.forName(p.getProperty("testdb.driverClassName"));
+        String password = UserActionBean.getSecretKeyPassword(PASSWORD);
+        try (
+                Connection c = DriverManager.getConnection(p.getProperty("testdb.url"), p.getProperty("testdb.username"), p.getProperty("testdb.password"));
+                PreparedStatement st = c.prepareStatement("update user_ set password = ? where username = ?")) {
+            st.setString(1, password);
+            st.setString(2, USER);
+            st.executeUpdate();
+        }
+    }
+
+    /**
      * initialize http client.
      */
     @BeforeAll
     public static void setupClient() {
         client = HttpClients.custom()
                 .useSystemProperties()
-                .setUserAgent("brmo integration test")
+                .setUserAgent("Tailormap-admin integration test")
                 .setRedirectStrategy(new LaxRedirectStrategy())
                 .setDefaultCookieStore(new BasicCookieStore())
                 .build();
@@ -131,8 +162,8 @@ public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
 
         HttpUriRequest login = RequestBuilder.post()
                 .setUri(new URI(BASE_TEST_URL + "j_security_check"))
-                .addParameter("j_username", "admin")
-                .addParameter("j_password", "flamingo")
+                .addParameter("j_username", USER)
+                .addParameter("j_password", PASSWORD)
                 .build();
         response = client.execute(login);
         EntityUtils.consume(response.getEntity());
@@ -175,7 +206,7 @@ public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
 
         HttpUriRequest login = RequestBuilder.post()
                 .setUri(new URI(BASE_TEST_URL + "j_security_check"))
-                .addParameter("j_username", "admin")
+                .addParameter("j_username", USER)
                 .addParameter("j_password", "fout")
                 .build();
         response = client.execute(login);
@@ -197,8 +228,8 @@ public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
         LOG.info("trying one last time with locked-out user, but correct password");
         login = RequestBuilder.post()
                 .setUri(new URI(BASE_TEST_URL + "j_security_check"))
-                .addParameter("j_username", "admin")
-                .addParameter("j_password", "flamingo")
+                .addParameter("j_username", USER)
+                .addParameter("j_password", PASSWORD)
                 .build();
         response = client.execute(login);
 
@@ -215,14 +246,14 @@ public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
         assumeFalse(null == is, "The catalina.out should privide a valid inputstream.");
 
         Scanner s = new Scanner(is);
-        boolean lokkedOut = false;
+        boolean lockedOut = false;
         while (s.hasNextLine()) {
             final String lineFromFile = s.nextLine();
-            if (lineFromFile.contains("An attempt was made to authenticate the locked user \"admin\"")) {
-                lokkedOut = true;
+            if (lineFromFile.contains(String.format("An attempt was made to authenticate the locked user \"%s\"", USER))) {
+                lockedOut = true;
                 break;
             }
         }
-        assertTrue(lokkedOut, "gebruiker 'admin' is buitengesloten");
+        assertTrue(lockedOut, () -> String.format("gebruiker '%s' is buitengesloten", USER));
     }
 }

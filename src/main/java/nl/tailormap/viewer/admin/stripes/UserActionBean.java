@@ -44,7 +44,9 @@ import nl.tailormap.viewer.config.security.User;
 import nl.tailormap.viewer.config.services.GeoService;
 import nl.tailormap.viewer.config.services.Layer;
 import nl.tailormap.viewer.helpers.AuthorizationsHelper;
+import org.apache.catalina.realm.SecretKeyCredentialHandler;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.struts.Globals;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
@@ -60,6 +62,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.servlet.http.HttpServletResponse;
+import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -307,15 +310,26 @@ public class UserActionBean extends LocalizableActionBean {
         }
     }
 
+    public static String getSecretKeyPassword(String password) throws NoSuchAlgorithmException {
+        // We need to construct this Tomcat class ourselves because we use a LockOutRealm, see:
+        // https://stackoverflow.com/questions/64733766/how-to-get-tomcat-credentialhandler-inside-java-when-nested-in-lockoutrealm
+        SecretKeyCredentialHandler credentialHandler = new SecretKeyCredentialHandler();
+        credentialHandler.setAlgorithm("PBKDF2WithHmacSHA512");
+        credentialHandler.setIterations(100000);
+        credentialHandler.setKeyLength(256);
+        credentialHandler.setSaltLength(16);
+        return credentialHandler.mutate(password);
+    }
+
     public Resolution save() throws Exception {
 
         if (user == null) {
             user = new User();
             user.setUsername(username);
-            user.changePassword(password);
+            user.setPassword(getSecretKeyPassword(password));
         } else {
             if (password != null) {
-                user.changePassword(password);
+                user.setPassword(getSecretKeyPassword(password));
             }
         }
 
