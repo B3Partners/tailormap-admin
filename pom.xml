@@ -105,6 +105,7 @@
     <maven.surefire.version>3.0.0-M5</maven.surefire.version>
     <cargo-maven3-plugin.version>1.9.8</cargo-maven3-plugin.version>
     <tomcat.localDatasource>false</tomcat.localDatasource>
+    <tomcat.version>9.0.56</tomcat.version>
     <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
     <maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version>
     <maven-pmd-plugin.version>3.15.0</maven-pmd-plugin.version>
@@ -206,6 +207,12 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-core</artifactId>
+      <version>${tomcat.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

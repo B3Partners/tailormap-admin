@@ -40,7 +40,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 15s --health-timeout 5s --health-retries 5
 
     steps:
-      - name: check database
+      - name: Check database
         run: |
           psql --version
           echo ${{ env.CATALINA_OPTS }}
@@ -78,7 +78,7 @@ jobs:
       - name: Build test javadoc
         run: mvn javadoc:test-javadoc
 
-      - name: Try Created Docker image
+      - name: Try running the created Docker image
         #        PG_PORT=5432
         #        PG_HOST=127.0.0.1
         #        DB_NAME=tailormap
