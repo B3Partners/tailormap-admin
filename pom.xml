@@ -370,7 +370,7 @@
   <build>
     <defaultGoal>install</defaultGoal>
     <!-- no version number on jar makes building docker image easier -->
-    <finalName>${project.artifactId}</finalName>
+    <finalName>admin</finalName>
     <pluginManagement>
       <plugins>
         <plugin>

@@ -93,7 +93,7 @@ jobs:
         run: |
           docker run --rm -d -e CATALINA_OPTS="-DPG_PORT=${{ env.PG_PORT }} -DPG_HOST=${{ env.PG_HOST }} -DDB_NAME=${{ env.DB_NAME }} -DDB_USER=${{ env.DB_USER }} -DDB_PASS=${{ env.DB_PASS }} -DMAIL_FROM=${{ env.MAIL_FROM }} -DMAIL_HOST=${{ env.MAIL_HOST }} -DTM_DATA_DIR=${{ env.TM_DATA_DIR }}" --network host ghcr.io/b3partners/tailormap-admin:snapshot
           sleep 10
-          curl http://localhost:8080/tailormap-admin/action/admin/upgradecheck/ping
+          curl http://localhost:8080/admin/action/admin/upgradecheck/ping
 
       - name: Deploy artifacts
         if: ${{ github.ref == 'refs/heads/main' && ( github.event_name == 'push' || github.event_name == 'workflow_dispatch' ) }}

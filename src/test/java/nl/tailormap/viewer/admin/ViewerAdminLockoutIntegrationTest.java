@@ -74,7 +74,7 @@ public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
     /**
      * the viewer url. {@value}
      */
-    private static final String BASE_TEST_URL = "http://localhost:9090/tailormap-admin/";
+    private static final String BASE_TEST_URL = "http://localhost:9090/admin/";
 
     /**
      * our test client.
