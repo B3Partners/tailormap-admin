@@ -182,7 +182,7 @@
         <init-param>
             <param-name>CoreInterceptor.Classes</param-name>
             <param-value>
-                org.stripesstuff.plugin.waitpage.WaitPageInterceptor,
+                nl.tailormap.viewer.admin.stripes.plugin.ReverseProxyAwareWaitPageInterceptor,
                 net.sourceforge.stripes.controller.BeforeAfterMethodInterceptor,
                 net.sourceforge.stripes.controller.HttpCacheInterceptor
             </param-value>
@@ -209,6 +209,10 @@
         <init-param>
             <param-name>SecurityManager.Class</param-name>
             <param-value>org.stripesstuff.plugin.security.J2EESecurityManager</param-value>
+        </init-param>
+        <init-param>
+            <param-name>WaitPageInterceptor.SelfUrl</param-name>
+            <param-value>http://localhost:8080</param-value>
         </init-param>
     </filter>
     <filter-mapping>
