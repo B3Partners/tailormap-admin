@@ -17,7 +17,7 @@ ARG DEBIAN_FRONTEND="noninteractive"
 
 # copy webapps + jdni libs + config to tomcat directories
 # note we need ${project.basedir}/${project.build.directory} because we need an absolute path
-COPY ${project.build.directory}/tailormap-admin.war /usr/local/tomcat/webapps/
+COPY ${project.build.directory}/admin.war /usr/local/tomcat/webapps/
 COPY ${project.build.directory}/tomcat-lib/*.jar /usr/local/tomcat/lib/
 COPY ${project.basedir}/src/main/docker/tomcat_conf/ /usr/local/tomcat/conf/
 
@@ -35,7 +35,7 @@ RUN set -eux;ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/t
 
 EXPOSE 8080
 
-HEALTHCHECK CMD curl -f http://localhost:8080/tailormap-admin/action/admin/upgradecheck/ping || exit 1
+HEALTHCHECK CMD curl -f http://localhost:8080/admin/action/admin/upgradecheck/ping || exit 1
 
 LABEL org.opencontainers.image.authors="support@b3partners.nl" \
       org.opencontainers.image.description="Tailormap admin to administer the Tailormap configuration database" \

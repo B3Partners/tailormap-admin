@@ -37,4 +37,4 @@ running Tailormap Admin
          ghcr.io/b3partners/tailormap-admin:snapshot
   ``` 
   Assuming the same shell that was used to start the database so the environment variables are set
-- point your browser to http://localhost:8080/tailormap-admin/ to login
+- point your browser to http://localhost:8080/admin/ to login

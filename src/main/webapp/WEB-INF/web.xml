@@ -17,7 +17,7 @@
             the tailormap-admin needs to link to it, for example for image uploads.
         </description>
         <param-name>viewer.url</param-name>
-        <param-value>/tailormap-admin</param-value>
+        <param-value>/admin</param-value>
     </context-param>
     <context-param>
         <description>
@@ -33,7 +33,7 @@
             configuration.
         </description>
         <param-name>componentregistry.crosscontext</param-name>
-        <param-value>/tailormap-admin</param-value>
+        <param-value>/admin</param-value>
     </context-param>
     <context-param>
         <description>
