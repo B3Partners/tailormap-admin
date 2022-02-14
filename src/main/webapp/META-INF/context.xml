@@ -20,31 +20,13 @@ more about the available context attributes:
 
     <ResourceLink global="jdbc/geo_viewer" name="jdbc/geo_viewer" type="javax.sql.DataSource"/>
     <ResourceLink global="mail/session" name="mail/session" type="javax.mail.Session"/>
-    <!-- voor productie aanpassen in onderstaande Realm:
-        localDataSource="false"
-    -->
-    <Realm className="org.apache.catalina.realm.LockOutRealm">
-        <Realm className="org.apache.catalina.realm.DataSourceRealm"
-               dataSourceName="jdbc/geo_viewer"
-               userTable="user_"
-               userCredCol="password"
-               userNameCol="username"
-               userRoleTable="user_groups"
-               roleNameCol="group_"
-               allRolesMode="authOnly"
-               localDataSource="${tomcat.localDatasource}"
-        >
 
-            <!-- When these attributes are changed, also modify them in UserActionBean.getSecretKeyPassword()!
-                 To generate a password from the commandline, execute:
-                 docker run -_-rm tomcat:9.0.56-jre11-temurin /usr/local/tomcat/bin/digest.sh -a PBKDF2WithHmacSHA512 -i 100000 -k 256 -s 16 -h org.apache.catalina.realm.SecretKeyCredentialHandler mypassword
-            -->
-            <CredentialHandler className="org.apache.catalina.realm.SecretKeyCredentialHandler"
-                               algorithm="PBKDF2WithHmacSHA512"
-                               iterations="100000"
-                               keyLength="256"
-                               saltLength="16"
-            />
-        </Realm>
+    <Realm className="org.apache.catalina.realm.LockOutRealm">
+        <Realm className="org.apache.catalina.realm.JAASRealm"
+               appName="Tailormap"
+               configFile="jaas.config"
+               userClassNames="nl.tailormap.viewer.config.security.User"
+               roleClassNames="nl.tailormap.viewer.admin.jaas.Group"
+       />
     </Realm>
 </Context>

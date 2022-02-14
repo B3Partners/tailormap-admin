@@ -34,6 +34,7 @@ import net.sourceforge.stripes.validation.Validate;
 import net.sourceforge.stripes.validation.ValidationErrors;
 import net.sourceforge.stripes.validation.ValidationMethod;
 import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.admin.jaas.TailormapLoginModule;
 import nl.tailormap.viewer.config.app.Application;
 import nl.tailormap.viewer.config.app.ApplicationLayer;
 import nl.tailormap.viewer.config.app.ConfiguredComponent;
@@ -310,26 +311,15 @@ public class UserActionBean extends LocalizableActionBean {
         }
     }
 
-    public static String getSecretKeyPassword(String password) throws NoSuchAlgorithmException {
-        // We need to construct this Tomcat class ourselves because we use a LockOutRealm, see:
-        // https://stackoverflow.com/questions/64733766/how-to-get-tomcat-credentialhandler-inside-java-when-nested-in-lockoutrealm
-        SecretKeyCredentialHandler credentialHandler = new SecretKeyCredentialHandler();
-        credentialHandler.setAlgorithm("PBKDF2WithHmacSHA512");
-        credentialHandler.setIterations(100000);
-        credentialHandler.setKeyLength(256);
-        credentialHandler.setSaltLength(16);
-        return credentialHandler.mutate(password);
-    }
-
     public Resolution save() throws Exception {
 
         if (user == null) {
             user = new User();
             user.setUsername(username);
-            user.setPassword(getSecretKeyPassword(password));
+            user.setPassword(TailormapLoginModule.getPasswordEncoder().encode(password));
         } else {
             if (password != null) {
-                user.setPassword(getSecretKeyPassword(password));
+                user.setPassword(TailormapLoginModule.getPasswordEncoder().encode(password));
             }
         }
 
