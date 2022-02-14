@@ -16,6 +16,7 @@
  */
 package nl.tailormap.viewer.admin;
 
+import nl.tailormap.viewer.admin.jaas.TailormapLoginModule;
 import nl.tailormap.viewer.admin.stripes.UserActionBean;
 import nl.tailormap.viewer.util.LoggingTestUtil;
 import org.apache.commons.logging.Log;
@@ -97,7 +98,7 @@ public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
         Properties p = new Properties();
         p.load(ViewerAdminLockoutIntegrationTest.class.getClassLoader().getResourceAsStream("postgres.properties"));
         Class.forName(p.getProperty("testdb.driverClassName"));
-        String password = UserActionBean.getSecretKeyPassword(PASSWORD);
+        String password = TailormapLoginModule.getPasswordEncoder().encode(PASSWORD);
         try (
                 Connection c = DriverManager.getConnection(p.getProperty("testdb.url"), p.getProperty("testdb.username"), p.getProperty("testdb.password"));
                 PreparedStatement st = c.prepareStatement("update user_ set password = ? where username = ?")) {
