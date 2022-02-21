@@ -62,7 +62,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Priming build with Maven
-        run: mvn install -DskipTests -DskipITs -B -V -fae
+        run: mvn install -DskipTests -DskipITs -B -V -fae -U
 
       - name: Test with Maven
         run: |
