@@ -62,7 +62,11 @@ jobs:
           distribution: 'temurin'
 
       - name: Priming build with Maven
-        run: mvn install -DskipTests -DskipITs -B -V -fae -U
+        # explicit download of cargo-core-container-tomcat
+        run: | 
+          mvn dependency:get -Dartifact=org.codehaus.cargo:cargo-core-container-tomcat:1.9.11-SNAPSHOT -DremoteRepositories=https://oss.sonatype.org/content/repositories/snapshots/
+          mvn install -DskipTests -DskipITs -B -V -fae -U
+          
 
       - name: Test with Maven
         run: |
