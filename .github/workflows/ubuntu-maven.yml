@@ -46,7 +46,7 @@ jobs:
           echo ${{ env.CATALINA_OPTS }}
           PGPASSWORD=${{ env.DB_PASS }} psql -d ${{ env.DB_NAME }} -h localhost -U ${{ env.DB_USER }} -c 'SELECT Version();' || true
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions/cache@v2
         with:
