@@ -86,23 +86,23 @@
     <project.build.outputTimestamp>2021-11-16T16:01:17Z</project.build.outputTimestamp>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
+    <spring-security.version>5.6.2</spring-security.version>
     <!-- must be kept in sync with tailormap version -->
-    <geotools.version>26.2</geotools.version>
-    <tailormap.version>5.9.15</tailormap.version>
-    <b3p-commons-csw.version>7.1</b3p-commons-csw.version>
-    <hsqldb.version>2.6.1</hsqldb.version>
+    <!--    <geotools.version>26.2</geotools.version>-->
+    <tailormap.version>5.9.17</tailormap.version>
+    <!--    <b3p-commons-csw.version>7.1</b3p-commons-csw.version>-->
+    <!--    <hsqldb.version>2.6.1</hsqldb.version>-->
     <test.persistence.unit>viewer-config-hsqldb</test.persistence.unit>
-    <postgresql.version>42.3.3</postgresql.version>
+    <!--    <postgresql.version>42.3.3</postgresql.version>-->
     <!--        <mssql.version>9.4.0.jre11</mssql.version>-->
     <!--        <oracle.version>21.3.0.0</oracle.version>-->
-    <apache.poi.version>5.1.0</apache.poi.version>
-    <jakarta.mail.version>1.6.7</jakarta.mail.version>
-    <apache.httpcomponents.version>4.5.13</apache.httpcomponents.version>
-    <apache.commons-codec.version>1.15</apache.commons-codec.version>
-    <activation.api.version>1.2.2</activation.api.version>
-    <spring-security.version>5.6.2</spring-security.version>
+    <!--    <apache.poi.version>5.1.0</apache.poi.version>-->
+    <!--    <jakarta.mail.version>1.6.7</jakarta.mail.version>-->
+    <!--    <apache.httpcomponents.version>4.5.13</apache.httpcomponents.version>-->
+    <!--    <apache.commons-codec.version>1.15</apache.commons-codec.version>-->
+    <!--    <activation.api.version>1.2.2</activation.api.version>-->
     <test.junit-jupiter.version>5.8.2</test.junit-jupiter.version>
-    <test.hamcrest.version>2.2</test.hamcrest.version>
+    <!--    <test.hamcrest.version>2.2</test.hamcrest.version>-->
     <maven.surefire.version>3.0.0-M5</maven.surefire.version>
     <cargo-maven3-plugin.version>1.9.8</cargo-maven3-plugin.version>
     <tomcat.localDatasource>false</tomcat.localDatasource>
@@ -127,13 +127,13 @@
   </properties>
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>org.junit</groupId>
-        <artifactId>junit-bom</artifactId>
-        <version>${test.junit-jupiter.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
+      <!--      <dependency>-->
+      <!--        <groupId>org.junit</groupId>-->
+      <!--        <artifactId>junit-bom</artifactId>-->
+      <!--        <version>${test.junit-jupiter.version}</version>-->
+      <!--        <type>pom</type>-->
+      <!--        <scope>import</scope>-->
+      <!--      </dependency>-->
       <dependency>
         <groupId>org.tailormap</groupId>
         <artifactId>tailormap</artifactId>
@@ -905,17 +905,17 @@
         <dependency>
           <groupId>org.postgresql</groupId>
           <artifactId>postgresql</artifactId>
-          <version>${postgresql.version}</version>
+          <!--          <version>${postgresql.version}</version>-->
         </dependency>
         <dependency>
           <groupId>com.sun.activation</groupId>
           <artifactId>jakarta.activation</artifactId>
-          <version>${activation.api.version}</version>
+          <!--          <version>${activation.api.version}</version>-->
         </dependency>
         <dependency>
           <groupId>com.sun.mail</groupId>
           <artifactId>jakarta.mail</artifactId>
-          <version>${jakarta.mail.version}</version>
+          <!--          <version>${jakarta.mail.version}</version>-->
         </dependency>
       </dependencies>
       <build>

@@ -97,7 +97,7 @@
             List of supported language codes (comma-separated)
         </description>
         <param-name>tailormap.i18n.languagecodes</param-name>
-        <param-value>nl_NL</param-value>
+        <param-value>nl_NL,en_US</param-value>
     </context-param>
     <context-param>
         <description>
