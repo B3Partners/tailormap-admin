@@ -110,7 +110,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <tr>
                                         <td>Projectie:</td>
                                         <td><stripes:select name="projection">
-                                                <stripes:option label="-- Kies een projectie --"/>
                                                 <stripes:options-collection collection="${actionBean.crses}" label="name" value="code"/>
                                             </stripes:select></td>
                                     </tr>
@@ -124,7 +123,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 </td>
                             </tr>
                             <tr>
-                                <td>&nbsp;</td>
+                                <td><stripes:text name="startExtent.crs.name" readonly="true" disabled="disabled" size="9"/></td>
                                 <td>
                                     <fmt:message key="viewer_admin.applicationsettings.15" /> <stripes:text name="startExtent.maxx" maxlength="255" size="8"/>
                                     <fmt:message key="viewer_admin.applicationsettings.16" /> <stripes:text name="startExtent.maxy" maxlength="255" size="8"/>
@@ -138,11 +137,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 </td>
                             </tr>
                             <tr>
-                                <td>&nbsp;</td>
+                                <td><stripes:text name="maxExtent.crs.name" readonly="true" disabled="disabled" size="9"/></td>
                                 <td>
                                     <fmt:message key="viewer_admin.applicationsettings.20" /> <stripes:text name="maxExtent.maxx" maxlength="255" size="8"/>
                                     <fmt:message key="viewer_admin.applicationsettings.21" /> <stripes:text name="maxExtent.maxy" maxlength="255" size="8"/>
                                 </td>
+
                             </tr>
                         </table>
                     </div>

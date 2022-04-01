@@ -37,6 +37,7 @@ import nl.tailormap.viewer.config.app.Level;
 import nl.tailormap.viewer.config.security.Group;
 import nl.tailormap.viewer.config.security.User;
 import nl.tailormap.viewer.config.services.BoundingBox;
+import nl.tailormap.viewer.config.services.CoordinateReferenceSystem;
 import nl.tailormap.viewer.helpers.app.ApplicationHelper;
 import nl.tailormap.viewer.util.SelectedContentCache;
 import org.apache.commons.lang3.StringUtils;
@@ -119,7 +120,7 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
 
 
     @Validate
-    private List<String> groupsRead = new ArrayList<String>();
+    private List<String> groupsRead = new ArrayList<>();
 
     //<editor-fold defaultstate="collapsed" desc="getters & setters">
 
@@ -348,7 +349,6 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
             application.setOwner(appOwner);
         }
         application.setStartExtent(startExtent);
-
         application.setMaxExtent(maxExtent);
 
         application.setAuthenticatedRequired(authenticatedRequired);
@@ -360,7 +360,6 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
         application.authorizationsModified();
 
         application.setProjectionCode(projection);
-        Map<String, ClobElement> backupDetails = new HashMap();
         for (Map.Entry<String, ClobElement> e : application.getDetails().entrySet()) {
             if (Application.preventClearDetails.contains(e.getKey())) {
                 details.put(e.getKey(), e.getValue());
@@ -405,7 +404,7 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
         }
 
         /*
-         * Check if owner is an excisting user
+         * Check if owner is an existing user.
          */
         if(owner != null){
             try {
@@ -421,11 +420,17 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
             if(startExtent.getMinx() == null || startExtent.getMiny() == null || startExtent.getMaxx() == null || startExtent.getMaxy() == null ){
                 errors.add("startExtent", new SimpleError(getBundle().getString("viewer_admin.applicationsettingsbean.nostartext")));
             }
+            // force application CRS on startExtent
+            if (null == startExtent.getCrs())
+                startExtent.setCrs(new CoordinateReferenceSystem(projection.substring(0, projection.indexOf('['))));
         }
         if(maxExtent != null){
             if(maxExtent.getMinx() == null || maxExtent.getMiny() == null || maxExtent.getMaxx() == null || maxExtent.getMaxy() == null ){
                 errors.add("maxExtent", new SimpleError(getBundle().getString("viewer_admin.applicationsettingsbean.nomaxext")));
             }
+            // force application CRS on maxExtent
+            if (null == maxExtent.getCrs())
+                maxExtent.setCrs(new CoordinateReferenceSystem(projection.substring(0, projection.indexOf('['))));
         }
     }
 
