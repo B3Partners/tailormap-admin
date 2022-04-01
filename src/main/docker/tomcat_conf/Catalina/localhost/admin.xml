@@ -12,7 +12,9 @@
 
     <Parameter name="tailormap.i18n.languagecodes" override="false" value="nl_NL,en_US"/>
     <Parameter name="tailormap.projections.epsgcodes" override="false"
-               value="EPSG:28992[+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.237,50.0087,465.658,-0.406857,0.350733,-1.87035,4.0812 +units=m +no_defs];EPSG:4326[]"/>
+               value="EPSG:28992[+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.237,50.0087,465.658,-0.406857,0.350733,-1.87035,4.0812 +units=m +no_defs];EPSG:3857[+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs]"/>
+    <Parameter name="tailormap.projections.epsgnames" override="false"
+               value="EPSG:28992 (Amersfoort / RD New),EPSG:3857 (WGS 84 / Pseudo-Mercator)"/>
 
     <Parameter name="tailormap.solr.url" value="" override="false"/>
     <Parameter name="tailormap.solr.schedule" value="-1" override="false"/>
