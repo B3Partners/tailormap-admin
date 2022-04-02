@@ -1,4 +1,4 @@
-FROM tomcat:9.0.60-jre11-temurin
+FROM tomcat:9.0.62-jre11-temurin
 
 ENV PG_PORT=5432
 ENV PG_HOST=127.0.0.1
