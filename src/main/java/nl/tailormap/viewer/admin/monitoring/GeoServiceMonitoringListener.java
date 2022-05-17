@@ -16,7 +16,6 @@
  */
 package nl.tailormap.viewer.admin.monitoring;
 
-import nl.tailormap.mail.Mailer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.quartz.JobBuilder;
@@ -71,8 +70,7 @@ public class GeoServiceMonitoringListener implements ServletContextListener {
             setupQuartz();
         } catch(Exception e) {
             log.error("Error setting up Quartz, monitoring disabled!", e);
-            return;
-        }        
+        }
     }
     
     @Override
@@ -97,6 +95,7 @@ public class GeoServiceMonitoringListener implements ServletContextListener {
         try {
             minutes = Integer.parseInt(context.getInitParameter(PARAM_INTERVAL));
         } catch(NumberFormatException nfe) {
+            // ...
         }
 
         scheduler = new StdSchedulerFactory(props).getScheduler();

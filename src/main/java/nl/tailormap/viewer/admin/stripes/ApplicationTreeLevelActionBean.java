@@ -79,7 +79,7 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
     private boolean layersAllowed;
     
     @Validate
-    private List<String> groupsRead = new ArrayList<String>();
+    private List<String> groupsRead = new ArrayList<>();
     
     @Validate
     private String selectedlayers;
@@ -138,12 +138,12 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
         JSONObject json = new JSONObject();
 
         json.put("success", Boolean.FALSE);
-        String error = null;
+        StringBuilder error = null;
         
         if(level == null) {
-            error = getBundle().getString("viewer_admin.applicationtreelevelactionbean.nolevel");
+            error = new StringBuilder(getBundle().getString("viewer_admin.applicationtreelevelactionbean.nolevel"));
         } else if(level.getName() == null) {
-            error = getBundle().getString("viewer_admin.applicationtreelevelactionbean.noname");
+            error = new StringBuilder(getBundle().getString("viewer_admin.applicationtreelevelactionbean.noname"));
         } else {
             try {
                 EntityManager em = Stripersist.getEntityManager();
@@ -154,16 +154,16 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
                 json.put("success", Boolean.TRUE);
             } catch(Exception e) {
                 log.error("Fout bij opslaan niveau", e);
-                error = MessageFormat.format(getBundle().getString("viewer.applicationtreelevelactionbean.levelnosave"), e); 
+                error = new StringBuilder(MessageFormat.format(getBundle().getString("viewer.applicationtreelevelactionbean.levelnosave"), e));
                 Throwable t = e;
                 while(t.getCause() != null) {
                     t = t.getCause();
-                    error += "; " + t;
+                    error.append("; ").append(t);
                 }                
             }
         }
         if(error != null) {
-            json.put("error", error);
+            json.put("error", error.toString());
         }              
         return new StreamingResolution("application/json", new StringReader(json.toString()));
     }
@@ -186,19 +186,19 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
     }
 
     protected String deleteLevel(EntityManager em, Level level){
-        String error = null;
+        StringBuilder error = null;
 
         StartLevel sl = level.getStartLevels().get(application);
         if(level == null) {
-            error = getBundle().getString("viewer_admin.applicationtreelevelactionbean.nolevel");
+            error = new StringBuilder(getBundle().getString("viewer_admin.applicationtreelevelactionbean.nolevel"));
         } else if(level.getParent() == null) {
-            error = getBundle().getString("viewer_admin.applicationtreelevelactionbean.upperlevel");
+            error = new StringBuilder(getBundle().getString("viewer_admin.applicationtreelevelactionbean.upperlevel"));
         } else if(level.getChildren().size() > 0) {
-            error = getBundle().getString("viewer_admin.applicationtreelevelactionbean.levelsub");
+            error = new StringBuilder(getBundle().getString("viewer_admin.applicationtreelevelactionbean.levelsub"));
         } else if(sl != null && sl.getSelectedIndex() != null && sl.isRemoved() == false) {
-            error = getBundle().getString("viewer_admin.applicationtreelevelactionbean.leveltoc");
+            error = new StringBuilder(getBundle().getString("viewer_admin.applicationtreelevelactionbean.leveltoc"));
         } else if(level.getLayers().size() > 0) {
-            error = getBundle().getString("viewer_admin.applicationtreelevelactionbean.levelfilled");
+            error = new StringBuilder(getBundle().getString("viewer_admin.applicationtreelevelactionbean.levelfilled"));
         } else {
             try {
                 Level parent = level.getParent();
@@ -207,12 +207,7 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
                 mashups.add(application);
                 for (Application mashup : mashups) {
                     List<StartLevel> startlevels = mashup.getStartLevels();
-                    for (Iterator<StartLevel> iterator = startlevels.iterator(); iterator.hasNext();) {
-                        StartLevel next = iterator.next();
-                        if( sl != null && next.getLevel().getId().equals(sl.getLevel().getId())){
-                            iterator.remove();
-                        }
-                    }
+                    startlevels.removeIf(next -> sl != null && next.getLevel().getId().equals(sl.getLevel().getId()));
                 }
                 
                 em.remove(level);
@@ -222,15 +217,15 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
 
             } catch(Exception e) {
                 log.error("Can not remove level", e);
-                error = MessageFormat.format(getBundle().getString("viewer.applicationtreelevelactionbean.levelnorem"), e);  
+                error = new StringBuilder(MessageFormat.format(getBundle().getString("viewer.applicationtreelevelactionbean.levelnorem"), e));
                 Throwable t = e;
                 while(t.getCause() != null) {
                     t = t.getCause();
-                    error += "; " + t;
+                    error.append("; ").append(t);
                 }
             }
         }
-        return error;
+        return (null!=error && error.length()>0? error.toString():null);
     }
     
     public Resolution save() {                
@@ -251,11 +246,11 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
         level.getDocuments().clear();
         if(selecteddocs != null && selecteddocs.length() > 0){
             String[] docIds = selecteddocs.split(",");
-             for(int i = 0; i < docIds.length; i++){
-                Long id = new Long(docIds[i].substring(1));
+            for (String docId : docIds) {
+                Long id = Long.valueOf(docId.substring(1));
                 Document doc = em.find(Document.class, id);
                 level.getDocuments().add(doc);
-             }
+            }
         }
         if (level.getStartLevels().isEmpty()) {
             StartLevel sl = new StartLevel();
@@ -280,7 +275,7 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
     }
     
      protected void updateApplayersInLevel(String selectedLayers, Level level, EntityManager em){
-        List<ApplicationLayer> layersToBeRemoved = new ArrayList(level.getLayers());
+        List<ApplicationLayer> layersToBeRemoved = new ArrayList<>(level.getLayers());
         
         List<Application> apps = ApplicationHelper.getMashups(application, em);
         apps.add(application);
@@ -288,37 +283,36 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
         level.getLayers().clear();
         if(selectedLayers != null && selectedLayers.length() > 0){
             String[] layerIds = selectedLayers.split(",");
-            for(int i = 0; i < layerIds.length; i++){
+            for (String layerId : layerIds) {
                 ApplicationLayer appLayer = null;
-                if(layerIds[i].startsWith("al")){
-                    Long id = new Long(layerIds[i].substring(2));
+                if (layerId.startsWith("al")) {
+                    Long id = Long.valueOf(layerId.substring(2));
                     appLayer = em.find(ApplicationLayer.class, id);
                     layersToBeRemoved.remove(appLayer);
-                }else if(layerIds[i].startsWith("l")){
-                    Long id = new Long(layerIds[i].substring(1));
+                } else if (layerId.startsWith("l")) {
+                    Long id = Long.valueOf(layerId.substring(1));
                     Layer layer = em.find(Layer.class, id);
-                    if(layer != null && !layer.isVirtual()){
+                    if (layer != null && !layer.isVirtual()) {
                         appLayer = new ApplicationLayer();
                         appLayer.setService(layer.getService());
                         appLayer.setLayerName(layer.getName());
-                       StartLayer sl = new StartLayer();
+                        StartLayer sl = new StartLayer();
                         sl.setApplication(application);
                         sl.setApplicationLayer(appLayer);
                         appLayer.getStartLayers().put(application, sl);
                         application.getStartLayers().add(sl);
-                        if(layer.getFeatureType() != null){
+                        if (layer.getFeatureType() != null) {
                             SimpleFeatureType sft = layer.getFeatureType();
-                            for(Iterator it = sft.getAttributes().iterator(); it.hasNext();){
-                                AttributeDescriptor ad = (AttributeDescriptor)it.next();
+                            for (AttributeDescriptor ad : sft.getAttributes()) {
                                 ConfiguredAttribute confAttribute = new ConfiguredAttribute();
                                 confAttribute.setAttributeName(ad.getName());
                                 // default visible if not geometry type
-                                confAttribute.setVisible(! AttributeDescriptor.GEOMETRY_TYPES.contains(ad.getType()));
+                                confAttribute.setVisible(!AttributeDescriptor.GEOMETRY_TYPES.contains(ad.getType()));
                                 appLayer.getAttributes().add(confAttribute);
                             }
                         }
                     }
-                }                
+                }
                 level.getLayers().add(appLayer);
             }
         }

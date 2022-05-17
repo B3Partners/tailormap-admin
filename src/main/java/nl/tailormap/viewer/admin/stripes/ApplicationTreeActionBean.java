@@ -42,7 +42,6 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -159,7 +158,7 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
             String type = nodeId.substring(0, 1);
             int id = Integer.parseInt(nodeId.substring(1));
             if(type.equals("n")) {
-                Level l = em.find(Level.class, new Long(id));
+                Level l = em.find(Level.class, (long) id);
                 List<Level> levels = l.getChildren();
                 Collections.sort(levels);
                 for(Level sub: levels) {
@@ -192,7 +191,7 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
         return new StreamingResolution("application/json") {
            @Override
            public void stream(HttpServletResponse response) throws Exception {
-               response.getWriter().print(children.toString());
+               response.getWriter().print(children);
            }
         };
     }
@@ -205,7 +204,7 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
         
         if(!levelId.equals("")){
             int id = Integer.parseInt(levelId);
-            Level l = em.find(Level.class, new Long(id));
+            Level l = em.find(Level.class, (long) id);
             for(ApplicationLayer appl: l.getLayers()) {
                 JSONObject j = new JSONObject();                
                 j.put("id", "al" + appl.getId());
@@ -222,7 +221,7 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
         return new StreamingResolution("application/json") {
            @Override
            public void stream(HttpServletResponse response) throws Exception {
-               response.getWriter().print(children.toString());
+               response.getWriter().print(children);
            }
         };
     }
@@ -281,9 +280,8 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
         
         final JSONArray children = new JSONArray();
         
-        List documents = em.createQuery("from Document").getResultList();
-        for(Iterator it = documents.iterator(); it.hasNext();){
-            Document doc = (Document)it.next();
+        List<Document> documents = em.createQuery("from Document", Document.class).getResultList();
+        for (Document doc : documents) {
             JSONObject j = new JSONObject();
             j.put("id", "d" + doc.getId());
             j.put("name", doc.getName());
@@ -296,7 +294,7 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
         return new StreamingResolution("application/json") {
             @Override
             public void stream(HttpServletResponse response) throws Exception {
-                response.getWriter().print(children.toString());
+                response.getWriter().print(children);
             }
         }; 
     }
@@ -307,7 +305,7 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
         final JSONArray children = new JSONArray();
         if(!levelId.equals("")){
             int id = Integer.parseInt(levelId);
-            Level l = em.find(Level.class, new Long(id));
+            Level l = em.find(Level.class, (long) id);
             for(Document doc: l.getDocuments()) {
                 JSONObject j = new JSONObject();
                 j.put("id", "d" + doc.getId());
@@ -321,7 +319,7 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
         return new StreamingResolution("application/json") {
             @Override
             public void stream(HttpServletResponse response) throws Exception {
-                response.getWriter().print(children.toString());
+                response.getWriter().print(children);
             }
         }; 
     }
@@ -330,9 +328,9 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
         EntityManager em = Stripersist.getEntityManager();
 
         // Demangle id
-        Long parentIdLong;
+        long parentIdLong;
         if(!parentId.contains("n")){
-            parentIdLong = new Long(parentId);
+            parentIdLong = Long.parseLong(parentId);
         }else{
             parentIdLong = Long.parseLong(parentId.substring(1));
         }
@@ -370,7 +368,7 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
         return new StreamingResolution("application/json") {
            @Override
            public void stream(HttpServletResponse response) throws Exception {
-               response.getWriter().print(j.toString());
+               response.getWriter().print(j);
            }
         };
     }
@@ -392,7 +390,7 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
         return new StreamingResolution("application/json") {
             @Override
             public void stream(HttpServletResponse response) throws Exception {
-                response.getWriter().print(j.toString());
+                response.getWriter().print(j);
             }
         };
     }

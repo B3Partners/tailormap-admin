@@ -1,15 +1,5 @@
 package nl.tailormap.viewer.admin.stripes.plugin;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.servlet.http.HttpServletRequest;
-
 import net.sourceforge.stripes.action.ActionBeanContext;
 import net.sourceforge.stripes.action.ForwardResolution;
 import net.sourceforge.stripes.action.RedirectResolution;
@@ -29,6 +19,14 @@ import net.sourceforge.stripes.util.Log;
 import net.sourceforge.stripes.util.UrlBuilder;
 import org.stripesstuff.plugin.waitpage.Context;
 import org.stripesstuff.plugin.waitpage.WaitPage;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Interceptor documentation is explained in {@link WaitPage} documentation.
@@ -80,7 +78,7 @@ public class ReverseProxyAwareWaitPageInterceptor implements Interceptor, Config
     /**
      * Saved wait context.
      */
-    private Map<Integer, Context> contexts = new ConcurrentHashMap<Integer, Context>();
+    private final Map<Integer, Context> contexts = new ConcurrentHashMap<>();
     /**
      * Time allowed for user to access a completed context (in milliseconds).<br>
      * After that time, context are removed to allow garbage collection.
@@ -89,8 +87,8 @@ public class ReverseProxyAwareWaitPageInterceptor implements Interceptor, Config
 
     /**
      * URL to call when executing the request in the background. In a reverse proxy configuration using a RemoteIpValve,
-     * the request.getScheme(), request.getServerName() and request.getPort() may not be reachable and need to be replaced
-     * by for instance http://localhost:8080/.
+     * the {@code request.getScheme()}, {@code request.getServerName()} and {@code request.getPort()} may not be reachable
+     * and need to be replaced by for instance {@code http://localhost:8080/}.
      */
     private URL selfUrl = null;
 
@@ -232,8 +230,7 @@ public class ReverseProxyAwareWaitPageInterceptor implements Interceptor, Config
         UrlBuilder urlBuilder = new UrlBuilder(executionContext.getActionBeanContext().getLocale(), THREAD_URL, false);
 
         // Add parameters from the original request in case there were some parameters that weren't bound but are used
-        @SuppressWarnings({ "cast", "unchecked" })
-        Set<Map.Entry<String,String[]>> paramSet = (Set<Map.Entry<String,String[]>>) request.getParameterMap().entrySet();
+        Set<Map.Entry<String,String[]>> paramSet = request.getParameterMap().entrySet();
         for (Map.Entry<String,String[]> param : paramSet)
             for (String value : param.getValue())
                 urlBuilder.addParameter(param.getKey(), value);
@@ -244,9 +241,9 @@ public class ReverseProxyAwareWaitPageInterceptor implements Interceptor, Config
         }
         urlBuilder.addParameter(StripesConstants.URL_KEY_SOURCE_PAGE, CryptoUtil.encrypt(executionContext.getActionBeanContext().getSourcePage()));
         if (selfUrl != null) {
-            context.url = new URL(selfUrl, request.getContextPath() + urlBuilder.toString());
+            context.url = new URL(selfUrl, request.getContextPath() + urlBuilder);
         } else {
-            context.url = new URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath() + urlBuilder.toString());
+            context.url = new URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath() + urlBuilder);
         }
         context.cookies = request.getHeader("Cookie");
 
@@ -373,23 +370,15 @@ public class ReverseProxyAwareWaitPageInterceptor implements Interceptor, Config
      * @param destination where source flash scope content will be copied
      */
     protected void copyFlashScope(FlashScope source, FlashScope destination) {
-        for (Map.Entry<String,Object> entry: source.entrySet()) {
-            destination.put(entry.getKey(), entry.getValue());
-        }
+        destination.putAll(source);
     }
     /**
      * Remove all contexts that are expired.
      * @param contexts all contexts currently in memory
      */
     protected void removeExpired(Map<Integer, Context> contexts) {
-        Iterator<Context> contextsIter = contexts.values().iterator();
-        while (contextsIter.hasNext()) {
-            Context context = contextsIter.next();
-            if (context.completeMoment != null
-                    && System.currentTimeMillis() - context.completeMoment > contextTimeout) {
-                contextsIter.remove();
-            }
-        }
+        contexts.values().removeIf(context -> context.completeMoment != null
+                && System.currentTimeMillis() - context.completeMoment > contextTimeout);
     }
 
     /**

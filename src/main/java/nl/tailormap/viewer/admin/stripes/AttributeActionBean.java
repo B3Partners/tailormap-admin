@@ -51,7 +51,6 @@ import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -84,7 +83,7 @@ public class AttributeActionBean extends LocalizableActionBean {
     @Validate
     private Long simpleFeatureTypeId;
     
-    private List featureSources;
+    private List<FeatureSource> featureSources;
     
     @Validate
     @ValidateNestedProperties({
@@ -109,11 +108,11 @@ public class AttributeActionBean extends LocalizableActionBean {
         this.attribute = attribute;
     }
 
-    public List getFeatureSources() {
+    public List<FeatureSource> getFeatureSources() {
         return featureSources;
     }
 
-    public void setFeatureSources(List featureSources) {
+    public void setFeatureSources(List<FeatureSource> featureSources) {
         this.featureSources = featureSources;
     }
 
@@ -204,25 +203,22 @@ public class AttributeActionBean extends LocalizableActionBean {
     }
     
     @Before(stages=LifecycleStage.BindingAndValidation)
-    @SuppressWarnings("unchecked")
     public void load() {
-        featureSources = Stripersist.getEntityManager().createQuery("from FeatureSource").getResultList();
+        featureSources = Stripersist.getEntityManager().createQuery("from FeatureSource", FeatureSource.class).getResultList();
     }
     
     public Resolution getFeatureTypes() throws JSONException {
         final JSONArray simpleFeatureTypes = new JSONArray();
         
         if(featureSourceId != null){
-            FeatureSource fc = (FeatureSource)Stripersist.getEntityManager().find(FeatureSource.class, featureSourceId);
+            FeatureSource fc = Stripersist.getEntityManager().find(FeatureSource.class, featureSourceId);
             
             List<SimpleFeatureType> sftList = fc.getFeatureTypes();
-            for(Iterator it = sftList.iterator(); it.hasNext();){
-                SimpleFeatureType sft = (SimpleFeatureType)it.next();
-                
+            for (SimpleFeatureType sft : sftList) {
                 JSONObject j = new JSONObject();
                 j.put("id", sft.getId());
                 String name = sft.getTypeName();
-                if(!StringUtils.isBlank(sft.getDescription())) {
+                if (!StringUtils.isBlank(sft.getDescription())) {
                     name += " (" + sft.getDescription() + ")";
                 }
                 j.put("name", name);
@@ -234,7 +230,7 @@ public class AttributeActionBean extends LocalizableActionBean {
 
             @Override
             public void stream(HttpServletResponse response) throws Exception {
-                response.getWriter().print(simpleFeatureTypes.toString());
+                response.getWriter().print(simpleFeatureTypes);
             }
         };
     }
@@ -242,14 +238,14 @@ public class AttributeActionBean extends LocalizableActionBean {
     public Resolution getGridData() throws JSONException { 
         JSONArray jsonData = new JSONArray();
                 
-        List<SimpleFeatureType> featureTypes= new ArrayList();
+        List<SimpleFeatureType> featureTypes= new ArrayList<>();
         if(simpleFeatureTypeId != null && simpleFeatureTypeId != -1){
-            SimpleFeatureType sft = (SimpleFeatureType)Stripersist.getEntityManager().find(SimpleFeatureType.class, simpleFeatureTypeId);
+            SimpleFeatureType sft = Stripersist.getEntityManager().find(SimpleFeatureType.class, simpleFeatureTypeId);
             if (sft!=null){
                 featureTypes.add(sft);
             }
         }else if(featureSourceId != null && featureSourceId != -1){
-            FeatureSource fc = (FeatureSource)Stripersist.getEntityManager().find(FeatureSource.class, featureSourceId);            
+            FeatureSource fc = Stripersist.getEntityManager().find(FeatureSource.class, featureSourceId);
             featureTypes = fc.getFeatureTypes();
         }
         
@@ -286,7 +282,7 @@ public class AttributeActionBean extends LocalizableActionBean {
          * holds the direction (ASC, DESC).
          */
         if(sort != null && dir != null){
-            Order order = null;
+            Order order;
             if(sort.equals("attribute")){
                 sort = "name";
             }
@@ -317,7 +313,7 @@ public class AttributeActionBean extends LocalizableActionBean {
              * in featureTypes
              */
             DetachedCriteria c2 = DetachedCriteria.forClass(SimpleFeatureType.class);
-            Collection ftIds = new ArrayList<Long>();
+            Collection<Long> ftIds = new ArrayList<>();
             for(SimpleFeatureType sft: featureTypes) {
                 ftIds.add(sft.getId());
             }
@@ -336,9 +332,9 @@ public class AttributeActionBean extends LocalizableActionBean {
         
         List attributes = c.list();
 
-        for(Iterator it = attributes.iterator(); it.hasNext();){
-            AttributeDescriptor attr = (AttributeDescriptor)it.next();
-            
+        for (Object o : attributes) {
+            AttributeDescriptor attr = (AttributeDescriptor) o;
+
             JSONObject j = this.getGridRow(attr.getId().intValue(), attr.getAlias(), attr.getName(), attr.getType());
             jsonData.put(j);
         }
@@ -350,7 +346,7 @@ public class AttributeActionBean extends LocalizableActionBean {
         return new StreamingResolution("application/json") {
            @Override
            public void stream(HttpServletResponse response) throws Exception {
-               response.getWriter().print(grid.toString());
+               response.getWriter().print(grid);
            }
         };
     }

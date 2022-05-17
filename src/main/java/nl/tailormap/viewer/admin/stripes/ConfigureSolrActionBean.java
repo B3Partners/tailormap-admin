@@ -60,7 +60,6 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -78,8 +77,8 @@ public class ConfigureSolrActionBean extends LocalizableActionBean {
 
     private static final String PROTOTYPE_JSP = "/WEB-INF/jsp/services/searchPrototype.jsp";
 
-    private List<FeatureSource> featureSources = new ArrayList();
-    private List<SimpleFeatureType> featureTypes = new ArrayList();
+    private List<FeatureSource> featureSources = new ArrayList<>();
+    private List<SimpleFeatureType> featureTypes = new ArrayList<>();
     private ActionBeanContext context;
 
     @Validate
@@ -251,7 +250,7 @@ public class ConfigureSolrActionBean extends LocalizableActionBean {
     }
 
     @WaitPage(path = "/WEB-INF/jsp/waitpage.jsp", delay = 2000, refresh = 1000, ajax = "/WEB-INF/jsp/waitpageajax.jsp")
-    public Resolution addToIndex() throws InterruptedException {
+    public Resolution addToIndex() {
         removeFromIndex();
         status = new WaitPageStatus();
         EntityManager em = Stripersist.getEntityManager();
@@ -283,14 +282,12 @@ public class ConfigureSolrActionBean extends LocalizableActionBean {
         EntityManager em =Stripersist.getEntityManager();
         solrConfiguration.getIndexAttributes().clear();
         solrConfiguration.getResultAttributes().clear();
-        for (int i = 0; i < indexAttributes.length; i++) {
-            Long attributeId = indexAttributes[i];
+        for (Long attributeId : indexAttributes) {
             AttributeDescriptor attribute = em.find(AttributeDescriptor.class, attributeId);
             solrConfiguration.getIndexAttributes().add(attribute.getName());
         }
 
-        for (int i = 0; i < resultAttributes.length; i++) {
-            Long attributeId = resultAttributes[i];
+        for (Long attributeId : resultAttributes) {
             AttributeDescriptor attribute = em.find(AttributeDescriptor.class, attributeId);
             solrConfiguration.getResultAttributes().add(attribute.getName());
         }
@@ -308,7 +305,7 @@ public class ConfigureSolrActionBean extends LocalizableActionBean {
     @After(on = {"edit", "save", "newSearchConfig"}, stages = LifecycleStage.BindingAndValidation)
     public void loadLists(){
 
-        featureSources = Stripersist.getEntityManager().createQuery("from FeatureSource").getResultList();
+        featureSources = Stripersist.getEntityManager().createQuery("from FeatureSource", FeatureSource.class).getResultList();
         if(solrConfiguration != null && solrConfiguration.getSimpleFeatureType() != null){
             featureTypes = solrConfiguration.getSimpleFeatureType().getFeatureSource().getFeatureTypes();
         }
@@ -365,8 +362,8 @@ public class ConfigureSolrActionBean extends LocalizableActionBean {
 
         List sources = c.list();
 
-        for (Iterator it = sources.iterator(); it.hasNext();) {
-            SolrConf config = (SolrConf) it.next();
+        for (Object source : sources) {
+            SolrConf config = (SolrConf) source;
 
             JSONObject j = config.toJSON();
             jsonData.put(j);
@@ -381,7 +378,7 @@ public class ConfigureSolrActionBean extends LocalizableActionBean {
 
     public Resolution getSearchconfigData() throws JSONException {
         EntityManager em =Stripersist.getEntityManager();
-        List<SolrConf> configs = em.createQuery("FROM SolrConf").getResultList();
+        List<SolrConf> configs = em.createQuery("FROM SolrConf", SolrConf.class).getResultList();
         JSONArray searchconfigs = new JSONArray();
         for (SolrConf solrConfig : configs) {
             JSONObject config = new JSONObject();
@@ -395,9 +392,9 @@ public class ConfigureSolrActionBean extends LocalizableActionBean {
     public Resolution getAttributesList() throws JSONException {
         JSONArray jsonData = new JSONArray();
 
-        List<SimpleFeatureType> featureTypes= new ArrayList();
+        List<SimpleFeatureType> featureTypes= new ArrayList<>();
         if(simpleFeatureTypeId != null && simpleFeatureTypeId != -1){
-            SimpleFeatureType sft = (SimpleFeatureType)Stripersist.getEntityManager().find(SimpleFeatureType.class, simpleFeatureTypeId);
+            SimpleFeatureType sft = Stripersist.getEntityManager().find(SimpleFeatureType.class, simpleFeatureTypeId);
             if (sft!=null){
                 featureTypes.add(sft);
             }
@@ -413,7 +410,7 @@ public class ConfigureSolrActionBean extends LocalizableActionBean {
          * in featureTypes
          */
         DetachedCriteria c2 = DetachedCriteria.forClass(SimpleFeatureType.class);
-        Collection ftIds = new ArrayList<Long>();
+        Collection<Long> ftIds = new ArrayList<>();
         for (SimpleFeatureType sft : featureTypes) {
             ftIds.add(sft.getId());
         }
@@ -427,20 +424,19 @@ public class ConfigureSolrActionBean extends LocalizableActionBean {
 
         List<AttributeDescriptor> attrs = c.list();
 
-        for(Iterator<AttributeDescriptor> it = attrs.iterator(); it.hasNext();){
-            AttributeDescriptor attr = it.next();
+        for (AttributeDescriptor attr : attrs) {
             boolean indexChecked = false;
             boolean resultChecked = false;
-            if(solrConfiguration != null){
+            if (solrConfiguration != null) {
                 for (String configAttribute : solrConfiguration.getIndexAttributes()) {
-                    if(configAttribute.equals(attr.getName())){
-                        indexChecked=  true;
+                    if (configAttribute.equals(attr.getName())) {
+                        indexChecked = true;
                         break;
                     }
                 }
                 for (String resultAttribute : solrConfiguration.getResultAttributes()) {
-                    if(resultAttribute.equals(attr.getName())){
-                        resultChecked =  true;
+                    if (resultAttribute.equals(attr.getName())) {
+                        resultChecked = true;
                         break;
                     }
                 }
@@ -461,7 +457,7 @@ public class ConfigureSolrActionBean extends LocalizableActionBean {
         return new StreamingResolution("application/json") {
            @Override
            public void stream(HttpServletResponse response) throws Exception {
-               response.getWriter().print(grid.toString());
+               response.getWriter().print(grid);
            }
         };
     }

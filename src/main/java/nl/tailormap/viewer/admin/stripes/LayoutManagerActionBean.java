@@ -68,7 +68,7 @@ public class LayoutManagerActionBean extends ApplicationActionBean {
     @Validate(on = "saveComponentConfig")
     private String configObject;
     @Validate(on = "saveComponentConfig")
-    private List<String> groups = new ArrayList<String>();
+    private List<String> groups = new ArrayList<>();
     @Validate(on = "saveApplicationLayout")
     private String layout;
     @Validate(on = "saveApplicationLayout")
@@ -222,7 +222,7 @@ public class LayoutManagerActionBean extends ApplicationActionBean {
                 component = (ConfiguredComponent) em.createQuery(
                         "from ConfiguredComponent where application = :application and name = :name").setParameter("application", application).setParameter("name", name).getSingleResult();
             }
-            groups = new ArrayList<String>(component.getReaders());
+            groups = new ArrayList<>(component.getReaders());
             try {
                 JSONObject d = new JSONObject();
                 for (Map.Entry<String, String> e : component.getDetails().entrySet()) {
@@ -291,7 +291,7 @@ public class LayoutManagerActionBean extends ApplicationActionBean {
         component.setClassName(className);
         component.setApplication(application);
         pushChangesToLinkedComponents(component);
-        Map<String, String> compDetails = new HashMap<String, String>();
+        Map<String, String> compDetails = new HashMap<>();
         try {
             if (componentLayout != null) {
                 JSONObject compLayout = new JSONObject(componentLayout);
@@ -308,7 +308,7 @@ public class LayoutManagerActionBean extends ApplicationActionBean {
         component.setDetails(compDetails);
 
         component.getReaders().clear();
-        component.setReaders(new HashSet<String>(groups));
+        component.setReaders(new HashSet<>(groups));
         em.persist(component);
         application.authorizationsModified();
         em.getTransaction().commit();
@@ -328,7 +328,7 @@ public class LayoutManagerActionBean extends ApplicationActionBean {
         for (ConfiguredComponent linkedComponent : comp.getLinkedComponents()) {
             linkedComponent.setMotherComponent(null);
         }
-        comp.setLinkedComponents(new ArrayList<ConfiguredComponent>());
+        comp.setLinkedComponents(new ArrayList<>());
     }
 
     public Resolution removeComponent() {
@@ -351,8 +351,8 @@ public class LayoutManagerActionBean extends ApplicationActionBean {
             EntityManager em = Stripersist.getEntityManager();
             JSONObject jsonLayout = new JSONObject(layout);
 
-            for (Iterator it = jsonLayout.keys(); it.hasNext();) {
-                String key = (String) it.next();
+            for (Iterator<String> it = jsonLayout.keys(); it.hasNext();) {
+                String key = it.next();
                 JSONObject layoutItem = jsonLayout.getJSONObject(key);
                 if (layoutItem.has("components")) {
                     JSONArray layoutItemComponents = layoutItem.getJSONArray("components");

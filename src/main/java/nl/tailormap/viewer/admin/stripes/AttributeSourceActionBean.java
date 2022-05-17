@@ -65,7 +65,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -182,7 +181,7 @@ public class AttributeSourceActionBean extends LocalizableActionBean {
     }
 
     @WaitPage(path = "/WEB-INF/jsp/waitpage.jsp", delay = 2000, refresh = 1000, ajax = "/WEB-INF/jsp/waitpageajax.jsp")
-    public Resolution save() throws JSONException, Exception {
+    public Resolution save() throws Exception {
         
 
         try {
@@ -200,7 +199,7 @@ public class AttributeSourceActionBean extends LocalizableActionBean {
     }
 
     protected void addService(EntityManager em) throws Exception {
-        Map params = new HashMap();
+        Map<String,String> params = new HashMap<>();
         if (protocol.equals("jdbc")) {
             params.put("dbtype", dbtype);
             params.put("host", host);
@@ -316,7 +315,6 @@ public class AttributeSourceActionBean extends LocalizableActionBean {
                 Object o = Stripersist.getEntityManager().createQuery("select 1 from FeatureSource where name = :name").setMaxResults(1).setParameter("name", name).getSingleResult();
 
                 errors.add("name", new SimpleError(getBundle().getString("viewer_admin.attributesourceactionbean.uniquename")));
-                return;
 
             } catch (NoResultException nre) {
                 // name is unique
@@ -327,7 +325,6 @@ public class AttributeSourceActionBean extends LocalizableActionBean {
                         + "and id != :id").setMaxResults(1).setParameter("name", name).setParameter("id", featureSource.getId()).getSingleResult();
 
                 errors.add("name", new SimpleError(getBundle().getString("viewer_admin.attributesourceactionbean.uniquename")));
-                return;
 
             } catch (NoResultException nre) {
                 // name is unique
@@ -375,7 +372,7 @@ public class AttributeSourceActionBean extends LocalizableActionBean {
              * Sorteren op status nog niet mogelijk
              */
             if (!sort.equals("status") && !sort.equals("protocol")) {
-                Order order = null;
+                Order order;
                 if (dir.equals("ASC")) {
                     order = Order.asc(sort);
                 } else {
@@ -385,7 +382,7 @@ public class AttributeSourceActionBean extends LocalizableActionBean {
                 c.addOrder(order);
             } else {
                 if (sort.equals("protocol")) {
-                    Order order = null;
+                    Order order;
                     if (dir.equals("ASC")) {
                         order = Order.asc("class");
                     } else {
@@ -417,8 +414,8 @@ public class AttributeSourceActionBean extends LocalizableActionBean {
 
         List sources = c.list();
 
-        for (Iterator it = sources.iterator(); it.hasNext();) {
-            FeatureSource source = (FeatureSource) it.next();
+        for (Object o : sources) {
+            FeatureSource source = (FeatureSource) o;
             String protocolType = "";
             if (source instanceof WFSFeatureSource) {
                 protocolType = "WFS";
@@ -439,7 +436,7 @@ public class AttributeSourceActionBean extends LocalizableActionBean {
 
             @Override
             public void stream(HttpServletResponse response) throws Exception {
-                response.getWriter().print(grid.toString());
+                response.getWriter().print(grid);
             }
         };
     }

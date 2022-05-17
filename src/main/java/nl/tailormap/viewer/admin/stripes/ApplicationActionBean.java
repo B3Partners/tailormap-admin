@@ -105,6 +105,6 @@ public abstract class ApplicationActionBean extends LocalizableActionBean {
             application = em.find(Application.class, applicationId);
             setApplication(application);
         }
-        allGroups = em.createQuery("from Group").getResultList();
+        allGroups = em.createQuery("from Group", Group.class).getResultList();
     }
 }

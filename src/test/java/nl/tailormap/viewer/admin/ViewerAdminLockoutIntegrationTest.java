@@ -65,7 +65,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
  *
  * @author Mark Prins
  */
-@TestMethodOrder(MethodOrderer.Alphanumeric.class)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
 
     private static final String USER = "admin";

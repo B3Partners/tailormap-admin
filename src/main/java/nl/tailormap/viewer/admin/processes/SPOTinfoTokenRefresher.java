@@ -15,7 +15,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 public class SPOTinfoTokenRefresher {
     private static final Log LOG = LogFactory.getLog(SPOTinfoTokenRefresher.class);
@@ -29,8 +28,8 @@ public class SPOTinfoTokenRefresher {
         try {
             EntityManager entityManager = Stripersist.getEntityManager();
             LOG.debug("Looking for access tokens to refresh");
-            for (ConfiguredComponent c : (List<ConfiguredComponent>) entityManager.createQuery(
-                    "from ConfiguredComponent c where c.className = 'viewer.components.MapboxGL'").getResultList()) {
+            for (ConfiguredComponent c : entityManager.createQuery(
+                    "from ConfiguredComponent c where c.className = 'viewer.components.MapboxGL'", ConfiguredComponent.class).getResultList()) {
 //                if (c.getClassName().equals("viewer.components.MapboxGL")) {
                 JSONObject config = c.toJSON(false).getJSONObject("config");
                 String adminOnlyapiAccount = config.optString("adminOnlyapiAccount");

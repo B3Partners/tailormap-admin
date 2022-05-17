@@ -220,18 +220,18 @@ public class ChooseApplicationActionBean extends ApplicationActionBean {
         try {
             deleteApplication(em);
         } catch (Exception e) {
-            log.error(String.format("Error deleting application #%d named %s",
+            log.error(String.format("Error deleting application #%d named %s%s",
                     applicationToDelete.getId(),
                     applicationToDelete.getName(),
                     applicationToDelete.getVersion() == null ? "" : "v" + applicationToDelete.getVersion() + " "),
                     e);
-            String ex = e.toString();
+            StringBuilder ex = new StringBuilder(e.toString());
             Throwable cause = e.getCause();
             while (cause != null) {
-                ex += ";\n<br>" + cause.toString();
+                ex.append(";\n<br>").append(cause);
                 cause = cause.getCause();
             }
-            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString("viewer_admin.chooseapplicationactionbean.errorremapp"), ex));
+            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString("viewer_admin.chooseapplicationactionbean.errorremapp"), ex.toString()));
         }
         return new ForwardResolution(EDITJSP);
     }
@@ -262,7 +262,7 @@ public class ChooseApplicationActionBean extends ApplicationActionBean {
         } else {
             List<Application> mashups = ApplicationHelper.getMashups(applicationToDelete, em);
             if (!mashups.isEmpty()) {
-                List<String> list = new ArrayList();
+                List<String> list = new ArrayList<>();
                 for (Application mashup : mashups) {
                     list.add(mashup.getNameWithVersion());
                 }
@@ -317,7 +317,7 @@ public class ChooseApplicationActionBean extends ApplicationActionBean {
          * holds the column name and dir which holds the direction (ASC, DESC).
          */
         if (sort != null && dir != null) {
-            Order order = null;
+            Order order;
             if (sort.equals("published")) {
                 sort = "version";
             }
@@ -358,8 +358,8 @@ public class ChooseApplicationActionBean extends ApplicationActionBean {
 
         List applications = c.list();
         String baseUrl = getContext().getServletContext().getInitParameter(VIEWER_URL_PARAM);
-        for (Iterator it = applications.iterator(); it.hasNext();) {
-            Application app = (Application) it.next();
+        for (Object o : applications) {
+            Application app = (Application) o;
             String appName = app.getName();
             if (app.getVersion() != null) {
                 appName += " v" + app.getVersion();
@@ -382,20 +382,20 @@ public class ChooseApplicationActionBean extends ApplicationActionBean {
             j.put("baseUrl", baseUrl);
             boolean isMashup = app.isMashup(sess);
             if (isMashup) {
-                    List<Application> linkedApps = em.createQuery(
-                            "from Application where root = :level and id <> :oldId")
-                            .setParameter("level", app.getRoot())
-                            .setParameter("oldId", app.getId())
-                            .getResultList();
-                    for (Application linkedApp : linkedApps) {
-                        if (!linkedApp.isMashup(sess)) {
-                            j.put("motherapplication", linkedApp.getNameWithVersion());
-                            break;
-                        }
+                List<Application> linkedApps = em.createQuery(
+                                "from Application where root = :level and id <> :oldId", Application.class)
+                        .setParameter("level", app.getRoot())
+                        .setParameter("oldId", app.getId())
+                        .getResultList();
+                for (Application linkedApp : linkedApps) {
+                    if (!linkedApp.isMashup(sess)) {
+                        j.put("motherapplication", linkedApp.getNameWithVersion());
+                        break;
                     }
                 }
-            j.put("mashup", (isMashup ? 
-                    getBundle().getString("viewer_admin.general.yes") : 
+            }
+            j.put("mashup", (isMashup ?
+                    getBundle().getString("viewer_admin.general.yes") :
                     getBundle().getString("viewer_admin.general.no")));
             jsonData.put(j);
         }
@@ -408,7 +408,7 @@ public class ChooseApplicationActionBean extends ApplicationActionBean {
 
             @Override
             public void stream(HttpServletResponse response) throws Exception {
-                response.getWriter().print(grid.toString());
+                response.getWriter().print(grid);
             }
         };
     }
@@ -436,13 +436,13 @@ public class ChooseApplicationActionBean extends ApplicationActionBean {
                     applicationWorkversion.getName(),
                     applicationWorkversion.getVersion() == null ? "" : "v" + applicationWorkversion.getVersion() + " ",
                     name), e);
-            String ex = e.toString();
+            StringBuilder ex = new StringBuilder(e.toString());
             Throwable cause = e.getCause();
             while (cause != null) {
-                ex += ";\n<br>" + cause.toString();
+                ex.append(";\n<br>").append(cause);
                 cause = cause.getCause();
             }
-            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString("viewer_admin.chooseapplicationactionbean.wverror"), ex));
+            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString("viewer_admin.chooseapplicationactionbean.wverror"), ex.toString()));
             return new ForwardResolution(JSP);
         }
     }
@@ -458,8 +458,7 @@ public class ChooseApplicationActionBean extends ApplicationActionBean {
             em.getTransaction().commit();
             return mashup;
         } else {
-            Application copy = ApplicationHelper.createWorkVersion(base, em,version, context);
-            return copy;
+            return ApplicationHelper.createWorkVersion(base, em,version, context);
         }
     }
 
@@ -469,7 +468,7 @@ public class ChooseApplicationActionBean extends ApplicationActionBean {
         json.put("success", Boolean.FALSE);
         try {
             EntityManager em = Stripersist.getEntityManager();
-            Metadata md = null;
+            Metadata md;
             try {
                 md = em.createQuery("from Metadata where configKey = :key", Metadata.class).setParameter("key", Metadata.DEFAULT_APPLICATION).getSingleResult();
             } catch (NoResultException e) {
@@ -494,7 +493,7 @@ public class ChooseApplicationActionBean extends ApplicationActionBean {
     @After(stages = {LifecycleStage.BindingAndValidation})
     public void createLists() {
         EntityManager em = Stripersist.getEntityManager();
-        apps = em.createQuery("from Application").getResultList();
+        apps = em.createQuery("from Application", Application.class).getResultList();
         try {
             Metadata md = em.createQuery("from Metadata where configKey = :key", Metadata.class).setParameter("key", Metadata.DEFAULT_APPLICATION).getSingleResult();
             defaultAppId = md.getConfigValue();

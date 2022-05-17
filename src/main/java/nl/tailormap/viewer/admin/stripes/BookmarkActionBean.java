@@ -197,7 +197,7 @@ public class BookmarkActionBean extends LocalizableActionBean {
          * holds the column name and dir which holds the direction (ASC, DESC).
          */
         if (sort != null && dir != null) {
-            Order order = null;
+            Order order;
             if (sort.equals("published")) {
                 sort = "version";
             }
@@ -244,7 +244,7 @@ public class BookmarkActionBean extends LocalizableActionBean {
 
             @Override
             public void stream(HttpServletResponse response) throws Exception {
-                response.getWriter().print(result.toString());
+                response.getWriter().print(result);
             }
         };
     }

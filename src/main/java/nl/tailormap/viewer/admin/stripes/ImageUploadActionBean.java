@@ -198,7 +198,7 @@ public class ImageUploadActionBean extends ApplicationActionBean {
             j.put("total", Stripersist.getEntityManager().createQuery("select count(*) from Resource").getSingleResult());
 
             List<Resource> resources = Stripersist.getEntityManager().createQuery(
-                    "from Resource order by name")
+                    "from Resource order by name", Resource.class)
                     .setFirstResult(start)
                     .setMaxResults(limit)
                     .getResultList();

@@ -52,7 +52,6 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -72,18 +71,18 @@ public class ApplicationTreeLayerActionBean extends ApplicationActionBean {
     @Validate
     private ApplicationLayer applicationLayer;
     @Validate
-    private List<String> groupsRead = new ArrayList<String>();
+    private List<String> groupsRead = new ArrayList<>();
     @Validate
-    private List<String> groupsWrite = new ArrayList<String>();
+    private List<String> groupsWrite = new ArrayList<>();
     @Validate
-    private Map<String, String> details = new HashMap<String, String>();
+    private Map<String, String> details = new HashMap<>();
 
     @Validate
-    private List<String> selectedAttributes = new ArrayList<String>();
+    private List<String> selectedAttributes = new ArrayList<>();
 
-    private Map<String,String> attributeAliases = new HashMap();
+    private Map<String,String> attributeAliases = new HashMap<>();
     
-    private List<Map> styles = new ArrayList();
+    private List<Map<String, String>> styles = new ArrayList<>();
     private JSONObject stylesTitleJson = new JSONObject();
     
     private boolean editable;
@@ -114,7 +113,7 @@ public class ApplicationTreeLayerActionBean extends ApplicationActionBean {
         }
 
         for(StyleLibrary sld: layer.getService().getStyleLibraries()) {
-            Map style = new HashMap();
+            Map<String, String> style = new HashMap<>();
             JSONObject styleTitleJson = new JSONObject();
 
             style.put("id", "sld:" + sld.getId());
@@ -138,30 +137,30 @@ public class ApplicationTreeLayerActionBean extends ApplicationActionBean {
                 }
             }
             styles.add(style);
-            stylesTitleJson.put((String)style.get("id"), styleTitleJson);
+            stylesTitleJson.put(style.get("id"), styleTitleJson);
 
         }
         if (applicationLayer.getService() instanceof WMSService && layer.getDetails().containsKey(Layer.DETAIL_WMS_STYLES)) {
             JSONArray wmsStyles = new JSONArray(layer.getDetails().get(Layer.DETAIL_WMS_STYLES).getValue());
             for(int i = 0; i < wmsStyles.length(); i++) {
                 JSONObject wmsStyle = wmsStyles.getJSONObject(i);
-                Map style = new HashMap();
+                Map<String, String> style = new HashMap<>();
                 style.put("id", "wms:" + wmsStyle.getString("name"));
                 style.put("title", "WMS server style: " + wmsStyle.getString("name") + (wmsStyle.has("title") ? " (" + wmsStyle.getString("title") + ")" : ""));
                 JSONObject styleTitleJson = new JSONObject();
                 styleTitleJson.put("styleTitle", wmsStyle.has("title") ? wmsStyle.getString("title") : wmsStyle.getString("name"));
                 styleTitleJson.put("name", wmsStyle.getString("name"));
                 styles.add(style);
-                stylesTitleJson.put((String)style.get("id"), styleTitleJson);
+                stylesTitleJson.put(style.get("id"), styleTitleJson);
             }
         }
         if(!styles.isEmpty()) {
-            List<Map> temp = new ArrayList();
-            Map s = new HashMap();
+            List<Map<String, String>> temp = new ArrayList<>();
+            Map<String, String> s = new HashMap<>();
             s.put("id", "registry_default");
             s.put("title", getBundle().getString("viewer_admin.applicationtreelayeractionbean.defstyle"));
             temp.add(s);
-            s = new HashMap();
+            s = new HashMap<>();
             s.put("id", "none");
             s.put("title", getBundle().getString("viewer_admin.applicationtreelayeractionbean.nodefstyle"));
             temp.add(s);
@@ -198,7 +197,7 @@ public class ApplicationTreeLayerActionBean extends ApplicationActionBean {
     @DontValidate
     public Resolution edit() throws JSONException {
         if (applicationLayer != null) {
-            details = new HashMap();
+            details = new HashMap<>();
             for(Map.Entry<String,ClobElement> e: applicationLayer.getDetails().entrySet()) {
                 details.put(e.getKey(), e.getValue().getValue());
             }
@@ -281,7 +280,7 @@ public class ApplicationTreeLayerActionBean extends ApplicationActionBean {
         // Only remove details which are editable and re-added layer if not empty,
         // retain other details possibly used in other parts than this page
         // See JSP for which keys are edited         
-        applicationLayer.getDetails().keySet().removeAll(Arrays.asList(
+        Arrays.asList(
                 "titleAlias",
                 "legendImageUrl",
                 "transparency",
@@ -301,7 +300,7 @@ public class ApplicationTreeLayerActionBean extends ApplicationActionBean {
                 "editfeature.uploadDocument",
                 "editfeature.uploadDocument.types",
                 "stylesOrder"
-        ));     
+        ).forEach(applicationLayer.getDetails().keySet()::remove);
         for(Map.Entry<String,String> e: details.entrySet()) {
             if(e.getValue() != null) { // Don't insert null value ClobElement 
                 applicationLayer.getDetails().put(e.getKey(), new ClobElement(e.getValue()));
@@ -342,21 +341,19 @@ public class ApplicationTreeLayerActionBean extends ApplicationActionBean {
     }
     
     protected List<ConfiguredAttribute> processAttributes(EntityManager em, JSONArray attributeOrder,JSONArray attributesConfig, List<ConfiguredAttribute> appAttributes ) {
-        Map<String, JSONObject> attributeOrderMap = new HashMap<String, JSONObject>();
-        Map<String, JSONObject> attributeConfigMap = new HashMap<String, JSONObject>();
-        for (Iterator<Object> iterator = attributeOrder.iterator(); iterator.hasNext();) {
-            JSONObject order = (JSONObject)iterator.next();
+        Map<String, JSONObject> attributeOrderMap = new HashMap<>();
+        Map<String, JSONObject> attributeConfigMap = new HashMap<>();
+        for (Object o : attributeOrder) {
+            JSONObject order = (JSONObject) o;
             attributeOrderMap.put(order.getString("longname"), order);
         }
-        
-        for (Iterator iterator = attributesConfig.iterator(); iterator.hasNext();) {
-            JSONObject config = (JSONObject)iterator.next();
+
+        for (Object o : attributesConfig) {
+            JSONObject config = (JSONObject) o;
             attributeConfigMap.put(config.getString("longname"), config);
         }
-        
-        for (Iterator it = appAttributes.iterator(); it.hasNext();) {
-            ConfiguredAttribute appAttribute = (ConfiguredAttribute) it.next();
 
+        for (ConfiguredAttribute appAttribute : appAttributes) {
             JSONObject orderConfigObject = attributeOrderMap.get(appAttribute.getLongName());
 
             //save visible
@@ -367,13 +364,13 @@ public class ApplicationTreeLayerActionBean extends ApplicationActionBean {
             }
 
             // save folder label
-            if(orderConfigObject != null && orderConfigObject.has("folder_label")) {
+            if (orderConfigObject != null && orderConfigObject.has("folder_label")) {
                 appAttribute.setLabel(orderConfigObject.getString("folder_label"));
             }
 
             //save editable
             JSONObject configObject = attributeConfigMap.get(appAttribute.getLongName());
-            if(configObject != null){
+            if (configObject != null) {
 
                 if (configObject.has("editable")) {
                     appAttribute.setEditable(configObject.getBoolean("editable"));
@@ -430,15 +427,15 @@ public class ApplicationTreeLayerActionBean extends ApplicationActionBean {
                 if (configObject.has("disallowNullValue")) {
                     appAttribute.setDisallowNullValue(configObject.getBoolean("disallowNullValue"));
                 }
-                
+
                 boolean automaticValue = configObject.getBoolean("automaticValue");
                 if (configObject.has("automaticValue")) {
                     appAttribute.setAutomaticValue(automaticValue);
                 }
-                
-                if (configObject.has("automaticValueType") && automaticValue ){
+
+                if (configObject.has("automaticValueType") && automaticValue) {
                     appAttribute.setAutomaticValueType(configObject.optString("automaticValueType"));
-                }else{
+                } else {
                     appAttribute.setAutomaticValueType(null);
                 }
                 if (configObject.has("disableUserEdit")) {
@@ -447,12 +444,12 @@ public class ApplicationTreeLayerActionBean extends ApplicationActionBean {
             }
         }
         
-        List<ConfiguredAttribute> newOrder = new ArrayList<ConfiguredAttribute>();
-        for (Iterator<Object> iterator = attributeOrder.iterator(); iterator.hasNext();) {
-            JSONObject orderObject = (JSONObject)iterator.next();
+        List<ConfiguredAttribute> newOrder = new ArrayList<>();
+        for (Object o : attributeOrder) {
+            JSONObject orderObject = (JSONObject) o;
             String longname = orderObject.getString("longname");
             for (ConfiguredAttribute appAttribute : appAttributes) {
-                if(appAttribute.getLongName().equals(longname)){
+                if (appAttribute.getLongName().equals(longname)) {
                     newOrder.add(appAttribute);
                     break;
                 }
@@ -535,11 +532,11 @@ public class ApplicationTreeLayerActionBean extends ApplicationActionBean {
         this.attributeAliases = attributeAliases;
     }
     
-    public List<Map> getStyles() {
+    public List<Map<String,String>> getStyles() {
         return styles;
     }
 
-    public void setStyles(List<Map> styles) {
+    public void setStyles(List<Map<String,String>> styles) {
         this.styles = styles;
     }
 
