@@ -64,16 +64,16 @@ public class FeatureTypeRelationActionBean extends LocalizableActionBean {
     private static final String JSP = "/WEB-INF/jsp/services/featuretyperelation.jsp";
     private static final String EDITJSP = "/WEB-INF/jsp/services/editfeaturetyperelation.jsp";
 
-    private List<FeatureTypeRelation> relations = new ArrayList<FeatureTypeRelation>();
-    private List<SimpleFeatureType> featureTypes = new ArrayList<SimpleFeatureType>();
-    private List<SimpleFeatureType> foreignFeatureTypes = new ArrayList<SimpleFeatureType>();
-    private List<FeatureSource> featureSources = new ArrayList<FeatureSource>();
+    private List<FeatureTypeRelation> relations = new ArrayList<>();
+    private List<SimpleFeatureType> featureTypes = new ArrayList<>();
+    private List<SimpleFeatureType> foreignFeatureTypes = new ArrayList<>();
+    private List<FeatureSource> featureSources = new ArrayList<>();
     
     private Long featureSourceId;
     private Long featureTypeId;
     @Validate
-    private Map<Integer,Long> leftSide = new HashMap<Integer, Long>();
-    private Map<Integer,Long> rightSide = new HashMap<Integer, Long>();
+    private Map<Integer,Long> leftSide = new HashMap<>();
+    private Map<Integer,Long> rightSide = new HashMap<>();
     /**
      * For filling the grid
      */
@@ -129,12 +129,12 @@ public class FeatureTypeRelationActionBean extends LocalizableActionBean {
     }
     
     public Resolution edit() {
-        featureSources = Stripersist.getEntityManager().createQuery("from FeatureSource").getResultList();
+        featureSources = Stripersist.getEntityManager().createQuery("from FeatureSource", FeatureSource.class).getResultList();
         if (relation!=null && relation.getFeatureType()!=null){
-            featureTypes = Stripersist.getEntityManager().createQuery("from SimpleFeatureType s where s.featureSource = :f").setParameter("f", relation.getFeatureType().getFeatureSource()).getResultList();                         
+            featureTypes = Stripersist.getEntityManager().createQuery("from SimpleFeatureType s where s.featureSource = :f", SimpleFeatureType.class).setParameter("f", relation.getFeatureType().getFeatureSource()).getResultList();
         }
         if (relation!=null && relation.getForeignFeatureType()!=null){
-            foreignFeatureTypes = Stripersist.getEntityManager().createQuery("from SimpleFeatureType s where s.featureSource = :f").setParameter("f", relation.getForeignFeatureType().getFeatureSource()).getResultList(); 
+            foreignFeatureTypes = Stripersist.getEntityManager().createQuery("from SimpleFeatureType s where s.featureSource = :f", SimpleFeatureType.class).setParameter("f", relation.getForeignFeatureType().getFeatureSource()).getResultList();
         }
         Stripersist.getEntityManager().getTransaction().commit();
         return new ForwardResolution(EDITJSP);
@@ -225,8 +225,8 @@ public class FeatureTypeRelationActionBean extends LocalizableActionBean {
         c.setFirstResult(start);
         
         List relations = c.list();
-        for(Iterator it = relations.iterator(); it.hasNext();){
-            FeatureTypeRelation relation = (FeatureTypeRelation)it.next();
+        for (Object o : relations) {
+            FeatureTypeRelation relation = (FeatureTypeRelation) o;
             JSONObject j = this.getGridRow(relation.getId().intValue(), relation.getFeatureType(), relation.getForeignFeatureType());
             jsonData.put(j);
         }
@@ -238,7 +238,7 @@ public class FeatureTypeRelationActionBean extends LocalizableActionBean {
         return new StreamingResolution("application/json") {
            @Override
            public void stream(HttpServletResponse response) throws Exception {
-               response.getWriter().print(grid.toString());
+               response.getWriter().print(grid);
            }
         };
     }
@@ -278,7 +278,7 @@ public class FeatureTypeRelationActionBean extends LocalizableActionBean {
         return new StreamingResolution("application/json") {
            @Override
            public void stream(HttpServletResponse response) throws Exception {
-               response.getWriter().print(json.toString());
+               response.getWriter().print(json);
            }
         };
     }
@@ -320,7 +320,7 @@ public class FeatureTypeRelationActionBean extends LocalizableActionBean {
         return new StreamingResolution("application/json") {
            @Override
            public void stream(HttpServletResponse response) throws Exception {
-               response.getWriter().print(json.toString());
+               response.getWriter().print(json);
            }
         };
     }
@@ -346,7 +346,6 @@ public class FeatureTypeRelationActionBean extends LocalizableActionBean {
         if (relation!=null){
             if (leftSide.isEmpty() || rightSide.isEmpty()){
                 getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString("viewer_admin.featuretyperelationactionbean.relmiss")));
-                return;
             }
         }
     }

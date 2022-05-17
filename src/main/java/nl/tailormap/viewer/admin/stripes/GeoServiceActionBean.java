@@ -93,6 +93,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -169,7 +170,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
     private List<Group> allGroups;
     
     @Validate
-    private List<String> groupsRead = new ArrayList<String>();
+    private List<String> groupsRead = new ArrayList<>();
 
     @Validate
     @ValidateNestedProperties({
@@ -475,55 +476,59 @@ public class GeoServiceActionBean extends LocalizableActionBean {
         if (service != null) {
             protocol = service.getProtocol();
             url = service.getUrl();
-            if (protocol.equals(ArcGISService.PROTOCOL)) {
-                ClobElement assumeVersion = service.getDetails().get(ArcGISService.DETAIL_ASSUME_VERSION);
-                agsVersion = assumeVersion == null ? null : assumeVersion.getValue();
-            } else if (protocol.equals(TileService.PROTOCOL)) {
-                TileService ser = (TileService) service;
-                tilingProtocol = ser.getTilingProtocol();
+            switch (protocol) {
+                case ArcGISService.PROTOCOL:
+                    ClobElement assumeVersion = service.getDetails().get(ArcGISService.DETAIL_ASSUME_VERSION);
+                    agsVersion = assumeVersion == null ? null : assumeVersion.getValue();
+                    break;
+                case TileService.PROTOCOL:
+                    TileService ser = (TileService) service;
+                    tilingProtocol = ser.getTilingProtocol();
 
-                //tiling service has 1 layer with that has the settings.
-                Layer layer = ser.getTilingLayer();
-                //set the resolutions
-                if(layer != null) {
-                    TileSet tileSet = layer.getTileset();
+                    //tiling service has 1 layer with that has the settings.
+                    Layer layer = ser.getTilingLayer();
+                    //set the resolutions
+                    if (layer != null) {
+                        TileSet tileSet = layer.getTileset();
 
-                    if (tileSet != null) {
-                        String res = "";
-                        for (Double resolution : tileSet.getResolutions()) {
-                            if (res.length() > 0) {
-                                res += ",";
+                        if (tileSet != null) {
+                            StringBuilder res = new StringBuilder();
+                            for (Double resolution : tileSet.getResolutions()) {
+                                if (res.length() > 0) {
+                                    res.append(",");
+                                }
+                                res.append(resolution.toString());
                             }
-                            res += resolution.toString();
+                            resolutions = res.toString();
+
+                            //set the tilesize
+                            tileSize = tileSet.getHeight();
                         }
-                        resolutions = res;
 
-                        //set the tilesize
-                        tileSize = tileSet.getHeight();
+                        //set the service Bbox
+                        if (layer.getBoundingBoxes().size() == 1) {
+                            BoundingBox bb = layer.getBoundingBoxes().values().iterator().next();
+                            serviceBbox = "" + bb.getMinx() + ","
+                                    + bb.getMiny() + ","
+                                    + bb.getMaxx() + ","
+                                    + bb.getMaxy();
+                            crs = bb.getCrs().getName();
+                        }
+                        serviceName = layer.getName();
+
+                        if (layer.getDetails().containsKey("image_extension")) {
+                            ClobElement ce = layer.getDetails().get("image_extension");
+                            imageExtension = ce != null ? ce.getValue() : null;
+                        }
                     }
 
-                    //set the service Bbox
-                    if (layer.getBoundingBoxes().size() == 1) {
-                        BoundingBox bb = layer.getBoundingBoxes().values().iterator().next();
-                        serviceBbox = "" + bb.getMinx() + ","
-                                + bb.getMiny() + ","
-                                + bb.getMaxx() + ","
-                                + bb.getMaxy();
-                        crs = bb.getCrs().getName();
-                    }
-                    serviceName = layer.getName();
-
-                    if (layer.getDetails().containsKey("image_extension")) {
-                        ClobElement ce = layer.getDetails().get("image_extension");
-                        imageExtension = ce != null ? ce.getValue() : null;
-                    }
-                }
-
-            }else if(protocol.equals(WMSService.PROTOCOL)){
-                overrideUrl = ((WMSService)service).getOverrideUrl();
-                exception_type = ((WMSService) service).getException_type();
-                // default to false
-                skipDiscoverWFS = ((WMSService) service).getSkipDiscoverWFS() == null ? false : ((WMSService) service).getSkipDiscoverWFS();
+                    break;
+                case WMSService.PROTOCOL:
+                    overrideUrl = ((WMSService) service).getOverrideUrl();
+                    exception_type = ((WMSService) service).getException_type();
+                    // default to false
+                    skipDiscoverWFS = ((WMSService) service).getSkipDiscoverWFS() != null && ((WMSService) service).getSkipDiscoverWFS();
+                    break;
             }
 
             if(service.getDetails().containsKey(GeoService.DETAIL_USE_INTERSECT)){
@@ -547,7 +552,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
             
             List<Layer> layers = service.loadLayerTree(em);
             
-            List<Application> applications = em.createQuery("from Application").getResultList();
+            List<Application> applications = em.createQuery("from Application", Application.class).getResultList();
             
             for (Layer layer : layers) {
                 //Map<Application, List<Level>> applicationsMap = new HashMap<Application,List<Level>>();
@@ -637,9 +642,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
             }
             if (StringUtils.isNotBlank(imageExtension)) {
                 l.getDetails().put("image_extension", new ClobElement(imageExtension));
-            }else if (l.getDetails().containsKey("image_extension")){
-                l.getDetails().remove("image_extension");
-            }
+            }else l.getDetails().remove("image_extension");
 
         }
 
@@ -682,9 +685,9 @@ public class GeoServiceActionBean extends LocalizableActionBean {
 
 
     private List<Application> findApplications() {
-        List<Application> apps = new ArrayList();
+        List<Application> apps = new ArrayList<>();
 
-        List<ApplicationLayer> applicationLayers = Stripersist.getEntityManager().createQuery("from ApplicationLayer where service = :service")
+        List<ApplicationLayer> applicationLayers = Stripersist.getEntityManager().createQuery("from ApplicationLayer where service = :service", ApplicationLayer.class)
                 .setParameter("service", service).getResultList();
         for (ApplicationLayer appLayer : applicationLayers) {
             /*
@@ -692,7 +695,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
             * which application the Layer is used. This solution is not good
             * when there are many levels.
             */
-            List<Application> applications = Stripersist.getEntityManager().createQuery("from Application").getResultList();
+            List<Application> applications = Stripersist.getEntityManager().createQuery("from Application", Application.class).getResultList();
             for (Application app : applications) {
                 if (app.getRoot().containsLayerInSubtree(appLayer)) {
                     apps.add(app);
@@ -707,7 +710,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
          * XXX Als een service layers heeft die toegevoegd zijn aan een
          * applicatie mag de service niet verwijderd worden
          */
-        List<ApplicationLayer> applicationLayers = Stripersist.getEntityManager().createQuery("from ApplicationLayer where service = :service").setParameter("service", service).getResultList();
+        List<ApplicationLayer> applicationLayers = Stripersist.getEntityManager().createQuery("from ApplicationLayer where service = :service",ApplicationLayer.class).setParameter("service", service).getResultList();
         if (applicationLayers.size() > 0) {
             serviceDeleted = false;
 
@@ -719,7 +722,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
             c.getServices().remove(service);
 
             List<FeatureSource> linkedSources = Stripersist.getEntityManager().createQuery(
-                    "from FeatureSource where linkedService = :service").setParameter("service", service).getResultList();
+                    "from FeatureSource where linkedService = :service", FeatureSource.class).setParameter("service", service).getResultList();
             for (FeatureSource fs : linkedSources) {
                 fs.setLinkedService(null);
                 getContext().getMessages().add(
@@ -752,9 +755,9 @@ public class GeoServiceActionBean extends LocalizableActionBean {
     @After
     public void makeLists(){
         EntityManager em = Stripersist.getEntityManager();
-        allGroups = em.createQuery("from Group").getResultList();
+        allGroups = em.createQuery("from Group", Group.class).getResultList();
         if (service != null && em.contains(service)) {
-            groupsRead = new ArrayList(service.getReaders());
+            groupsRead = new ArrayList<>(service.getReaders());
         }
     }
 
@@ -856,30 +859,35 @@ public class GeoServiceActionBean extends LocalizableActionBean {
     protected void addService(EntityManager em) throws Exception{
         status = new WaitPageStatus();
 
-        Map params = new HashMap();
+        Map<String, Object> params = new HashMap<>();
 
         params.put(GeoService.PARAM_USERNAME, username);
         params.put(GeoService.PARAM_PASSWORD, password);
-        if (protocol.equals(WMSService.PROTOCOL)) {
-            params.put(WMSService.PARAM_OVERRIDE_URL, overrideUrl);
-            params.put(WMSService.PARAM_SKIP_DISCOVER_WFS, skipDiscoverWFS);
-            service = WMSServiceHelper.loadFromUrl(url, params, status, em);
-            ((WMSService) service).setException_type(exception_type);
-            service.getDetails().put(GeoService.DETAIL_USE_PROXY, new ClobElement("" + useProxy));
-        } else if (protocol.equals(ArcGISService.PROTOCOL)) {
-            params.put(ArcGISService.PARAM_ASSUME_VERSION, agsVersion);
-            service = ArcGISServiceHelper.loadFromUrl(url, params, status, em);
-        } else if (protocol.equals(TileService.PROTOCOL)) {
-            params.put(TileService.PARAM_SERVICENAME, serviceName);
-            params.put(TileService.PARAM_RESOLUTIONS, resolutions);
-            params.put(TileService.PARAM_SERVICEBBOX, serviceBbox);
-            params.put(TileService.PARAM_CRS, crs);
-            params.put(TileService.PARAM_IMAGEEXTENSION, imageExtension);
-            params.put(TileService.PARAM_TILESIZE, tileSize);
-            params.put(TileService.PARAM_TILINGPROTOCOL, tilingProtocol);
-            service = TilingServiceHelper.loadFromURL(url, params, status, em);
-        } else {
-            getContext().getValidationErrors().add("protocol", new SimpleError("Ongeldig"));
+        switch (protocol) {
+            case WMSService.PROTOCOL:
+                params.put(WMSService.PARAM_OVERRIDE_URL, overrideUrl);
+                params.put(WMSService.PARAM_SKIP_DISCOVER_WFS, skipDiscoverWFS);
+                service = WMSServiceHelper.loadFromUrl(url, params, status, em);
+                ((WMSService) service).setException_type(exception_type);
+                service.getDetails().put(GeoService.DETAIL_USE_PROXY, new ClobElement("" + useProxy));
+                break;
+            case ArcGISService.PROTOCOL:
+                params.put(ArcGISService.PARAM_ASSUME_VERSION, agsVersion);
+                service = ArcGISServiceHelper.loadFromUrl(url, params, status, em);
+                break;
+            case TileService.PROTOCOL:
+                params.put(TileService.PARAM_SERVICENAME, serviceName);
+                params.put(TileService.PARAM_RESOLUTIONS, resolutions);
+                params.put(TileService.PARAM_SERVICEBBOX, serviceBbox);
+                params.put(TileService.PARAM_CRS, crs);
+                params.put(TileService.PARAM_IMAGEEXTENSION, imageExtension);
+                params.put(TileService.PARAM_TILESIZE, tileSize);
+                params.put(TileService.PARAM_TILINGPROTOCOL, tilingProtocol);
+                service = TilingServiceHelper.loadFromURL(url, params, status, em);
+                break;
+            default:
+                getContext().getValidationErrors().add("protocol", new SimpleError("Ongeldig"));
+                break;
         }
 
         if(service ==null){
@@ -978,7 +986,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
         EntityManager em = Stripersist.getEntityManager();
         service.loadLayerTree(em);
 
-        Queue<Layer> layerStack = new LinkedList();
+        Queue<Layer> layerStack = new LinkedList<>();
         Layer l = service.getTopLayer();
         while(l != null) {
             layerStack.addAll(service.getLayerChildrenCache(l, em));
@@ -1000,58 +1008,59 @@ public class GeoServiceActionBean extends LocalizableActionBean {
                         protocol = " (protocol " + l.getFeatureType().getFeatureSource().getProtocol() + ")";
                     }
 
-                    String ftComment = " This layer has a feature type" + protocol + " you can use in a FeatureTypeConstraint element as follows:\n";
-                    ftComment += "            <LayerFeatureConstraints>\n";
-                    ftComment += "                <FeatureTypeConstraint>\n";
-                    ftComment += "                    <FeatureTypeName>" + l.getFeatureType().getTypeName() + "</FeatureTypeName>\n";
-                    ftComment += "                    Add ogc:Filter or Extent element here. ";
+                    StringBuilder ftComment = new StringBuilder(" This layer has a feature type" + protocol + " you can use in a FeatureTypeConstraint element as follows:\n");
+                    ftComment.append("            <LayerFeatureConstraints>\n");
+                    ftComment.append("                <FeatureTypeConstraint>\n");
+                    ftComment.append("                    <FeatureTypeName>").append(l.getFeatureType().getTypeName()).append("</FeatureTypeName>\n");
+                    ftComment.append("                    Add ogc:Filter or Extent element here. ");
                     if(l.getFeatureType().getAttributes().isEmpty()) {
-                        ftComment += " No feature type attributes are known.\n";
+                        ftComment.append(" No feature type attributes are known.\n");
                     } else {
-                        ftComment += " You can use the following feature type attributes in ogc:PropertyName elements:\n";
+                        ftComment.append(" You can use the following feature type attributes in ogc:PropertyName elements:\n");
                         for(AttributeDescriptor ad: l.getFeatureType().getAttributes()) {
-                            ftComment += "                    <ogc:PropertyName>" + ad.getName() + "</ogc:PropertyName>";
+                            ftComment.append("                    <ogc:PropertyName>").append(ad.getName()).append("</ogc:PropertyName>");
                             if(ad.getAlias() != null) {
-                                ftComment += " (" + ad.getAlias() + ")";
+                                ftComment.append(" (").append(ad.getAlias()).append(")");
                             }
                             if(ad.getType() != null) {
-                                ftComment += " (type: " + ad.getType() + ")";
+                                ftComment.append(" (type: ").append(ad.getType()).append(")");
                             }
-                            ftComment += "\n";
+                            ftComment.append("\n");
                         }
                     }
-                    ftComment += "                </FeatureTypeConstraint>\n";
-                    ftComment += "            </LayerFeatureConstraints>\n";
-                    ftComment += "        ";
-                    nlEl.appendChild(sldDoc.createComment(ftComment));
+                    ftComment.append("                </FeatureTypeConstraint>\n");
+                    ftComment.append("            </LayerFeatureConstraints>\n");
+                    ftComment.append("        ");
+                    nlEl.appendChild(sldDoc.createComment(ftComment.toString()));
                 }
 
                 nlEl.appendChild(sldDoc.createComment(" Add a UserStyle or NamedStyle element here "));
-                String styleComment = " (no server-side named styles are known other than 'default') ";
+                StringBuilder styleComment = new StringBuilder(" (no server-side named styles are known other than 'default') ");
                 ClobElement styleDetail = l.getDetails().get(Layer.DETAIL_WMS_STYLES);
                 if(styleDetail != null) {
                     try {
                         JSONArray styles = new JSONArray(styleDetail.getValue());
 
                         if(styles.length() > 0) {
-                            styleComment = " The following NamedStyles are available according to the capabilities: \n";
+                            styleComment = new StringBuilder(" The following NamedStyles are available according to the capabilities: \n");
 
                             for(int i = 0; i < styles.length(); i++) {
                                 JSONObject jStyle = styles.getJSONObject(i);
 
-                                styleComment += "            <NamedStyle><Name>" + jStyle.getString("name") + "</Name></NamedStyle>";
+                                styleComment.append("            <NamedStyle><Name>").append(jStyle.getString("name")).append("</Name></NamedStyle>");
                                 if(jStyle.has("title")) {
-                                    styleComment += " (" + jStyle.getString("title") + ")";
+                                    styleComment.append(" (").append(jStyle.getString("title")).append(")");
                                 }
-                                styleComment += "\n";
+                                styleComment.append("\n");
                             }
                         }
 
                     } catch(JSONException e) {
+                        // ...
                     }
-                    styleComment += "        ";
+                    styleComment.append("        ");
                 }
-                nlEl.appendChild(sldDoc.createComment(styleComment));
+                nlEl.appendChild(sldDoc.createComment(styleComment.toString()));
             }
 
             l = layerStack.poll();
@@ -1067,7 +1076,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
         ByteArrayOutputStream bos =  new ByteArrayOutputStream();
         StreamResult result = new StreamResult(bos);
         t.transform(source, result);
-        generatedSld = new String(bos.toByteArray(), "UTF-8");
+        generatedSld = bos.toString(StandardCharsets.UTF_8);
 
         // indent doesn't add newline after XML declaration
         generatedSld = generatedSld.replaceFirst("\"\\?><StyledLayerDescriptor", "\"?>\n<StyledLayerDescriptor");
@@ -1114,7 +1123,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
             dbf.setNamespaceAware(true);
             DocumentBuilder db = dbf.newDocumentBuilder();
 
-            sldXmlDoc = db.parse(new ByteArrayInputStream(sld.getSldBody().getBytes("UTF-8")));
+            sldXmlDoc = db.parse(new ByteArrayInputStream(sld.getSldBody().getBytes(StandardCharsets.UTF_8)));
 
             stage = getBundle().getString("viewer_admin.geoserviceactionbean.slderror");
 

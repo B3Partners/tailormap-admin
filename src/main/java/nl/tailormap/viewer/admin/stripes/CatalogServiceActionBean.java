@@ -34,6 +34,7 @@ import nl.tailormap.viewer.config.security.Group;
 import nl.tailormap.viewer.config.services.Category;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jdom2.Document;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -109,7 +110,7 @@ public class CatalogServiceActionBean extends LocalizableActionBean {
         try {
             JSONArray results = new JSONArray();
         
-            CswServable server = new GeoNetworkCswServer(null,
+            CswServable<Document> server = new GeoNetworkCswServer(null,
                     url,
                     null, 
                     null
@@ -130,7 +131,7 @@ public class CatalogServiceActionBean extends LocalizableActionBean {
                     String protocol = resource.getProtocol() != null ? resource.getProtocol().getName() : null;
                     
                     if(title != null && rurl != null && protocol != null) {
-                        if(protocol.toLowerCase().indexOf("wms") != -1) {
+                        if(protocol.toLowerCase().contains("wms")) {
                             JSONObject result = new JSONObject();
                             result.put("label", title );
                             result.put("url", rurl);

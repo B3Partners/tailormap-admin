@@ -121,9 +121,7 @@ public class FormActionBean extends LocalizableActionBean implements ValidationE
     public void init(){
         EntityManager em = Stripersist.getEntityManager();
         formList = em.createQuery("FROM Form", Form.class).getResultList();
-        formList.forEach(form -> {
-            featureTypes.add(form.getFeatureTypeName());
-        });
+        formList.forEach(form -> featureTypes.add(form.getFeatureTypeName()));
         forms = new JSONArray(formList);
 
         allGroups = em.createQuery("FROM Group ", Group.class).getResultList();
@@ -132,7 +130,7 @@ public class FormActionBean extends LocalizableActionBean implements ValidationE
     public void makeLists(){
         EntityManager em = Stripersist.getEntityManager();
         if (form != null && em.contains(form)) {
-            groupsRead = new ArrayList(form.getReaders());
+            groupsRead = new ArrayList<>(form.getReaders());
         }
     }
 
@@ -241,7 +239,7 @@ public class FormActionBean extends LocalizableActionBean implements ValidationE
          * holds the column name and dir which holds the direction (ASC, DESC).
          */
         if (sort != null && dir != null) {
-            Order order = null;
+            Order order;
             if (dir.equals("ASC")) {
                 order = Order.asc(sort);
             } else {
@@ -268,8 +266,8 @@ public class FormActionBean extends LocalizableActionBean implements ValidationE
         c.setFirstResult(start);
 
 
-        for (Iterator it = sources.iterator(); it.hasNext();) {
-            Form form = (Form) it.next();
+        for (Object source : sources) {
+            Form form = (Form) source;
             JSONObject j = this.getGridRow(form);
             jsonData.put(j);
         }
@@ -282,7 +280,7 @@ public class FormActionBean extends LocalizableActionBean implements ValidationE
 
             @Override
             public void stream(HttpServletResponse response) throws Exception {
-                response.getWriter().print(grid.toString());
+                response.getWriter().print(grid);
             }
         };
     }
@@ -327,7 +325,7 @@ public class FormActionBean extends LocalizableActionBean implements ValidationE
 
     private  List<Attribuut> getLookupDB(){
         EntityManager em = Stripersist.getEntityManager();
-        Metadata md = null;
+        Metadata md;
         List<Attribuut> attrs = new ArrayList<>();
         try {
             md = em.createQuery("from Metadata where configKey = :key", Metadata.class).setParameter("key", Metadata.DEFAULT_FORM_FEATURESOURCE).getSingleResult();
@@ -336,7 +334,7 @@ public class FormActionBean extends LocalizableActionBean implements ValidationE
             }
             FeatureSource fs = em.find(FeatureSource.class, Long.parseLong(md.getConfigValue()));
             DataStore ds = null;
-            SimpleFeatureSource sfs = null;
+            SimpleFeatureSource sfs;
             if(fs != null && fs instanceof JDBCFeatureSource){
                 try {
                     SimpleFeatureType sft=fs.getFeatureTypes().get(0);

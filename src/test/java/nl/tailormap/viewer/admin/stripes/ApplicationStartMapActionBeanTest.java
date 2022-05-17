@@ -206,7 +206,7 @@ public class ApplicationStartMapActionBeanTest extends TestUtil {
     @Test
     public void testWalkAppTreeForStartMapAfterRemovingSublevel() {
         testRemoveStartLevelWithParent(); // ok, maybe not that nice to call a different testmethod, but it creates the exact state we need.
-        List selectedObjects = new ArrayList();
+        List<Object> selectedObjects = new ArrayList<>();
         Level rootlevel = application.getRoot();
         ApplicationStartMapActionBean.walkAppTreeForStartMap(selectedObjects, rootlevel, application);
         selectedObjects.stream().map((selectedObject) -> {
@@ -225,7 +225,7 @@ public class ApplicationStartMapActionBeanTest extends TestUtil {
     @Test
     public void testWalkAppTreeForStartMap() {
         Application application = entityManager.find(Application.class, applicationId);
-        List selectedObjects = new ArrayList();
+        List<Object> selectedObjects = new ArrayList<>();
         Level rootlevel = application.getRoot();
         ApplicationStartMapActionBean.walkAppTreeForStartMap(selectedObjects, rootlevel, application);
         selectedObjects.stream().map((selectedObject) -> {
@@ -245,7 +245,7 @@ public class ApplicationStartMapActionBeanTest extends TestUtil {
     @Test
     public void testWalkAppTreeForStartMapAfterMovingLevelIntoLevel() {
         Application application = entityManager.find(Application.class, applicationId);
-        List selectedObjects = new ArrayList();
+        List<Object> selectedObjects = new ArrayList<>();
         Level rootlevel = application.getRoot();
 
 

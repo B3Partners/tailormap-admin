@@ -95,7 +95,7 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
     private boolean mustUpdateComponents;
 
     @Validate
-    private Map<String,ClobElement> details = new HashMap<String,ClobElement>();
+    private Map<String,ClobElement> details = new HashMap<>();
 
     private String[] languageCodes;
     private List<CRS> crses;
@@ -378,7 +378,7 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
         }
 
         try {
-            Long foundId = null;
+            Long foundId;
             if(version == null){
                 foundId = (Long)Stripersist.getEntityManager().createQuery("select id from Application where name = :name and version is null")
                         .setMaxResults(1)
@@ -458,13 +458,13 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
                     application.getName(),
                     application.getVersion() == null ? "" : "v" + application.getVersion() + " ",
                     name), e);
-            String ex = e.toString();
+            StringBuilder ex = new StringBuilder(e.toString());
             Throwable cause = e.getCause();
             while(cause != null) {
-                ex += ";\n<br>" + cause.toString();
+                ex.append(";\n<br>").append(cause);
                 cause = cause.getCause();
             }
-            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString("viewer_admin.applicationsettingsbean.copyerror"), ex));
+            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString("viewer_admin.applicationsettingsbean.copyerror"), ex.toString()));
             return new ForwardResolution(JSP);
         }
     }

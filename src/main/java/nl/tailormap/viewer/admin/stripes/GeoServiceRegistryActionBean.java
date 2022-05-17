@@ -116,7 +116,7 @@ public class GeoServiceRegistryActionBean extends LocalizableActionBean {
 
         if(nodeId != null) {
             // Demangle id
-            Long id;
+            long id;
             if(nodeId.equals("0")) {
                 id = 0L;
             } else {
@@ -235,16 +235,16 @@ public class GeoServiceRegistryActionBean extends LocalizableActionBean {
         JSONObject json = new JSONObject();
 
         json.put("success", Boolean.FALSE);
-        String error = null;
+        StringBuilder error = null;
 
         if(category == null) {
-            error = getBundle().getString("viewer_admin.geoserviceregistryactionbean.nocat");
+            error = new StringBuilder(getBundle().getString("viewer_admin.geoserviceregistryactionbean.nocat"));
         } else if(category.getParent() == null) {
-            error = getBundle().getString("viewer_admin.geoserviceregistryactionbean.noupcatrem");
+            error = new StringBuilder(getBundle().getString("viewer_admin.geoserviceregistryactionbean.noupcatrem"));
         } else if(category.getChildren().size() > 0) {
-            error = getBundle().getString("viewer_admin.geoserviceregistryactionbean.catnotempty");
+            error = new StringBuilder(getBundle().getString("viewer_admin.geoserviceregistryactionbean.catnotempty"));
         } else if(category.getServices().size() > 0) {
-            error = getBundle().getString("viewer_admin.geoserviceregistryactionbean.cathassrv");
+            error = new StringBuilder(getBundle().getString("viewer_admin.geoserviceregistryactionbean.cathassrv"));
         }
 
         if(error == null) {
@@ -256,17 +256,17 @@ public class GeoServiceRegistryActionBean extends LocalizableActionBean {
                 json.put("success", Boolean.TRUE);
             } catch(Exception e) {
                 log.error("Error deleting category: ", e);
-                error =  MessageFormat.format(getBundle().getString("viewer_admin.geoserviceregistryactionbean.catremerr"), e);
+                error = new StringBuilder(MessageFormat.format(getBundle().getString("viewer_admin.geoserviceregistryactionbean.catremerr"), e));
                 Throwable t = e;
                 while(t.getCause() != null) {
                     t = t.getCause();
-                    error += "; " + t;
+                    error.append("; ").append(t);
                 }
             }
         }
         
         if(error != null) {
-            json.put("error", error);
+            json.put("error", error.toString());
         }              
         return new StreamingResolution("application/json", new StringReader(json.toString()));
     }
@@ -280,7 +280,7 @@ public class GeoServiceRegistryActionBean extends LocalizableActionBean {
         String type = nodeId.substring(0, 1);
         int id = Integer.parseInt(nodeId.substring(1));
         if(type.equals("c")) {
-            Category c = em.find(Category.class, new Long(id));
+            Category c = em.find(Category.class, (long) id);
             for(Category sub: c.getChildren()) {
                 JSONObject j = new JSONObject();
                 j.put("id", "c" + sub.getId());
@@ -304,7 +304,7 @@ public class GeoServiceRegistryActionBean extends LocalizableActionBean {
                 children.put(j);
             }
         } else if(type.equals("s")) {
-            GeoService gs = em.find(GeoService.class, new Long(id));
+            GeoService gs = em.find(GeoService.class, (long) id);
             // GeoService may be invalid and not have a top layer
             if(gs.getTopLayer() != null) {
                 List<Layer> layers;
@@ -332,7 +332,7 @@ public class GeoServiceRegistryActionBean extends LocalizableActionBean {
             }
         }
         if(type.equals("l")) {
-            Layer layer = em.find(Layer.class, new Long(id));
+            Layer layer = em.find(Layer.class, (long) id);
             for(Layer sublayer: layer.getChildren()) {
                 JSONObject j = new JSONObject();
                 j.put("id", "l" + sublayer.getId());
@@ -354,7 +354,7 @@ public class GeoServiceRegistryActionBean extends LocalizableActionBean {
         return new StreamingResolution("application/json") {
            @Override
            public void stream(HttpServletResponse response) throws Exception {
-               response.getWriter().print(children.toString());
+               response.getWriter().print(children);
            }
         };
     }

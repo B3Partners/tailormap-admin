@@ -64,7 +64,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import javax.xml.xpath.XPathFactoryConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -103,8 +102,8 @@ public class ServiceUsageMatrixActionBean extends LocalizableActionBean {
 
     private JSONObject data;
     
-    private void createData() throws Exception {
-        List<Application> applications = Stripersist.getEntityManager().createQuery("FROM Application order by name,version").getResultList();
+    private void createData() {
+        List<Application> applications = Stripersist.getEntityManager().createQuery("FROM Application order by name,version", Application.class).getResultList();
         JSONArray jsonApps = new JSONArray();
         EntityManager em = Stripersist.getEntityManager();
         for (Application app: applications) {
@@ -118,7 +117,7 @@ public class ServiceUsageMatrixActionBean extends LocalizableActionBean {
         //add the featureSources to the JSON.
         List <FeatureSource> featureSources;
         if (this.featureSource==null){
-            featureSources = em.createQuery("FROM FeatureSource").getResultList();
+            featureSources = em.createQuery("FROM FeatureSource", FeatureSource.class).getResultList();
         }else{
             featureSources = new ArrayList<>();
             featureSources.add(this.featureSource);
@@ -304,7 +303,7 @@ public class ServiceUsageMatrixActionBean extends LocalizableActionBean {
     }
     //</editor-fold>
 
-    public static XSSFWorkbook createWorkBook(String theXml) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException, XPathFactoryConfigurationException {
+    public static XSSFWorkbook createWorkBook(String theXml) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc=builder.parse(new InputSource(new StringReader(theXml)));

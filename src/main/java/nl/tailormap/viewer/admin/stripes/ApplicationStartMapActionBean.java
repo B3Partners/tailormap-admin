@@ -46,9 +46,7 @@ import java.io.StringReader;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -91,8 +89,8 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
     @Validate
     private String removedRecordsString = new String();
     
-    private Set<Long> levelsToBeRemoved = new HashSet<Long>();
-    private Set<Long> layersToBeRemoved = new HashSet<Long>();
+    private Set<Long> levelsToBeRemoved = new HashSet<>();
+    private Set<Long> layersToBeRemoved = new HashSet<>();
 
     @DefaultHandler
     @DontValidate
@@ -164,7 +162,7 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
             if(o.get("type").equals("layer")) {
                 // kaarten kunnen los worden toegevoegd.
             }else{
-                Level level = Stripersist.getEntityManager().find(Level.class, new Long(id));
+                Level level = Stripersist.getEntityManager().find(Level.class, Long.valueOf(id));
                 if(level == null) {
                     result = false;
                     message = MessageFormat.format(getBundle().getString("viewer_admin.applicationstartmapactionbean.unknown"), id);
@@ -188,7 +186,7 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
                                     break;
                                 }
 
-                                Level l = Stripersist.getEntityManager().find(Level.class, new Long(content.getString("id")));
+                                Level l = Stripersist.getEntityManager().find(Level.class, Long.valueOf(content.getString("id")));
                                 if(l != null) {
                                     if(l.isInSubtreeOf(level)) {
                                         result = false;
@@ -197,7 +195,7 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
                                     }
                                 }
                             } else {
-                                ApplicationLayer appLayer = Stripersist.getEntityManager().find(ApplicationLayer.class, new Long(content.getString("id")));
+                                ApplicationLayer appLayer = Stripersist.getEntityManager().find(ApplicationLayer.class, Long.valueOf(content.getString("id")));
                                 if(level.containsLayerInSubtree(appLayer)) {
                                     result = false;
                                     message = getBundle().getString("viewer_admin.applicationstartmapactionbean.alreadyselected2");
@@ -293,7 +291,7 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
     
     private boolean getCheckedForLayerId(Long levelid) throws JSONException {
         for(int i = 0; i < jsonCheckedLayers.length(); i++){
-            if(levelid.equals(new Long(jsonCheckedLayers.getInt(i)))) {
+            if(levelid.equals((long) jsonCheckedLayers.getInt(i))) {
                 return true;
             }
         }
@@ -341,7 +339,7 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
             String type = nodeId.substring(0, 1);
             int id = Integer.parseInt(nodeId.substring(1));
             if (type.equals("n")) {
-                Level l = em.find(Level.class, new Long(id));
+                Level l = em.find(Level.class, (long) id);
                 List<Level> levels = l.getChildren();
                 Collections.sort(levels);
                 for (Level sub : levels) {
@@ -372,7 +370,7 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
 
             @Override
             public void stream(HttpServletResponse response) throws Exception {
-                response.getWriter().print(children.toString());
+                response.getWriter().print(children);
             }
         };
     }
@@ -398,32 +396,27 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
         readdedLayers = new JSONArray(readdedLayersString);
 
         if(levelId != null && levelId.substring(1).equals(rootlevel.getId().toString())){
-            List selectedObjects = new ArrayList();
+            List<Object> selectedObjects = new ArrayList<>();
             walkAppTreeForStartMap(selectedObjects, rootlevel, application);
 
-            Collections.sort(selectedObjects, new Comparator() {
-
-                @Override
-                public int compare(Object lhs, Object rhs) {
-                    Integer lhsIndex, rhsIndex;
-                    if(lhs instanceof StartLevel) {
-                        lhsIndex = ((StartLevel)lhs).getSelectedIndex();
-                    } else {
-                        lhsIndex = ((StartLayer)lhs).getSelectedIndex();
-                    }
-                    if(rhs instanceof StartLevel) {
-                        rhsIndex = ((StartLevel)rhs).getSelectedIndex();
-                    } else {
-                        rhsIndex = ((StartLayer)rhs).getSelectedIndex();
-                    }
-                    return lhsIndex.compareTo(rhsIndex);
+            Collections.sort(selectedObjects, (lhs, rhs) -> {
+                Integer lhsIndex, rhsIndex;
+                if(lhs instanceof StartLevel) {
+                    lhsIndex = ((StartLevel)lhs).getSelectedIndex();
+                } else {
+                    lhsIndex = ((StartLayer)lhs).getSelectedIndex();
                 }
+                if(rhs instanceof StartLevel) {
+                    rhsIndex = ((StartLevel)rhs).getSelectedIndex();
+                } else {
+                    rhsIndex = ((StartLayer)rhs).getSelectedIndex();
+                }
+                return lhsIndex.compareTo(rhsIndex);
             });
 
             if(selectedObjects != null){
-                for (Iterator it = selectedObjects.iterator(); it.hasNext();) {
-                    Object map = it.next();
-                    if(map instanceof StartLayer){
+                for (Object map : selectedObjects) {
+                    if (map instanceof StartLayer) {
                         StartLayer startLayer = (StartLayer) map;
                         ApplicationLayer layer = startLayer.getApplicationLayer();
                         JSONObject j = new JSONObject();
@@ -434,11 +427,11 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
                         j.put("parentid", "");
                         j.put("checked", startLayer.isChecked());
                         children.put(j);
-                    }else if(map instanceof StartLevel){
+                    } else if (map instanceof StartLevel) {
                         StartLevel startLevel = (StartLevel) map;
                         Level level = startLevel.getLevel();
                         JSONArray checked = new JSONArray();
-                        getCheckedLayerList(checked, level,application);
+                        getCheckedLayerList(checked, level, application);
 
                         JSONObject j = new JSONObject();
                         j.put("id", "n" + level.getId());
@@ -452,10 +445,11 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
                 }
             }
         }else{
+            assert levelId != null;
             String type = levelId.substring(0, 1);
             int id = Integer.parseInt(levelId.substring(1));
             if (type.equals("n")) {
-                Level l = em.find(Level.class, new Long(id));
+                Level l = em.find(Level.class, (long) id);
                 for (Level sub : l.getChildren()) {
                     StartLevel sl = sub.getStartLevels().get(application);
                     if(sl != null || !l.getStartLevels().containsKey(application)){
@@ -519,7 +513,7 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
         return false;
     }
     
-    protected static void walkAppTreeForStartMap(List selectedContent, Level l, Application app){
+    protected static void walkAppTreeForStartMap(List<Object> selectedContent, Level l, Application app){
         StartLevel sl = l.getStartLevels().get(app);
         boolean selected = false;
         if(sl != null && sl.getSelectedIndex() != null && !sl.isRemoved()) {

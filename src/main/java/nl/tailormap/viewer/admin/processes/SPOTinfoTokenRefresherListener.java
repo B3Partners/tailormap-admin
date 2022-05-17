@@ -29,7 +29,7 @@ public class SPOTinfoTokenRefresherListener implements ServletContextListener {
         try {
             refreshInterval = Integer.parseInt(context.getInitParameter("spotinfo.token.refresh.interval"));
         } catch (NumberFormatException | NullPointerException e) {
-
+            // can't be helped
         }
         LOG.info("Using " + refreshInterval + "-minute refresh interval for SPOTinfo access token.");
         processThread.scheduleAtFixedRate(updateToken, 1, refreshInterval, TimeUnit.MINUTES);

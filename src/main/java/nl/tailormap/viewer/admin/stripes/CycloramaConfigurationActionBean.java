@@ -75,7 +75,7 @@ public class CycloramaConfigurationActionBean extends LocalizableActionBean {
 
     @Validate
     private FileBean key;
-    private List<CycloramaAccount> accounts = new ArrayList<CycloramaAccount>();
+    private List<CycloramaAccount> accounts = new ArrayList<>();
 
     @Validate
     @ValidateNestedProperties({
@@ -203,7 +203,6 @@ public class CycloramaConfigurationActionBean extends LocalizableActionBean {
 
     public List<CycloramaAccount> getAccountList(){
         EntityManager em = Stripersist.getEntityManager();
-        List<CycloramaAccount> list = em.createQuery("FROM CycloramaAccount", CycloramaAccount.class).getResultList();
-        return list;
+        return em.createQuery("FROM CycloramaAccount", CycloramaAccount.class).getResultList();
     }
 }

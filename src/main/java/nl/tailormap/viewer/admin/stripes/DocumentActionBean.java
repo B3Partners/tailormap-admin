@@ -51,7 +51,6 @@ import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletResponse;
 import java.text.MessageFormat;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -175,21 +174,19 @@ public class DocumentActionBean extends LocalizableActionBean {
     public Resolution delete() {
         EntityManager em = Stripersist.getEntityManager();
         if(documentInUse()){
-            String message="<ul> ";
+            StringBuilder message= new StringBuilder("<ul> ");
             List<Level> levels = em.createQuery(
-                "from Level l where :doc member of l.documents")
+                "from Level l where :doc member of l.documents", Level.class)
                 .setParameter("doc", document)
                 .getResultList();
         
             for (Level level: levels){
                 for(Application app: LevelHelper.findApplications(level, em)) {
-                    message+="<li>"
-                            + MessageFormat.format(getBundle().getString("viewer_admin.documentactionbean.inuseapp"), level.getPath(), app.getNameWithVersion())
-                            + "</li>";
+                    message.append("<li>").append(MessageFormat.format(getBundle().getString("viewer_admin.documentactionbean.inuseapp"), level.getPath(), app.getNameWithVersion())).append("</li>");
                 }
             }
-            message+="</ul>";
-            getContext().getValidationErrors().add("document", new SimpleError(getBundle().getString("viewer_admin.documentactionbean.inuse"), message));
+            message.append("</ul>");
+            getContext().getValidationErrors().add("document", new SimpleError(getBundle().getString("viewer_admin.documentactionbean.inuse"), message.toString()));
             return new ForwardResolution(EDITJSP);
         }        
         em.remove(document);
@@ -255,7 +252,7 @@ public class DocumentActionBean extends LocalizableActionBean {
          * holds the direction (ASC, DESC).
          */
         if(sort != null && dir != null){
-            Order order = null;
+            Order order;
             if(dir.equals("ASC")){
                order = Order.asc(sort);
             }else{
@@ -284,8 +281,8 @@ public class DocumentActionBean extends LocalizableActionBean {
         c.setFirstResult(start);
         
         List documenten = c.list();
-        for(Iterator it = documenten.iterator(); it.hasNext();){
-            Document doc = (Document)it.next();
+        for (Object o : documenten) {
+            Document doc = (Document) o;
             JSONObject j = this.getGridRow(doc.getId().intValue(), doc.getName(), doc.getUrl(), doc.getCategory());
             jsonData.put(j);
         }
@@ -297,7 +294,7 @@ public class DocumentActionBean extends LocalizableActionBean {
         return new StreamingResolution("application/json") {
            @Override
            public void stream(HttpServletResponse response) throws Exception {
-               response.getWriter().print(grid.toString());
+               response.getWriter().print(grid);
            }
         };
     }

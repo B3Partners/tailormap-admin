@@ -32,6 +32,7 @@ import nl.tailormap.viewer.config.ClobElement;
 import nl.tailormap.viewer.config.app.Application;
 import nl.tailormap.viewer.config.app.ApplicationLayer;
 import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.services.FeatureSource;
 import nl.tailormap.viewer.config.services.GeoService;
 import nl.tailormap.viewer.config.services.Layer;
 import nl.tailormap.viewer.config.services.SimpleFeatureType;
@@ -43,7 +44,6 @@ import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -70,20 +70,20 @@ public class LayerActionBean extends LocalizableActionBean {
     @Validate
     private String parentId;
     private List<Group> allGroups;
-    private SortedSet<String> applicationsUsedIn = new TreeSet();
+    private SortedSet<String> applicationsUsedIn = new TreeSet<>();
     @Validate
-    private List<String> groupsRead = new ArrayList<String>();
+    private List<String> groupsRead = new ArrayList<>();
     @Validate
-    private List<String> groupsWrite = new ArrayList<String>();
+    private List<String> groupsWrite = new ArrayList<>();
     @Validate
-    private List<String> groupsPreventGeomEdit = new ArrayList<String>();
+    private List<String> groupsPreventGeomEdit = new ArrayList<>();
     @Validate
-    private Map<String, String> details = new HashMap<String, String>();
+    private Map<String, String> details = new HashMap<>();
     @Validate
     private SimpleFeatureType simpleFeatureType;
     @Validate
     private Long featureSourceId;
-    private List featureSources;
+    private List<FeatureSource> featureSources;
 
     //<editor-fold defaultstate="collapsed" desc="getters & setters">
     public ActionBeanContext getContext() {
@@ -166,11 +166,11 @@ public class LayerActionBean extends LocalizableActionBean {
         this.featureSourceId = featureSourceId;
     }
 
-    public List getFeatureSources() {
+    public List<FeatureSource> getFeatureSources() {
         return featureSources;
     }
 
-    public void setFeatureSources(List featureSources) {
+    public void setFeatureSources(List<FeatureSource> featureSources) {
         this.featureSources = featureSources;
     }
 
@@ -187,13 +187,13 @@ public class LayerActionBean extends LocalizableActionBean {
     @SuppressWarnings("unchecked")
     public void load() {
         allGroups = Stripersist.getEntityManager().createQuery("from Group").getResultList();
-        featureSources = Stripersist.getEntityManager().createQuery("from FeatureSource").getResultList();
+        featureSources = Stripersist.getEntityManager().createQuery("from FeatureSource", FeatureSource.class).getResultList();
     }
         
    @DefaultHandler
     public Resolution edit() {
         if (layer != null) {
-            details = new HashMap();
+            details = new HashMap<>();
             for(Map.Entry<String,ClobElement> e: layer.getDetails().entrySet()) {
                 details.put(e.getKey(), e.getValue().getValue());
             }
@@ -220,22 +220,20 @@ public class LayerActionBean extends LocalizableActionBean {
     }
 
     private List<Application> findApplications(Layer layer) {
-        List<Application> apps = new ArrayList();
+        List<Application> apps = new ArrayList<>();
         GeoService service = layer.getService();
         String layerName = layer.getName();
         EntityManager em = Stripersist.getEntityManager();
 
         List<ApplicationLayer> applicationLayers = layer.getApplicationLayers(em);
 
-        for (Iterator it = applicationLayers.iterator(); it.hasNext();) {
-            ApplicationLayer appLayer = (ApplicationLayer) it.next();
-
+        for (ApplicationLayer appLayer : applicationLayers) {
             /*
              * The parent level of the applicationLayer is needed to find out in
              * which application the Layer is used. This solution is not good
              * when there are many levels.
              */
-            List<Application> applications = em.createQuery("from Application").getResultList();
+            List<Application> applications = em.createQuery("from Application", Application.class).getResultList();
             for (Application app : applications) {
                 if (app.getRoot().containsLayerInSubtree(appLayer)) {
                     apps.add(app);
@@ -249,13 +247,13 @@ public class LayerActionBean extends LocalizableActionBean {
         // Only remove details which are editable and re-added layer if not empty,
         // retain other details (for example "wms.styles")
         // See JSP for which keys are edited
-        layer.getDetails().keySet().removeAll(Arrays.asList(
+        Arrays.asList(
                 Layer.EXTRA_KEY_METADATA_STYLESHEET_URL,
                 Layer.EXTRA_KEY_DOWNLOAD_URL,
                 Layer.EXTRA_KEY_FILTERABLE,
                 Layer.DETAIL_ALTERNATE_LEGEND_IMAGE_URL,
                 Layer.EXTRA_KEY_ATTRIBUTION
-        ));
+        ).forEach(layer.getDetails().keySet()::remove);
         for(Map.Entry<String,String> e: details.entrySet()) {
             if(e.getValue() != null) { // Don't insert null value ClobElement
                 layer.getDetails().put(e.getKey(), new ClobElement(e.getValue()));

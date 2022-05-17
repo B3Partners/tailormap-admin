@@ -48,7 +48,6 @@ import org.stripesstuff.stripersist.Stripersist;
 import javax.annotation.security.RolesAllowed;
 import javax.persistence.NoResultException;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -301,8 +300,8 @@ public class GroupActionBean extends LocalizableActionBean {
         c.setFirstResult(start);
 
         List groups = c.list();
-        for (Iterator it = groups.iterator(); it.hasNext();) {
-            Group gr = (Group) it.next();
+        for (Object o : groups) {
+            Group gr = (Group) o;
             JSONObject j = this.getGridRow(gr.getName(), gr.getDescription());
             jsonData.put(j);
         }
@@ -315,18 +314,17 @@ public class GroupActionBean extends LocalizableActionBean {
 
             @Override
             public void stream(HttpServletResponse response) throws Exception {
-                response.getWriter().print(grid.toString());
+                response.getWriter().print(grid);
             }
         };
     }
     
     private boolean groupInUse(){
         boolean inUse = false;
-        List<Level> levels = Stripersist.getEntityManager().createQuery("from Level").getResultList();
-        
-        for(Iterator it = levels.iterator(); it.hasNext();){
-            Level level = (Level)it.next();
-            if(level.getReaders().contains(group.getName())){
+        List<Level> levels = Stripersist.getEntityManager().createQuery("from Level", Level.class).getResultList();
+
+        for (Level level : levels) {
+            if (level.getReaders().contains(group.getName())) {
                 inUse = true;
                 break;
             }

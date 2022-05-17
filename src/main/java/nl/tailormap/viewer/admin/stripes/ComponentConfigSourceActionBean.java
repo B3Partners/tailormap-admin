@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -90,7 +91,7 @@ public class ComponentConfigSourceActionBean implements ActionBean {
                 OutputStream out = response.getOutputStream();
                 for(File f: theFiles) {
                     if(theFiles.length != 1) {
-                        out.write(("\n\n// Source file: " + f.getName() + "\n\n").getBytes("UTF-8"));
+                        out.write(("\n\n// Source file: " + f.getName() + "\n\n").getBytes(StandardCharsets.UTF_8));
                     }                        
                     IOUtils.copy(new FileInputStream(f), out);                        
                 }

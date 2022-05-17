@@ -27,14 +27,12 @@ import org.quartz.InterruptableJob;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.quartz.UnableToInterruptJobException;
 import org.stripesstuff.stripersist.Stripersist;
 
 import javax.persistence.EntityManager;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -46,7 +44,7 @@ public class MonitorJob implements Job, InterruptableJob {
     
     private boolean interrupted = false;
     
-    public void interrupt() throws UnableToInterruptJobException {
+    public void interrupt() {
         log.info("Setting interrupt flag");
         interrupted = true;
     }    
@@ -66,7 +64,7 @@ public class MonitorJob implements Job, InterruptableJob {
             int online = 0, offline = 0;
             
             // TODO: where monitoringEnabled = true...
-            for(GeoService gs: (List<GeoService>)em.createQuery("from GeoService").getResultList()) {
+            for(GeoService gs: em.createQuery("from GeoService", GeoService.class).getResultList()) {
 
                 String debugMsg = String.format("%s service %s (#%d) with URL: %s",
                             gs.getProtocol(),
@@ -92,10 +90,10 @@ public class MonitorJob implements Job, InterruptableJob {
                     if(log.isTraceEnabled()) {
                         log.trace("Exception", e);
                     }
-                    String message = e.toString();
+                    StringBuilder message = new StringBuilder(e.toString());
                     Throwable cause = e.getCause();
                     while(cause != null) {
-                        message += "; " + cause.toString();
+                        message.append("; ").append(cause);
                         cause = cause.getCause();
                     }
                     monitoringFailures.append(String.format("%s service %s (#%d)\nURL: %s\nFout: %s\n\n",
@@ -117,26 +115,25 @@ public class MonitorJob implements Job, InterruptableJob {
             
             if(offline > 0) {
                 
-                Set emails = new HashSet();
-                for(User admin: (List<User>)em.createQuery("select u from User u "
+                Set<String> emails = new HashSet<>();
+                for(User admin: em.createQuery("select u from User u "
                         + "join u.groups g "
-                        + "where g.name = '" + Group.SERVICE_ADMIN + "' ").getResultList()) {
+                        + "where g.name = '" + Group.SERVICE_ADMIN + "' ", User.class).getResultList()) {
                     emails.add(admin.getDetails().get(User.DETAIL_EMAIL));
                 }
                 emails.remove(null);
                 
                 if(!emails.isEmpty()) {
-                    StringBuilder mail = new StringBuilder();
 
                     SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyy HH:mm:ss");
-                    mail.append(String.format("Bij een controle op %s zijn in het gegevensregister %d services gevonden waarbij fouten zijn geconstateerd.\n"
-                            + "\nDe volgende controle zal worden uitgevoerd op %s.\nHieronder staat de lijst met probleemservices:\n\n",
+                    String mail = String.format("Bij een controle op %s zijn in het gegevensregister %d services gevonden waarbij fouten zijn geconstateerd.\n"
+                                    + "\nDe volgende controle zal worden uitgevoerd op %s.\nHieronder staat de lijst met probleemservices:\n\n",
                             f.format(jec.getFireTime()),
                             offline,
-                            f.format(jec.getNextFireTime())));
-                    mail.append(monitoringFailures);
+                            f.format(jec.getNextFireTime())) +
+                            monitoringFailures;
                     
-                    mail(jec, emails, offline + " services zijn offline bij controle", mail.toString());
+                    mail(jec, emails, offline + " services zijn offline bij controle", mail);
                 }
                 
             }
@@ -148,11 +145,11 @@ public class MonitorJob implements Job, InterruptableJob {
         
     }
     
-    private void mail(JobExecutionContext jec, Set emails, String subject, String mail) {
+    private void mail(JobExecutionContext jec, Set<String> emails, String subject, String mail) {
         try {
             log.info("Sending mail to service admins: " + Arrays.toString(emails.toArray()));
 
-            for(String email: (Set<String>)emails) {
+            for(String email: emails) {
                 if(isInterrupted()) {
                     log.info("Interrupted, ending monitoring job");
                     return;
