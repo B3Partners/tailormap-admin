@@ -45,7 +45,6 @@
       <organizationUrl>https://www.gnamic.nl/</organizationUrl>
     </developer>
   </developers>
-  <contributors></contributors>
   <scm>
     <connection>scm:git:git@github.com:B3Partners/tailormap-admin.git</connection>
     <developerConnection>scm:git:git@github.com:B3Partners/tailormap-admin.git</developerConnection>
@@ -88,8 +87,8 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <spring-security.version>5.7.1</spring-security.version>
     <!-- must be kept in sync with tailormap version -->
-    <!--    <geotools.version>26.2</geotools.version>-->
-    <tailormap.version>5.9.21</tailormap.version>
+    <geotools.version>27.0</geotools.version>
+    <tailormap.version>5.9.22</tailormap.version>
     <!--    <b3p-commons-csw.version>7.1</b3p-commons-csw.version>-->
     <!--    <hsqldb.version>2.6.1</hsqldb.version>-->
     <test.persistence.unit>viewer-config-hsqldb</test.persistence.unit>
@@ -148,11 +147,6 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>
-    <!--    <dependency>-->
-    <!--      <groupId>commons-fileupload</groupId>-->
-    <!--      <artifactId>commons-fileupload</artifactId>-->
-    <!--      <version>1.4</version>-->
-    <!--    </dependency>-->
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
@@ -511,7 +505,6 @@
               <goal>report</goal>
             </goals>
             <phase>test</phase>
-            <configuration></configuration>
           </execution>
           <execution>
             <id>post-integration-test</id>
@@ -519,7 +512,6 @@
               <goal>report-integration</goal>
             </goals>
             <phase>post-integration-test</phase>
-            <configuration></configuration>
           </execution>
         </executions>
       </plugin>
@@ -636,22 +628,6 @@
               </artifactItems>
             </configuration>
           </execution>
-          <!--                    <execution>-->
-          <!--                        <phase>validate</phase>-->
-          <!--                        <goals>-->
-          <!--                            <goal>copy</goal>-->
-          <!--                        </goals>-->
-          <!--                        <configuration>-->
-          <!--                            <outputDirectory>${endorsed.dir}</outputDirectory>-->
-          <!--                            <silent>true</silent>-->
-          <!--                            <artifactItems>-->
-          <!--                                <artifactItem>-->
-          <!--                                    <groupId>javax</groupId>-->
-          <!--                                    <artifactId>javaee-endorsed-api</artifactId>-->
-          <!--                                </artifactItem>-->
-          <!--                            </artifactItems>-->
-          <!--                        </configuration>-->
-          <!--                    </execution>-->
         </executions>
       </plugin>
       <plugin>
