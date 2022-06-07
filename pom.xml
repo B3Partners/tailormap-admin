@@ -102,7 +102,7 @@
     <!--    <activation.api.version>1.2.2</activation.api.version>-->
     <test.junit-jupiter.version>5.8.2</test.junit-jupiter.version>
     <!--    <test.hamcrest.version>2.2</test.hamcrest.version>-->
-    <maven.surefire.version>3.0.0-M6</maven.surefire.version>
+    <maven.surefire.version>3.0.0-M7</maven.surefire.version>
     <cargo-maven3-plugin.version>1.9.11</cargo-maven3-plugin.version>
     <tomcat.localDatasource>false</tomcat.localDatasource>
     <tomcat.version>9.0.63</tomcat.version>
