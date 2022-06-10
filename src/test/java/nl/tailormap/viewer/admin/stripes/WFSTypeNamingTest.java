@@ -63,7 +63,7 @@ public class WFSTypeNamingTest extends TestUtil {
 
 
     /**
-     * The parameter collection for this testcase. A paramet set consists of an
+     * The parameter collection for this testcase. A paramer set consists of an
      * array containing:
      * <ol>
      * <li>(String) service url</li>
@@ -97,6 +97,7 @@ public class WFSTypeNamingTest extends TestUtil {
     public void cleanupContext() {
         context = null;
         sb = null;
+        gsb = null;
     }
 
     @ParameterizedTest(name = "{index}: name: {1}")
@@ -114,6 +115,7 @@ public class WFSTypeNamingTest extends TestUtil {
                 gsb.setOverrideUrl(false);
                 gsb.setUrl(serviceUrl);
                 gsb.setName(serviceName);
+                gsb.setSkipDiscoverWFS(false);
                 gsb.addService(entityManager);
             } catch (Exception ex) {
                 log.error("adding WMS service  failed", ex);
