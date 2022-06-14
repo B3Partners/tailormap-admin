@@ -159,7 +159,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
     @Validate
     private WMSExceptionType exception_type;
     @Validate
-    private boolean skipDiscoverWFS = false;
+    private boolean skipDiscoverWFS = true;
     @Validate
     private String geofenceHeader;
     
