@@ -162,6 +162,12 @@ public class GeoServiceActionBean extends LocalizableActionBean {
     private boolean skipDiscoverWFS = true;
     @Validate
     private String geofenceHeader;
+    @Validate
+    private String hiDpiMode;
+    @Validate
+    private boolean disableTiling = false;
+    @Validate
+    private Integer tilingGutter;
     
     private WaitPageStatus status;
     private JSONObject newService;
@@ -467,7 +473,31 @@ public class GeoServiceActionBean extends LocalizableActionBean {
         this.geofenceHeader = geofenceHeader;
     }
 
-    //</editor-fold>
+    public String getHiDpiMode() {
+        return hiDpiMode;
+    }
+
+    public void setHiDpiMode(String hiDpiMode) {
+        this.hiDpiMode = hiDpiMode;
+    }
+
+    public boolean isDisableTiling() {
+        return disableTiling;
+    }
+
+    public void setDisableTiling(boolean disableTiling) {
+        this.disableTiling = disableTiling;
+    }
+
+    public Integer getTilingGutter() {
+        return tilingGutter;
+    }
+
+    public void setTilingGutter(Integer tilingGutter) {
+        this.tilingGutter = tilingGutter;
+    }
+
+//</editor-fold>
 
     private JSONArray layersInApplications = new JSONArray();
   
@@ -528,6 +558,10 @@ public class GeoServiceActionBean extends LocalizableActionBean {
                     exception_type = ((WMSService) service).getException_type();
                     // default to false
                     skipDiscoverWFS = ((WMSService) service).getSkipDiscoverWFS() != null && ((WMSService) service).getSkipDiscoverWFS();
+
+                    hiDpiMode = service.getDetails().getOrDefault("hidpi.mode", new ClobElement("auto")).getValue();
+                    disableTiling = "true".equals(service.getDetails().getOrDefault("tiling.disable", new ClobElement("false")).getValue());
+                    tilingGutter = Integer.parseInt(service.getDetails().getOrDefault("tiling.gutter", new ClobElement("0")).getValue());
                     break;
             }
 
@@ -650,6 +684,10 @@ public class GeoServiceActionBean extends LocalizableActionBean {
             ((WMSService)service).setOverrideUrl(overrideUrl);
             ((WMSService) service).setException_type(exception_type);
             ((WMSService) service).setSkipDiscoverWFS(skipDiscoverWFS);
+
+            service.getDetails().put("hidpi.mode", new ClobElement(hiDpiMode));
+            service.getDetails().put("tiling.disable", new ClobElement(disableTiling + ""));
+            service.getDetails().put("tiling.gutter", new ClobElement(tilingGutter == null ? "0" : tilingGutter + ""));
         }
         EntityManager em = Stripersist.getEntityManager();
         // Invalidate the cache of the applications using this service. Options like username/password, useProxy, etc. might have changed, which
@@ -870,6 +908,9 @@ public class GeoServiceActionBean extends LocalizableActionBean {
                 service = WMSServiceHelper.loadFromUrl(url, params, status, em);
                 ((WMSService) service).setException_type(exception_type);
                 service.getDetails().put(GeoService.DETAIL_USE_PROXY, new ClobElement("" + useProxy));
+                service.getDetails().put("hidpi.mode", new ClobElement(hiDpiMode));
+                service.getDetails().put("tiling.disable", new ClobElement(disableTiling + ""));
+                service.getDetails().put("tiling.gutter", new ClobElement(tilingGutter == null ? "0" : tilingGutter + ""));
                 break;
             case ArcGISService.PROTOCOL:
                 params.put(ArcGISService.PARAM_ASSUME_VERSION, agsVersion);

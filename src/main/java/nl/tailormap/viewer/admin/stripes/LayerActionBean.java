@@ -20,6 +20,7 @@ import net.sourceforge.stripes.action.ActionBeanContext;
 import net.sourceforge.stripes.action.Before;
 import net.sourceforge.stripes.action.DefaultHandler;
 import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.RedirectResolution;
 import net.sourceforge.stripes.action.Resolution;
 import net.sourceforge.stripes.action.SimpleMessage;
 import net.sourceforge.stripes.action.StrictBinding;
@@ -84,6 +85,11 @@ public class LayerActionBean extends LocalizableActionBean {
     @Validate
     private Long featureSourceId;
     private List<FeatureSource> featureSources;
+
+    /**
+     * A list of all layers of the service for selecting a hi dpi substitue layer.
+     */
+    private List<Layer> allServiceLayers;
 
     //<editor-fold defaultstate="collapsed" desc="getters & setters">
     public ActionBeanContext getContext() {
@@ -181,6 +187,14 @@ public class LayerActionBean extends LocalizableActionBean {
     public void setParentId(String parentId) {
         this.parentId = parentId;
     }
+
+    public List<Layer> getAllServiceLayers() {
+        return allServiceLayers;
+    }
+
+    public void setAllServiceLayers(List<Layer> allServiceLayers) {
+        this.allServiceLayers = allServiceLayers;
+    }
     //</editor-fold>
 
     @Before(stages = LifecycleStage.BindingAndValidation)
@@ -198,6 +212,10 @@ public class LayerActionBean extends LocalizableActionBean {
                 details.put(e.getKey(), e.getValue().getValue());
             }
 
+            if ("tiled".equals(layer.getService().getProtocol()) && !details.containsKey("hidpi.mode")) {
+                details.put("hidpi.mode", "disabled");
+            }
+
             groupsRead.addAll(layer.getReaders());
             groupsWrite.addAll(layer.getWriters());
             groupsPreventGeomEdit.addAll(layer.getPreventGeomEditors());
@@ -206,6 +224,9 @@ public class LayerActionBean extends LocalizableActionBean {
                 simpleFeatureType = layer.getFeatureType();
                 featureSourceId = simpleFeatureType.getFeatureSource().getId();
             }
+
+            allServiceLayers = Stripersist.getEntityManager().createQuery("from Layer where service = :service and name <> '' order by name")
+                            .setParameter("service", layer.getService()).getResultList();
 
             findApplicationsUsedIn();
         }
@@ -286,6 +307,6 @@ public class LayerActionBean extends LocalizableActionBean {
         em.getTransaction().commit();
         getContext().getMessages().add(new SimpleMessage(getBundle().getString("viewer_admin.layeractionbean.layersaved")));
 
-        return new ForwardResolution(JSP);
+        return new RedirectResolution(this.getClass()).flash(this).addParameter("layer", layer.getId());
     }
 }

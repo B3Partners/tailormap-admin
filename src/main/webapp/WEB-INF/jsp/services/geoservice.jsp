@@ -74,6 +74,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             Ext.fly('useUrlTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
             Ext.fly('useWFSTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
             Ext.fly('wmsExcTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
+            Ext.fly('wmsHiDpi').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
+            Ext.fly('tiling').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
+            Ext.fly('tilingGutter').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
             Ext.fly('serviceNameTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "tiled" &&  tilingProtocol !== "WMTS");
             Ext.fly('tileSizeTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "tiled" &&  tilingProtocol !== "WMTS");
             Ext.fly('resolutionsTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "tiled" &&  tilingProtocol !== "WMTS");
@@ -218,14 +221,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </tr>
         <tr>
             <td colspan="2">
-                <stripes:checkbox name="useIntersect"/> <fmt:message key="viewer_admin.geoservice.22" />
+                <label><stripes:checkbox name="useIntersect"/> <fmt:message key="viewer_admin.geoservice.22" /></label>
             </td>
         </tr>
         <tr id="useProxy">
             <td colspan="2">
-                <stripes:checkbox name="useProxy"/> <fmt:message key="viewer_admin.geoservice.23" />
+                <label><stripes:checkbox name="useProxy"/> <fmt:message key="viewer_admin.geoservice.23" /></label>
             </td>
-        </tr>        
+        </tr>
+        <tr id="wmsHiDpi">
+            <td>Weergave op hoge resolutie schermen</td>
+            <td>
+                <stripes:select name="hiDpiMode">
+                    <stripes:option value="auto">Automatisch bepalen op basis van URL (GeoServer, MapServer)</stripes:option>
+                    <stripes:option value="geoserver">Gebruik vendor-specific parameter voor GeoServer</stripes:option>
+                    <stripes:option value="mapserver">Gebruik vendor-specific parameter voor MapServer</stripes:option>
+                    <stripes:option value="disabled">Uitgeschakeld: geef lage resolutie weer</stripes:option>
+                </stripes:select>
+            </td>
+        </tr>
+        <tr id="tiling">
+            <td colspan="2"><label><stripes:checkbox name="disableTiling"/>Kaart niet getegeld ophalen</label><br>
+            <i>Let op! Als dit is aangevinkt wordt de kaart wordt mogelijk niet getoond op scherm met veel pixels omdat servers een limiet hebben op het formaat
+                van de afbeelding in een request. Daarom ook als dit aangevinkt is hoge resolutie weergave uitschakelen.</i></td>
+        </tr>
+        <tr id="tilingGutter">
+            <td>Gutter voor getegeld ophalen:</td>
+            <td>
+                <stripes:text name="tilingGutter" size="4"/> pixels<br>
+                Om rendering-artifacten op tegel-grenzen te voorkomen kan een extra 'gutter' worden opgehaald die voor weergave weer van
+                de tegel wordt afgesneden.
+            </td>
+        </tr>
         <tr>
             <td valign="top">
                 <h1><fmt:message key="viewer_admin.geoservice.24" />:</h1>                           
