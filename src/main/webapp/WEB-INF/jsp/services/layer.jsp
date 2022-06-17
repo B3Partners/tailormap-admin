@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <stripes:messages/>
             <stripes:form beanclass="nl.tailormap.viewer.admin.stripes.LayerActionBean">
 
-                <h1 id="headertext"><fmt:message key="viewer_admin.layer.1" /></h1>
+                <h1 id="headertext"><fmt:message key="viewer_admin.layer.1" /> - <c:out value="${actionBean.layer.name}"/></h1>
                 <stripes:hidden name="layer" value="${actionBean.layer.id}"/>
 
                 <table class="formtable">
@@ -129,6 +129,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     </c:forEach>
                                 </tbody>
                             </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <c:choose>
+                                <c:when test="${actionBean.layer.service.protocol == 'tiled'}">
+                                    <fieldset>
+                                        <legend>Weergave op hoge resolutie schermen </legend>
+                                        <label><stripes:radio name="details['hidpi.mode']" value="disabled"/>Toon lage resolutie</label><br>
+                                        <label><stripes:radio name="details['hidpi.mode']" value="showNextZoomLevel"/>Toon dieper zoomniveau weer met hoge pixeldichtheid (laag is DPI-onafhankelijk zoals een luchtfoto)</label><br>
+                                        <label><stripes:radio name="details['hidpi.mode']" value="substituteLayerShowNextZoomLevel"/>Vervang met andere laag en geef dieper zoomniveau weer met hoge pixeldichtheid (service geeft tiles van formaat zoals geadverteerd)</label><br>
+                                        <label><stripes:radio name="details['hidpi.mode']" value="substituteLayerTilePixelRatioOnly"/>Vervang met andere laag en geef hetzelfde zoomniveau weer met hoge pixeldichtheid (service geeft grotere tiles dan geadverteerd)</label><br>
+                                        Vervangende laag:
+                                        <stripes:select name="details['hidpi.substitute_layer']">
+                                            <stripes:option value=""/>
+                                            <c:forEach var="layer" items="${actionBean.allServiceLayers}">
+                                                <stripes:option value="${layer.name}">
+                                                    <b><c:out value="${layer.name}"/></b>
+                                                    <c:if test="${!empty layer.title}"> - <c:out value="${layer.title}"/>></c:if>
+                                                </stripes:option>
+                                            </c:forEach>
+                                        </stripes:select>
+                                    </fieldset>
+                                </c:when>
+                            </c:choose>
+                            <c:choose>
+                                <c:when test="${actionBean.layer.service.protocol == 'wms'}">
+                                    Voor WMS lagen kan op service-niveau de weergave op hoge resolutie-schermen worden ingesteld.
+                                </c:when>
+                            </c:choose>
                         </td>
                     </tr>
                     <c:if test="${not empty actionBean.applicationsUsedIn}">
