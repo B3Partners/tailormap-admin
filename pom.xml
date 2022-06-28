@@ -126,13 +126,6 @@
   </properties>
   <dependencyManagement>
     <dependencies>
-      <!--      <dependency>-->
-      <!--        <groupId>org.junit</groupId>-->
-      <!--        <artifactId>junit-bom</artifactId>-->
-      <!--        <version>${test.junit-jupiter.version}</version>-->
-      <!--        <type>pom</type>-->
-      <!--        <scope>import</scope>-->
-      <!--      </dependency>-->
       <dependency>
         <groupId>org.tailormap</groupId>
         <artifactId>tailormap</artifactId>
@@ -226,20 +219,39 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.tailormap</groupId>
-      <artifactId>viewer-commons</artifactId>
+      <groupId>nl.b3p.tailormap</groupId>
+      <artifactId>tailormap-persistence</artifactId>
+      <version>10.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.tailormap</groupId>
-      <artifactId>viewer-config-persistence</artifactId>
+      <artifactId>viewer-commons</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.tailormap</groupId>
+          <artifactId>viewer-config-persistence</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.tailormap</groupId>
       <artifactId>solr-commons</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.tailormap</groupId>
+          <artifactId>viewer-config-persistence</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.tailormap</groupId>
       <artifactId>web-commons</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.tailormap</groupId>
+          <artifactId>viewer-config-persistence</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -252,6 +264,12 @@
     <dependency>
       <groupId>org.tailormap</groupId>
       <artifactId>viewer-helpers</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.tailormap</groupId>
+          <artifactId>viewer-config-persistence</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>nl.b3p</groupId>
@@ -338,8 +356,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.tailormap</groupId>
-      <artifactId>viewer-config-persistence</artifactId>
+      <groupId>nl.b3p.tailormap</groupId>
+      <artifactId>tailormap-persistence</artifactId>
+      <version>10.0-SNAPSHOT</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
