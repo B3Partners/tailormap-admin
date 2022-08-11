@@ -86,21 +86,23 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <spring-security.version>5.7.2</spring-security.version>
-    <!-- must be kept in sync with tailormap version -->
-    <geotools.version>27.0</geotools.version>
     <tailormap.version>5.9.22</tailormap.version>
-    <!--    <b3p-commons-csw.version>7.1</b3p-commons-csw.version>-->
-    <!--    <hsqldb.version>2.6.1</hsqldb.version>-->
+    <!-- should be kept in sync with tailormap version -->
+    <geotools.version>27.1</geotools.version>
+    <b3p-commons-csw.version>8.1</b3p-commons-csw.version>
+    <hsqldb.version>2.6.1</hsqldb.version>
     <test.persistence.unit>viewer-config-hsqldb</test.persistence.unit>
-    <!--    <postgresql.version>42.3.3</postgresql.version>-->
-    <!--        <mssql.version>9.4.0.jre11</mssql.version>-->
-    <!--        <oracle.version>21.3.0.0</oracle.version>-->
+    <postgresql.version>42.4.1</postgresql.version>
+    <mssql.version>11.2.0.jre11</mssql.version>
+    <oracle.version>21.6.0.0.1</oracle.version>
     <!--    <apache.poi.version>5.1.0</apache.poi.version>-->
     <!--    <jakarta.mail.version>1.6.7</jakarta.mail.version>-->
     <!--    <apache.httpcomponents.version>4.5.13</apache.httpcomponents.version>-->
     <!--    <apache.commons-codec.version>1.15</apache.commons-codec.version>-->
     <!--    <activation.api.version>1.2.2</activation.api.version>-->
-    <test.junit-jupiter.version>5.8.2</test.junit-jupiter.version>
+    <jackson2.version>2.13.3</jackson2.version>
+    <jackson2.databind.version>2.13.3</jackson2.databind.version>
+    <test.junit-jupiter.version>5.9.0</test.junit-jupiter.version>
     <!--    <test.hamcrest.version>2.2</test.hamcrest.version>-->
     <maven.surefire.version>3.0.0-M7</maven.surefire.version>
     <cargo-maven3-plugin.version>1.9.13</cargo-maven3-plugin.version>
@@ -147,6 +149,7 @@
     <dependency>
       <groupId>ch.qos.reload4j</groupId>
       <artifactId>reload4j</artifactId>
+      <version>1.2.22</version>
     </dependency>
     <dependency>
       <groupId>org.quartz-scheduler</groupId>
@@ -371,6 +374,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
+      <version>4.6.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -425,7 +429,7 @@
         </plugin>
         <plugin>
           <artifactId>maven-site-plugin</artifactId>
-          <version>3.12.1</version>
+          <version>4.0.0-M3</version>
         </plugin>
         <plugin>
           <groupId>org.jacoco</groupId>
