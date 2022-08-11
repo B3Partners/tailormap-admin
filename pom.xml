@@ -86,7 +86,7 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <spring-security.version>5.7.2</spring-security.version>
-    <tailormap.version>5.9.22</tailormap.version>
+    <tailormap.version>5.9.23</tailormap.version>
     <!-- should be kept in sync with tailormap version -->
     <geotools.version>27.1</geotools.version>
     <b3p-commons-csw.version>8.1</b3p-commons-csw.version>
@@ -129,8 +129,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.tailormap</groupId>
-        <artifactId>tailormap</artifactId>
+        <groupId>org.tailormap-gbimaps</groupId>
+        <artifactId>tailormap-gbimaps</artifactId>
         <version>${tailormap.version}</version>
         <type>pom</type>
         <scope>import</scope>
@@ -227,31 +227,31 @@
       <version>10.0-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.tailormap</groupId>
+      <groupId>org.tailormap-gbimaps</groupId>
       <artifactId>viewer-commons</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>org.tailormap</groupId>
+          <groupId>org.tailormap-gbimaps</groupId>
           <artifactId>viewer-config-persistence</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.tailormap</groupId>
+      <groupId>org.tailormap-gbimaps</groupId>
       <artifactId>solr-commons</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>org.tailormap</groupId>
+          <groupId>org.tailormap-gbimaps</groupId>
           <artifactId>viewer-config-persistence</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.tailormap</groupId>
+      <groupId>org.tailormap-gbimaps</groupId>
       <artifactId>web-commons</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>org.tailormap</groupId>
+          <groupId>org.tailormap-gbimaps</groupId>
           <artifactId>viewer-config-persistence</artifactId>
         </exclusion>
       </exclusions>
@@ -261,15 +261,15 @@
       <artifactId>commons-codec</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.tailormap</groupId>
+      <groupId>org.tailormap-gbimaps</groupId>
       <artifactId>form</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.tailormap</groupId>
+      <groupId>org.tailormap-gbimaps</groupId>
       <artifactId>viewer-helpers</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>org.tailormap</groupId>
+          <groupId>org.tailormap-gbimaps</groupId>
           <artifactId>viewer-config-persistence</artifactId>
         </exclusion>
       </exclusions>
@@ -366,7 +366,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.tailormap</groupId>
+      <groupId>org.tailormap-gbimaps</groupId>
       <artifactId>viewer-helpers</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
