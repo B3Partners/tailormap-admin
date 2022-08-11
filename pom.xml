@@ -96,10 +96,10 @@
     <mssql.version>11.2.0.jre11</mssql.version>
     <oracle.version>21.6.0.0.1</oracle.version>
     <!--    <apache.poi.version>5.1.0</apache.poi.version>-->
-    <!--    <jakarta.mail.version>1.6.7</jakarta.mail.version>-->
-    <!--    <apache.httpcomponents.version>4.5.13</apache.httpcomponents.version>-->
+    <jakarta.mail.version>1.6.7</jakarta.mail.version>
+    <apache.httpcomponents.version>4.5.13</apache.httpcomponents.version>
     <!--    <apache.commons-codec.version>1.15</apache.commons-codec.version>-->
-    <!--    <activation.api.version>1.2.2</activation.api.version>-->
+    <activation.api.version>1.2.2</activation.api.version>
     <jackson2.version>2.13.3</jackson2.version>
     <jackson2.databind.version>2.13.3</jackson2.databind.version>
     <test.junit-jupiter.version>5.9.0</test.junit-jupiter.version>
@@ -639,14 +639,17 @@
                 <artifactItem>
                   <groupId>org.postgresql</groupId>
                   <artifactId>postgresql</artifactId>
+                  <version>${postgresql.version}</version>
                 </artifactItem>
                 <artifactItem>
                   <groupId>com.sun.activation</groupId>
                   <artifactId>jakarta.activation</artifactId>
+                  <version>${activation.api.version}</version>
                 </artifactItem>
                 <artifactItem>
                   <groupId>com.sun.mail</groupId>
                   <artifactId>jakarta.mail</artifactId>
+                  <version>${jakarta.mail.version}</version>
                 </artifactItem>
               </artifactItems>
             </configuration>
@@ -906,17 +909,17 @@
         <dependency>
           <groupId>org.postgresql</groupId>
           <artifactId>postgresql</artifactId>
-          <!--          <version>${postgresql.version}</version>-->
+          <version>${postgresql.version}</version>
         </dependency>
         <dependency>
           <groupId>com.sun.activation</groupId>
           <artifactId>jakarta.activation</artifactId>
-          <!--          <version>${activation.api.version}</version>-->
+          <version>${activation.api.version}</version>
         </dependency>
         <dependency>
           <groupId>com.sun.mail</groupId>
           <artifactId>jakarta.mail</artifactId>
-          <!--          <version>${jakarta.mail.version}</version>-->
+          <version>${jakarta.mail.version}</version>
         </dependency>
       </dependencies>
       <build>
