@@ -813,7 +813,7 @@ input.error[type="radio"], input.error[type="checkbox"], select.error {
     color: #d6eee2;
     color: #fad4d7;
     
-    color: #ef5765;
+    color: #6236FF;
     color: #ff6666;
 }
 .fla5geocms {
@@ -829,52 +829,52 @@ input.error[type="radio"], input.error[type="checkbox"], select.error {
 }
 
 body {
- color: #ef5765;
+ color: #6236FF;
 }
 body.x-body {
- color: #ef5765;
+ color: #6236FF;
 }
 #header {
- background-color: #ef5765;
+ background-color: #6236FF;
 }
 #header #menu ul li {
- background-color: #ef5765;
+ background-color: #6236FF;
 }
 #header #menu ul li a:hover {
-  background-color: #ff6666;
+  background-color: #6547FF;
 }
 #header #menu ul li ul {
- background-color: #ef5765;
+ background-color: #6236FF;
 }
 #header #menu ul li ul li a {
- color: #ef5765;
+ color: #6236FF;
 }
 #header #menu ul li ul li ul {
- border: 2px solid #ef5765;
+ border: 2px solid #6236FF;
 }
 #component-container {
- border: 2px solid #ef5765;
+ border: 2px solid #6236FF;
 }
 #component-container .component-view .component-block {
- border: 2px solid #ef5765;
+ border: 2px solid #6236FF;
 }
 #layout-container {
- border: 2px solid #ef5765;
+ border: 2px solid #6236FF;
 }
 .globalconfig {
- border: 1px solid #ef5765;
+ border: 1px solid #6236FF;
 }
 #layout-container .content-container .component-block {
- border: 2px solid #ef5765;
+ border: 2px solid #6236FF;
 }
 #layout-container .content-container.content-container-hover {
- border: 2px dashed #ef5765;
+ border: 2px dashed #6236FF;
 }
 .helplink {
- color: #ef5765;
+ color: #6236FF;
 }
 .helpBlock h1 {
- background-color: #ef5765;
+ background-color: #6236FF;
 }
 
 .form-container{
