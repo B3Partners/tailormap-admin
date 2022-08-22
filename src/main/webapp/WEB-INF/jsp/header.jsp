@@ -78,6 +78,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </li>
         </ul>
         <div id="userinfo">
+            <stripes:link style="color: white" beanclass="nl.tailormap.viewer.admin.stripes.AboutActionBean" id="about" ><fmt:message key="viewer_admin.about.0" /></stripes:link> |
             <fmt:message key="locale"/>: <c:out value="${requestLocale}" /> |
             <fmt:message key="viewer_admin.header.23" />: <b><c:out value="${pageContext.request.remoteUser}"/> | </b>
             <stripes:link style="color: white" href="/logout.jsp"><fmt:message key="viewer_admin.header.24" /></stripes:link>
