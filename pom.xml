@@ -10,7 +10,7 @@
   <licenses>
     <license>
       <name>GNU Affero General Public License v3.0</name>
-      <url>https://raw.githubusercontent.com/b3partners/tailormap/master/LICENSE.txt</url>
+      <url>https://raw.githubusercontent.com/b3partners/tailormap-admin/master/LICENSE</url>
       <distribution>repo</distribution>
       <comments>For any parts of the Tailormap Admin codebase</comments>
     </license>

@@ -41,7 +41,7 @@ LABEL org.opencontainers.image.authors="support@b3partners.nl" \
       org.opencontainers.image.description="Tailormap admin to administer the Tailormap configuration database" \
       org.opencontainers.image.vendor="B3Partners BV" \
       org.opencontainers.image.title="Tailormap admin" \
-      org.opencontainers.image.documentation="https://github.com/B3Partners/tailormap/wiki/Documentation" \
+      org.opencontainers.image.documentation="https://github.com/B3Partners/tailormap-admin/wiki/Documentation" \
       org.opencontainers.image.version=$TM_VERSION
 
 VOLUME ["$TM_DATA_DIR", "/usr/local/tomcat/logs"]

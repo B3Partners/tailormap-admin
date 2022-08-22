@@ -49,8 +49,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
- * testcases for
- * <a href="https://github.com/flamingo-geocms/flamingo/issues/517">#517</a>.
+ * testcases for...
  *
  * @author Mark Prins
  */
