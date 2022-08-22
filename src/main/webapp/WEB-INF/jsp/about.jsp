@@ -161,13 +161,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </tr>
             </table>
             <script defer="defer" crossorigin="anonymous">
-                fetch('https://snapshot.tailormap.nl/api/version')
+                fetch('/api/version')
                     .then(res => res.json())
                     .then((out) => {
                         document.getElementById('api-software-version').innerHTML = out.version;
                         document.getElementById('api-version').innerHTML = out.apiVersion;
                         document.getElementById('api-databaseversion').innerHTML = out.databaseversion;
                         document.getElementById('api-commitSha').innerHTML = out.commitSha;
+                    }).catch(err => console.error(err));
+            </script>
+
+            <h2><fmt:message key="viewer_admin.about.16"/></h2>
+            <table>
+                <tr>
+                    <td><b><fmt:message key="viewer_admin.about.2"/>:</b></td>
+                    <td>
+                        <span id="frontend-software-version"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b><fmt:message key="viewer_admin.about.9"/>:</b></td>
+                    <td><span id="frontend-commitSha"></span></td>
+                </tr>
+            </table>
+            <script defer="defer" crossorigin="anonymous">
+                // TODO see https://b3partners.atlassian.net/browse/HTM-442
+                fetch('/version')
+                    .then(res => res.json())
+                    .then((out) => {
+                        document.getElementById('frontend-software-version').innerHTML = out.version;
+                        document.getElementById('frontend-version').innerHTML = out.apiVersion;
                     }).catch(err => console.error(err));
             </script>
         </div>
