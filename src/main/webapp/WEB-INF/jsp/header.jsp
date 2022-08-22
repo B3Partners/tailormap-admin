@@ -76,9 +76,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </ul>
 </security:allowed>
             </li>
+
+            <stripes:useActionBean var="aboutbean" beanclass="nl.tailormap.viewer.admin.stripes.AboutActionBean"/>
+            <security:allowed bean="aboutbean">
+            <li class="menu-level1">
+                <stripes:link beanclass="nl.tailormap.viewer.admin.stripes.AboutActionBean" id="about" ><fmt:message key="viewer_admin.about.0" /></stripes:link>
+            </li>
+            </security:allowed>
         </ul>
         <div id="userinfo">
-            <stripes:link style="color: white" beanclass="nl.tailormap.viewer.admin.stripes.AboutActionBean" id="about" ><fmt:message key="viewer_admin.about.0" /></stripes:link> |
             <fmt:message key="locale"/>: <c:out value="${requestLocale}" /> |
             <fmt:message key="viewer_admin.header.23" />: <b><c:out value="${pageContext.request.remoteUser}"/> | </b>
             <stripes:link style="color: white" href="/logout.jsp"><fmt:message key="viewer_admin.header.24" /></stripes:link>

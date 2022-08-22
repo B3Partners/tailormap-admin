@@ -135,7 +135,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </script>
 
             <h2><fmt:message key="viewer_admin.about.15"/></h2>
-            <!-- {"databaseversion":"49","version":"0.1-SNAPSHOT","commitSha":"a1aea67799fbf632fd690b98b0608ead0024ed7c","apiVersion":"v1"} -->
             <table>
                 <tr>
                     <td><b><fmt:message key="viewer_admin.about.2"/>:</b></td>
@@ -186,12 +185,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </table>
             <script defer="defer" crossorigin="anonymous">
                 // TODO see https://b3partners.atlassian.net/browse/HTM-442
-                fetch('/version')
-                    .then(res => res.json())
-                    .then((out) => {
-                        document.getElementById('frontend-software-version').innerHTML = out.version;
-                        document.getElementById('frontend-version').innerHTML = out.apiVersion;
-                    }).catch(err => console.error(err));
+                // fetch('/version')
+                //     .then(res => res.json())
+                //     .then((out) => {
+                //         document.getElementById('frontend-software-version').innerHTML = out.version;
+                //         document.getElementById('frontend-version').innerHTML = out.apiVersion;
+                //     }).catch(err => console.error(err));
             </script>
         </div>
 
