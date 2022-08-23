@@ -175,7 +175,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <tr>
                     <td><b><fmt:message key="viewer_admin.about.2"/>:</b></td>
                     <td>
-                        <span id="frontend-software-version"></span>
+                        <span id="frontend-software-version"></span> (<span id="frontend-buildDate"></span>)
                     </td>
                 </tr>
                 <tr>
@@ -188,6 +188,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     .then(res => res.json())
                     .then((out) => {
                         document.getElementById('frontend-software-version').innerHTML = out.version;
+                        document.getElementById('frontend-buildDate').innerHTML = out.buildDate;
                         document.getElementById('frontend-commitSha').innerHTML = out.gitInfo.hash;
                     }).catch(err => console.error(err));
             </script>
