@@ -6,7 +6,7 @@
   
         <field name="id" type="string" indexed="true" stored="true" required="true"/>
         
-        <field name="values" type="text_flamingo" indexed="true" stored="true" multiValued="true" required="true"/>
+        <field name="values" type="text_tailormap" indexed="true" stored="true" multiValued="true" required="true"/>
         <!-- multivalues are maintaining their ordering.
         http://lucene.472066.n3.nabble.com/quot-order-quot-question-on-solr-multi-value-field-td4027695.html -->
         <field name="columns" type="string" indexed="false" stored="true" multiValued="true" required="true"/>
@@ -86,7 +86,7 @@
             </analyzer>
         </fieldType>
 
-        <fieldType name="text_flamingo" class="solr.TextField" positionIncrementGap="100" >
+        <fieldType name="text_tailormap" class="solr.TextField" positionIncrementGap="100" >
             <analyzer type="index">
                 <tokenizer class="solr.StandardTokenizerFactory"/>
                 <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />

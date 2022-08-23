@@ -26,6 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <jsp:include page="/WEB-INF/jsp/header.jsp"/>
     </stripes:layout-component>
     <stripes:layout-component name="body">
-           <img class="tailormapLogo" src="${contextPath}/resources/images/TailormapLogo.png"/>
+       <img class="tailormapLogo" src="${contextPath}/resources/images/TailormapLogo.svg" width="822" height="170"/>
     </stripes:layout-component>
 </stripes:layout-render>

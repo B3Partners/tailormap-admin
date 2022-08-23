@@ -69,7 +69,7 @@ public class AfterUpgradeActionBean implements ActionBean {
 
         checks.add(new UpgradeCheck("PDOK WMS", "https://geodata.nationaalgeoregister.nl/inspire/au/wms?&request=GetCapabilities&service=WMS"));
         checks.add(new UpgradeCheck("Openbasiskaart", "https://openbasiskaart.nl/mapcache/wmts/?SERVICE=WMTS&REQUEST=GetCapabilities&VERSION=1.0.0"));
-        checks.add(new UpgradeCheck("Flamingo5 Geoserver", "https://flamingo5.b3p.nl/geoserver/Test_omgeving/ows?service=wms&version=1.1.1&request=GetCapabilities"));
+        checks.add(new UpgradeCheck("Some Geoserver", "https://flamingo5.b3p.nl/geoserver/Test_omgeving/ows?service=wms&version=1.1.1&request=GetCapabilities"));
         String solrurl = context.getServletContext().getInitParameter("tailormap.solr.url");
         if (!solrurl.equals("http://SERVER/solr")) {
             checks.add(new UpgradeCheck("Solr", solrurl));
