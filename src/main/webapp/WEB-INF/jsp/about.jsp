@@ -184,13 +184,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </tr>
             </table>
             <script defer="defer" crossorigin="anonymous">
-                // TODO see https://b3partners.atlassian.net/browse/HTM-442
-                // fetch('/version')
-                //     .then(res => res.json())
-                //     .then((out) => {
-                //         document.getElementById('frontend-software-version').innerHTML = out.version;
-                //         document.getElementById('frontend-version').innerHTML = out.apiVersion;
-                //     }).catch(err => console.error(err));
+                fetch('/version.json')
+                    .then(res => res.json())
+                    .then((out) => {
+                        document.getElementById('frontend-software-version').innerHTML = out.version;
+                        document.getElementById('frontend-commitSha').innerHTML = out.gitInfo.hash;
+                    }).catch(err => console.error(err));
             </script>
         </div>
 
