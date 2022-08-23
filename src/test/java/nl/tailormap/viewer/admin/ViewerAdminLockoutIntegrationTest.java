@@ -150,7 +150,7 @@ public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
     }
 
     /**
-     * Test login/index/about/logout sequentie.
+     * Test login/index/logout sequentie.
      *
      * @throws IOException        mag niet optreden
      * @throws URISyntaxException mag niet optreden
@@ -177,12 +177,6 @@ public class ViewerAdminLockoutIntegrationTest extends LoggingTestUtil {
         assertNotNull(body, "Response body mag niet null zijn.");
         assertTrue(
                 body.contains("<title>Beheeromgeving geo-viewers</title>"), "Response moet 'Beheeromgeving geo-viewers' title hebben.");
-
-        // about
-        response = client.execute(new HttpGet(BASE_TEST_URL + "about.jsp"));
-        body = EntityUtils.toString(response.getEntity());
-        assertNotNull(body, "Response body mag niet null zijn.");
-        assertTrue(body.contains("<title>About</title>"), "Response moet 'About' title hebben.");
 
         // logout
         response = client.execute(new HttpGet(BASE_TEST_URL + "logout.jsp"));
