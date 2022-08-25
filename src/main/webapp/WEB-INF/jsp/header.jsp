@@ -76,6 +76,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </ul>
 </security:allowed>
             </li>
+
+            <stripes:useActionBean var="aboutbean" beanclass="nl.tailormap.viewer.admin.stripes.AboutActionBean"/>
+            <security:allowed bean="aboutbean">
+            <li class="menu-level1">
+                <stripes:link beanclass="nl.tailormap.viewer.admin.stripes.AboutActionBean" id="about" ><fmt:message key="viewer_admin.about.0" /></stripes:link>
+            </li>
+            </security:allowed>
         </ul>
         <div id="userinfo">
             <fmt:message key="locale"/>: <c:out value="${requestLocale}" /> |

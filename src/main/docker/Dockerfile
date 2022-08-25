@@ -11,7 +11,7 @@ ENV MAIL_HOST=mail.b3partners.nl
 ENV TM_DATA_DIR=/opt/tailormap_data
 ENV CATALINA_OPTS="-DPG_PORT=$PG_PORT -DPG_HOST=$PG_HOST -DDB_NAME=$DB_NAME -DDB_USER=$DB_USER -DDB_PASS=$DB_PASS -DURL_SCHEME=$URL_SCHEME -DMAIL_FROM=$MAIL_FROM -DMAIL_HOST=$MAIL_HOST -DTM_DATA_DIR=$TM_DATA_DIR"
 
-ARG TM_VERSION="0.1-SNAPSHOT"
+ARG TM_VERSION="10.0-SNAPSHOT"
 ARG TZ="Europe/Amsterdam"
 ARG DEBIAN_FRONTEND="noninteractive"
 
@@ -41,7 +41,7 @@ LABEL org.opencontainers.image.authors="support@b3partners.nl" \
       org.opencontainers.image.description="Tailormap admin to administer the Tailormap configuration database" \
       org.opencontainers.image.vendor="B3Partners BV" \
       org.opencontainers.image.title="Tailormap admin" \
-      org.opencontainers.image.documentation="https://github.com/B3Partners/tailormap-admin/wiki/Documentation" \
+      org.opencontainers.image.documentation="https://github.com/B3Partners/tailormap-admin/" \
       org.opencontainers.image.version=$TM_VERSION
 
 VOLUME ["$TM_DATA_DIR", "/usr/local/tomcat/logs"]
