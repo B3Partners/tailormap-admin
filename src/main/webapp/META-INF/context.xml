@@ -4,9 +4,6 @@ more about the available context attributes:
   https://tomcat.apache.org/tomcat-9.0-doc/config/context.html
 -->
 <Context>
-    <Parameter name="componentregistry.path" override="false" value="/viewer-html/components"/>
-    <Parameter name="componentregistry.crosscontext" override="false" value="/admin"/>
-
     <Parameter name="tailormap.data.dir" override="false" value="/opt/tailormap_data"/>
 
 
