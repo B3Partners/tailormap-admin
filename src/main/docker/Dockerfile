@@ -41,6 +41,9 @@ LABEL org.opencontainers.image.authors="support@b3partners.nl" \
       org.opencontainers.image.description="Tailormap admin to administer the Tailormap configuration database" \
       org.opencontainers.image.vendor="B3Partners BV" \
       org.opencontainers.image.title="Tailormap admin" \
+      org.opencontainers.image.url="https://github.com/B3Partners/tailormap-admin/" \
+      org.opencontainers.image.source="https://github.com/B3Partners/tailormap-admin/" \
+      org.opencontainers.image.licenses="AGPL-3.0" \
       org.opencontainers.image.documentation="https://github.com/B3Partners/tailormap-admin/" \
       org.opencontainers.image.version=$TM_VERSION
 
