@@ -90,21 +90,18 @@
     <!-- should be kept in sync with tailormap version -->
     <geotools.version>27.1</geotools.version>
     <b3p-commons-csw.version>8.1</b3p-commons-csw.version>
-    <hsqldb.version>2.6.1</hsqldb.version>
+    <hsqldb.version>2.7.0</hsqldb.version>
     <test.persistence.unit>viewer-config-hsqldb</test.persistence.unit>
     <postgresql.version>42.5.0</postgresql.version>
     <mssql.version>11.2.0.jre11</mssql.version>
-    <oracle.version>21.6.0.0.1</oracle.version>
-    <!--    <apache.poi.version>5.1.0</apache.poi.version>-->
+    <oracle.version>21.7.0.0</oracle.version>
     <jakarta.mail.version>1.6.7</jakarta.mail.version>
     <apache.httpcomponents.version>4.5.13</apache.httpcomponents.version>
-    <!--    <apache.commons-codec.version>1.15</apache.commons-codec.version>-->
     <activation.api.version>1.2.2</activation.api.version>
     <hibernate.version>5.6.11.Final</hibernate.version>
     <jackson2.version>2.13.3</jackson2.version>
     <jackson2.databind.version>2.13.3</jackson2.databind.version>
     <test.junit-jupiter.version>5.9.0</test.junit-jupiter.version>
-    <!--    <test.hamcrest.version>2.2</test.hamcrest.version>-->
     <maven.surefire.version>3.0.0-M7</maven.surefire.version>
     <cargo-maven3-plugin.version>1.10.1</cargo-maven3-plugin.version>
     <tomcat.localDatasource>false</tomcat.localDatasource>
@@ -130,11 +127,38 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${test.junit-jupiter.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
         <groupId>org.tailormap-gbimaps</groupId>
         <artifactId>tailormap-gbimaps</artifactId>
         <version>${tailormap.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.hsqldb</groupId>
+        <artifactId>hsqldb</artifactId>
+        <version>${hsqldb.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>${postgresql.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.microsoft.sqlserver</groupId>
+        <artifactId>mssql-jdbc</artifactId>
+        <version>${mssql.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.oracle.database.jdbc</groupId>
+        <artifactId>ojdbc11</artifactId>
+        <version>${oracle.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -175,6 +199,7 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
+      <version>${hibernate.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -263,10 +288,6 @@
     </dependency>
     <dependency>
       <groupId>org.tailormap-gbimaps</groupId>
-      <artifactId>form</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.tailormap-gbimaps</groupId>
       <artifactId>viewer-helpers</artifactId>
       <exclusions>
         <exclusion>
@@ -278,6 +299,7 @@
     <dependency>
       <groupId>nl.b3p</groupId>
       <artifactId>b3p-commons-csw</artifactId>
+      <version>8.1</version>
     </dependency>
     <dependency>
       <groupId>org.json</groupId>
@@ -298,46 +320,57 @@
     <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-cql</artifactId>
+      <version>${geotools.version}</version>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-http</artifactId>
+      <version>${geotools.version}</version>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-wfs-ng</artifactId>
+      <version>${geotools.version}</version>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-main</artifactId>
+      <version>${geotools.version}</version>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-xml</artifactId>
+      <version>${geotools.version}</version>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-opengis</artifactId>
+      <version>${geotools.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
+      <version>${apache.httpcomponents.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient-cache</artifactId>
+      <version>${apache.httpcomponents.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>fluent-hc</artifactId>
+      <version>${apache.httpcomponents.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpmime</artifactId>
+      <version>${apache.httpcomponents.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
+      <version>4.4.15</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
