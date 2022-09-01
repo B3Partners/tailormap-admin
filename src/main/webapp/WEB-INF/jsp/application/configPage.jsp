@@ -29,36 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </stripes:layout-component>
 
 
-    <stripes:layout-component name="body"><%--@elvariable id="actionBean" type="nl.tailormap.viewer.admin.stripes.LayoutManagerActionBean"--%>
-        <stripes:form beanclass="nl.tailormap.viewer.admin.stripes.LayoutManagerActionBean" id="configForm" style="width: 100%; height: 100%;">
-            <input type="hidden" name="component" value="${actionBean.component.id}"/>
-            <stripes:hidden name="className" value="${actionBean.className}"/>
-            <stripes:hidden name="name" value="${actionBean.name}"/>
-            <stripes:hidden id="componentLayout" name="componentLayout"/>
-            <stripes:hidden name="configObject" id="configObject"/>
-            <stripes:hidden name="saveComponentConfig" value="Opslaan" />
-            <stripes:hidden name="currentRegion" value="${param.currentRegion}" />
-
-            <div id="tabs" style="width: 100%; height: 100%;">
-                <div id ="config" style="width: 100%; height: 100%;" class="tabdiv">
-                    <a href="" title="<fmt:message key="viewer_admin.configpage.1" />" class="helplink" id="compHelpLink"></a>
-                </div>
-                <div id="rights" class="tabdiv"> 
-                    <h1><fmt:message key="viewer_admin.configpage.2" />:</h1>
-                    <fmt:message key="viewer_admin.configpage.3" />:<br/>
-
-                    <c:forEach var="group" items="${actionBean.allGroups}">
-                        <stripes:checkbox name="groups" value="${group.name}"/>${group.name}<br>
-                    </c:forEach>
-                </div>
-                <div id="layout" class="tabdiv">
-                    <a href="#Component_Layout_Tab_Help" title="<fmt:message key="viewer_admin.configpage.4" />" class="helplink"></a>
-                </div>
-                <div id="help" class="tabdiv">
-                    <a href="#Component_Help_Tab_Help" title="<fmt:message key="viewer_admin.configpage.5" />" class="helplink"></a>
-                </div>
-            </div>
-        </stripes:form>
+    <stripes:layout-component name="body">
         <stripes:url var="configSource" beanclass="nl.tailormap.viewer.admin.stripes.ComponentConfigSourceActionBean">
             <stripes:param name="className" value="${actionBean.className}"/> 
         </stripes:url>
@@ -71,7 +42,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <script type="text/javascript" src="${contextPath}/resources/js/ux/b3p/SelectionGrid.js"></script>
         <script type="text/javascript" src="${contextPath}/resources/js/ux/b3p/CrudGrid.js"></script>
         <script type="text/javascript" src="${contextPath}/resources/js/ux/ColorField.js"></script>
-        <script type="text/javascript" src="${contextPath}/resources/js/layoutmanager/configPage.js"></script>
         <script type="text/javascript">
             Ext.onReady(function() {
                 var metadata = {};

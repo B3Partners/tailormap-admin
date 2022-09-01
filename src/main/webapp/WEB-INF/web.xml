@@ -21,22 +21,6 @@
     </context-param>
     <context-param>
         <description>
-            To load components from the viewer webapp, specify the context name
-            of the viewer webapp below (usually "/viewer", but if deployed as
-            root "/"). If not specified specify the path to the directory or
-            directies with components.json files in the "componentregistry.path"
-            context parameter.
-
-            The viewer webapp must be reachable by ServletContext.getContext().
-            For Tomcat, set crossContext="true" on the Context for the
-            tailormap-admin webapp. Other servlet containers may require different
-            configuration.
-        </description>
-        <param-name>componentregistry.crosscontext</param-name>
-        <param-value>/admin</param-value>
-    </context-param>
-    <context-param>
-        <description>
             The from e-mail address used when sending notification mails. Some
             mail servers require a valid e-mail address when accepting mail.
         </description>
@@ -118,9 +102,6 @@
         <param-name>password.length</param-name>
         <param-value>12</param-value>
     </context-param>
-    <listener>
-        <listener-class>nl.tailormap.viewer.components.ComponentRegistryInitializer</listener-class>
-    </listener>
     <listener>
         <listener-class>nl.tailormap.viewer.admin.monitoring.GeoServiceMonitoringListener</listener-class>
     </listener>

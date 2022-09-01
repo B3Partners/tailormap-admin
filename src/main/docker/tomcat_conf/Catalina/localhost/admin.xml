@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context crossContext="false">
-    <Parameter name="componentregistry.path" override="false" value="/viewer-html/components"/>
-    <Parameter name="componentregistry.crosscontext" override="false" value="/admin"/>
-
     <Parameter name="viewer.url" value="/" override="false"/>
 
     <Parameter name="monitoring.mail.from.email" value="${MAIL_FROM}" override="false"/>

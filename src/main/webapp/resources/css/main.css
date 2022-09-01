@@ -274,25 +274,6 @@ input[type="submit"]:hover,
 .errors ~ #grid-container + #form-container {
     top: 495px;
 }
-#layoutManagerTitle {
-  width: 250px;
-  float: left;
-  margin-top: 10px;
-  margin-top: 0px;
-}
-#layoutManagerApplicationSettings {
-  overflow: hidden;
-  padding-left: 12px;
-}
-#layoutManagerApplicationSettings input {
-  width: 50px;
-}
-#layoutManagerApplicationSettings input[type=checkbox] {
-  width: auto;
-}
-#layoutManagerApplicationSettings input.wide, #layoutManagerApplicationSettings select.wide {
-  width: 150px;
-}
 #component-container {
   width: 250px;
   float: left;

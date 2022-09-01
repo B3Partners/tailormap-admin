@@ -66,42 +66,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 </td>
                             </tr>
                             </c:if>
-                            <tr>
-                                <td><fmt:message key="viewer_admin.applicationsettings.5" />:</td>
-                                <td>
-                                    <stripes:text name="details['steunkleur1']" maxlength="255" size="15" style="float: left;" id="steunkleur1" />
-                                    <div id="steunkleur_colorpicker1" style="float: left;"></div>
-                                    <div style="clear: both;"></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><fmt:message key="viewer_admin.applicationsettings.6" />:</td>
-                                <td>
-                                    <stripes:text name="details['steunkleur2']" maxlength="255" size="15" style="float: left;" id="steunkleur2" />
-                                    <div id="steunkleur_colorpicker2" style="float: left;"></div>
-                                    <div style="clear: both;"></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><fmt:message key="viewer_admin.applicationsettings.7" />:</td>
-                                <td><stripes:text name="details['font']" maxlength="255" size="30"/></td>
-                            </tr>
-                            <tr>
-                                <td><fmt:message key="viewer_admin.applicationsettings.8" />:</td>
-                                <td><stripes:text name="details['iconSprite']" maxlength="255" size="60"/></td>
-                            </tr>
-                            <tr>
-                                <td><fmt:message key="viewer_admin.applicationsettings.9" />:</td>
-                                <td><stripes:text name="details['stylesheetMetadata']" maxlength="255" size="60"/></td>
-                            </tr>
-                            <tr>
-                                <td><fmt:message key="viewer_admin.applicationsettings.10" />:</td>
-                                <td><stripes:text name="details['stylesheetPrint']" maxlength="255" size="60"/></td>
-                            </tr>
-                            <tr>
-                                <td><fmt:message key="viewer_admin.applicationsettings.11" />:</td>
-                                <td><stripes:text name="owner" maxlength="255" size="30"/></td>
-                            </tr>
+<%--                            <tr>--%>
+<%--                                <td><fmt:message key="viewer_admin.applicationsettings.5" />:</td>--%>
+<%--                                <td>--%>
+<%--                                    <stripes:text name="details['steunkleur1']" maxlength="255" size="15" style="float: left;" id="steunkleur1" />--%>
+<%--                                    <div id="steunkleur_colorpicker1" style="float: left;"></div>--%>
+<%--                                    <div style="clear: both;"></div>--%>
+<%--                                </td>--%>
+<%--                            </tr>--%>
+<%--                            <tr>--%>
+<%--                                <td><fmt:message key="viewer_admin.applicationsettings.6" />:</td>--%>
+<%--                                <td>--%>
+<%--                                    <stripes:text name="details['steunkleur2']" maxlength="255" size="15" style="float: left;" id="steunkleur2" />--%>
+<%--                                    <div id="steunkleur_colorpicker2" style="float: left;"></div>--%>
+<%--                                    <div style="clear: both;"></div>--%>
+<%--                                </td>--%>
+<%--                            </tr>--%>
+<%--                            <tr>--%>
+<%--                                <td><fmt:message key="viewer_admin.applicationsettings.7" />:</td>--%>
+<%--                                <td><stripes:text name="details['font']" maxlength="255" size="30"/></td>--%>
+<%--                            </tr>--%>
+<%--                            <tr>--%>
+<%--                                <td><fmt:message key="viewer_admin.applicationsettings.8" />:</td>--%>
+<%--                                <td><stripes:text name="details['iconSprite']" maxlength="255" size="60"/></td>--%>
+<%--                            </tr>--%>
+<%--                            <tr>--%>
+<%--                                <td><fmt:message key="viewer_admin.applicationsettings.9" />:</td>--%>
+<%--                                <td><stripes:text name="details['stylesheetMetadata']" maxlength="255" size="60"/></td>--%>
+<%--                            </tr>--%>
+<%--                            <tr>--%>
+<%--                                <td><fmt:message key="viewer_admin.applicationsettings.10" />:</td>--%>
+<%--                                <td><stripes:text name="details['stylesheetPrint']" maxlength="255" size="60"/></td>--%>
+<%--                            </tr>--%>
+<%--                            <tr>--%>
+<%--                                <td><fmt:message key="viewer_admin.applicationsettings.11" />:</td>--%>
+<%--                                <td><stripes:text name="owner" maxlength="255" size="30"/></td>--%>
+<%--                            </tr>                            --%>
                             <c:choose>
                                 <c:when test="${fn:length(actionBean.crses) ==1}">
                                     <stripes:hidden name="projection"  value="${actionBean.crses[0].code}"/>

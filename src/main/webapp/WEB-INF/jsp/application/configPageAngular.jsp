@@ -46,16 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </stripes:layout-component>
 
 
-    <stripes:layout-component name="body"><%--@elvariable id="actionBean" type="nl.tailormap.viewer.admin.stripes.LayoutManagerActionBean"--%>
-        <stripes:form beanclass="nl.tailormap.viewer.admin.stripes.LayoutManagerActionBean" id="configForm">
-            <input type="hidden" name="component" value="${actionBean.component.id}"/>
-            <stripes:hidden name="className" value="${actionBean.className}"/>
-            <stripes:hidden name="name" value="${actionBean.name}"/>
-            <stripes:hidden id="componentLayout" name="componentLayout"/>
-            <stripes:hidden name="configObject" id="configObject" value="${actionBean.configObject}" />
-            <stripes:hidden name="saveComponentConfig" value="Opslaan" />
-            <stripes:hidden name="currentRegion" value="${param.currentRegion}" />
-        </stripes:form>
+    <stripes:layout-component name="body">
         <app-root></app-root>
         <div class="config-page-wrapper">
             <div id="component-container"></div>
