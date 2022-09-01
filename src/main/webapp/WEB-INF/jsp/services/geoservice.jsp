@@ -74,7 +74,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             Ext.fly('useUrlTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
             Ext.fly('useWFSTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
             Ext.fly('wmsExcTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
-            Ext.fly('wmsHiDpi').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
+            Ext.fly('wmsServerType').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
             Ext.fly('tiling').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
             Ext.fly('tilingGutter').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
             Ext.fly('serviceNameTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "tiled" &&  tilingProtocol !== "WMTS");
@@ -229,14 +229,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <label><stripes:checkbox name="useProxy"/> <fmt:message key="viewer_admin.geoservice.23" /></label>
             </td>
         </tr>
-        <tr id="wmsHiDpi">
-            <td>Weergave op hoge resolutie schermen</td>
+        <tr id="wmsServerType">
+            <td>Server type voor vendor-specifieke features (bijvoorbeeld weergave op hoge resolutie schermen)</td>
             <td>
-                <stripes:select name="hiDpiMode">
+                <stripes:select name="serverType">
                     <stripes:option value="auto">Automatisch bepalen op basis van URL (GeoServer, MapServer)</stripes:option>
-                    <stripes:option value="geoserver">Gebruik vendor-specific parameter voor GeoServer</stripes:option>
-                    <stripes:option value="mapserver">Gebruik vendor-specific parameter voor MapServer</stripes:option>
-                    <stripes:option value="disabled">Uitgeschakeld: geef lage resolutie weer</stripes:option>
+                    <stripes:option value="geoserver">Gebruik vendor-specifieke parameters voor GeoServer</stripes:option>
+                    <stripes:option value="mapserver">Gebruik vendor-specifieke parameters voor MapServer</stripes:option>
+                    <stripes:option value="disabled">Uitgeschakeld: gebruik geen features zoals hoge resolutie</stripes:option>
                 </stripes:select>
             </td>
         </tr>

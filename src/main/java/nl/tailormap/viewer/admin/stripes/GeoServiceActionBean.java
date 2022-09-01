@@ -163,7 +163,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
     @Validate
     private String geofenceHeader;
     @Validate
-    private String hiDpiMode;
+    private String serverType;
     @Validate
     private boolean disableTiling = false;
     @Validate
@@ -473,12 +473,12 @@ public class GeoServiceActionBean extends LocalizableActionBean {
         this.geofenceHeader = geofenceHeader;
     }
 
-    public String getHiDpiMode() {
-        return hiDpiMode;
+    public String getServerType() {
+        return serverType;
     }
 
-    public void setHiDpiMode(String hiDpiMode) {
-        this.hiDpiMode = hiDpiMode;
+    public void setServerType(String serverType) {
+        this.serverType = serverType;
     }
 
     public boolean isDisableTiling() {
@@ -559,7 +559,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
                     // default to false
                     skipDiscoverWFS = ((WMSService) service).getSkipDiscoverWFS() != null && ((WMSService) service).getSkipDiscoverWFS();
 
-                    hiDpiMode = service.getDetails().getOrDefault("hidpi.mode", new ClobElement("auto")).getValue();
+                    serverType = service.getDetails().getOrDefault("serverType", new ClobElement("auto")).getValue();
                     disableTiling = "true".equals(service.getDetails().getOrDefault("tiling.disable", new ClobElement("false")).getValue());
                     tilingGutter = Integer.parseInt(service.getDetails().getOrDefault("tiling.gutter", new ClobElement("0")).getValue());
                     break;
@@ -685,7 +685,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
             ((WMSService) service).setException_type(exception_type);
             ((WMSService) service).setSkipDiscoverWFS(skipDiscoverWFS);
 
-            service.getDetails().put("hidpi.mode", new ClobElement(hiDpiMode));
+            service.getDetails().put("serverType", new ClobElement(serverType));
             service.getDetails().put("tiling.disable", new ClobElement(disableTiling + ""));
             service.getDetails().put("tiling.gutter", new ClobElement(tilingGutter == null ? "0" : tilingGutter + ""));
         }
@@ -908,7 +908,7 @@ public class GeoServiceActionBean extends LocalizableActionBean {
                 service = WMSServiceHelper.loadFromUrl(url, params, status, em);
                 ((WMSService) service).setException_type(exception_type);
                 service.getDetails().put(GeoService.DETAIL_USE_PROXY, new ClobElement("" + useProxy));
-                service.getDetails().put("hidpi.mode", new ClobElement(hiDpiMode));
+                service.getDetails().put("hidpi.mode", new ClobElement(serverType));
                 service.getDetails().put("tiling.disable", new ClobElement(disableTiling + ""));
                 service.getDetails().put("tiling.gutter", new ClobElement(tilingGutter == null ? "0" : tilingGutter + ""));
                 break;
