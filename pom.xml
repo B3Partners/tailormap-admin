@@ -288,10 +288,6 @@
     </dependency>
     <dependency>
       <groupId>org.tailormap-gbimaps</groupId>
-      <artifactId>form</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.tailormap-gbimaps</groupId>
       <artifactId>viewer-helpers</artifactId>
       <exclusions>
         <exclusion>
