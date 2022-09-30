@@ -139,7 +139,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <tr>
                     <td><b><fmt:message key="viewer_admin.about.2"/>:</b></td>
                     <td>
-                        <span id="api-software-version"></span>
+                        <span id="api-software-version"></span> (<span id="api-buildDate"></span>)
                     </td>
                 </tr>
                 <tr>
@@ -167,6 +167,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         document.getElementById('api-version').innerHTML = out.apiVersion;
                         document.getElementById('api-databaseversion').innerHTML = out.databaseversion;
                         document.getElementById('api-commitSha').innerHTML = out.commitSha;
+                        document.getElementById('api-buildDate').innerHTML = out.buildDate;
                     }).catch(err => console.error(err));
             </script>
 
