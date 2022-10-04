@@ -22,17 +22,19 @@ COPY ${project.build.directory}/admin.war /usr/local/tomcat/webapps/
 COPY ${project.build.directory}/tomcat-lib/*.jar /usr/local/tomcat/lib/
 COPY ${project.basedir}/src/main/docker/tomcat_conf/ /usr/local/tomcat/conf/
 
-RUN mkdir -p $TM_DATA_DIR/ \
+RUN set -eux;mkdir -p $TM_DATA_DIR/ \
     && TMPDIR=`mktemp -d` \
     && chmod -R 777 $TM_DATA_DIR/ \
     # cleanup localization and example apps
     && rm /usr/local/tomcat/lib/tomcat-i18n-*.jar \
     && rm -rf /usr/local/tomcat/webapps.dist/ \
-    && rm -rf $TMPDIR
+    && rm -rf $TMPDIR \
+    && apt update && apt upgrade -y && apt autoremove -y && apt autoclean && apt clean && rm -rf /tmp/* && rm -rf /var/tmp/* \
+    && rm -rf /var/lib/apt/lists/* \
+    && chown -R www-data:www-data /usr/local/tomcat/webapps \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN set -eux;ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-
+USER www-data:www-data
 
 EXPOSE 8080
 

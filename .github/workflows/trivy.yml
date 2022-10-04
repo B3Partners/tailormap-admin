@@ -1,0 +1,51 @@
+name: Trivy Security Scan
+on:
+  # use pull request so this workflow dos not fail when triggered by dependabot PR's
+  pull_request:
+  schedule:
+    - cron: "17 23 * * 0"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Trivy Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache Maven repository
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            maven-
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 11
+
+      - name: Build
+        run: mvn -U package -DskipTests -DskipITs -DskipQA=true -Dmaven.javadoc.skip=true
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.7.1
+        # docker run --rm -v trivy_cache:/root/.cache/ aquasec/trivy image ghcr.io/b3partners/tailormap-admin:snapshot
+        with:
+          image-ref: 'ghcr.io/b3partners/tailormap-admin:snapshot'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'HIGH,CRITICAL'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Cleanup cached snapshots
+        if: always()
+        run: |
+          find ~/.m2/repository -name "*SNAPSHOT*" -type d | xargs rm -rf {}
