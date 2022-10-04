@@ -147,7 +147,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             <c:forEach var="layer" items="${actionBean.allServiceLayers}">
                                                 <stripes:option value="${layer.name}">
                                                     <b><c:out value="${layer.name}"/></b>
-                                                    <c:if test="${!empty layer.title}"> - <c:out value="${layer.title}"/>></c:if>
+                                                    <c:if test="${!empty layer.title}"> - <c:out value="${layer.title}"/></c:if>
                                                 </stripes:option>
                                             </c:forEach>
                                         </stripes:select>
