@@ -31,13 +31,6 @@
       <organizationUrl>https://www.b3partners.nl</organizationUrl>
     </developer>
     <developer>
-      <id>mvdstruijk</id>
-      <name>Martijn van de Struijk</name>
-      <email>martijn@b3partners.nl</email>
-      <organization>B3Partners B.V.</organization>
-      <organizationUrl>https://www.b3partners.nl</organizationUrl>
-    </developer>
-    <developer>
       <id>geertplaisier</id>
       <name>Geert Plaisier</name>
       <email>geert@b3partners.nl</email>
