@@ -111,16 +111,6 @@ Ext.onReady(function() {
                     Ext.get('editFrame').dom.src = actionBeans["service"] + '?addForm=t&category=' + record.get('id').substr(1);
                 }
             }
-        },
-        {
-            text: i18next.t('viewer_admin_geoserviceregistry_4'),
-            iconCls: 'x-fa fa-cog',
-            listeners: {
-                click: function(item, e, eOpts) {
-                    var record = item.ownerCt.config.data.clickedItem;
-                    Ext.get('editFrame').dom.src = actionBeans["csw"] + '?addForm=t&category=' + record.get('id').substr(1);
-                }
-            }
         }
         ],
         renderTo: Ext.getBody()
