@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <ul class="dropdownmenu">
                             <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.AttributeSourceActionBean" id="menu_attribuutbronnen"><fmt:message key="viewer_admin.header.3" /></stripes:link></li>
                             <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.AttributeActionBean" id="menu_attributen"><fmt:message key="viewer_admin.header.4" /></stripes:link></li>
-<%--                            <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.ConfigureSolrActionBean" id="menu_solrconfig"><fmt:message key="viewer_admin.header.5" /></stripes:link></li>--%>
 <%--                            <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.FeatureTypeRelationActionBean" id="menu_relation"><fmt:message key="viewer_admin.header.6" /></stripes:link></li>--%>
 <%--                            <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.CycloramaConfigurationActionBean" id="menu_cyclorama"><fmt:message key="viewer_admin.header.7" /></stripes:link></li>--%>
                        </ul>

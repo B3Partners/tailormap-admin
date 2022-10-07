@@ -42,11 +42,9 @@ import nl.tailormap.viewer.config.services.WFSFeatureSource;
 import nl.tailormap.viewer.helpers.featuresources.FeatureSourceFactoryHelper;
 import nl.tailormap.viewer.helpers.featuresources.JDBCFeatureSourceHelper;
 import nl.tailormap.viewer.helpers.featuresources.WFSFeatureSourceHelper;
-import nl.tailormap.viewer.solr.SolrInitializer;
 import nl.tailormap.web.WaitPageStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.solr.client.solrj.SolrServer;
 import org.geotools.data.wfs.WFSDataStoreFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -153,26 +151,21 @@ public class AttributeSourceActionBean extends LocalizableActionBean {
     public Resolution delete() {
         EntityManager em = Stripersist.getEntityManager();
 
-        deleteFeatureSource(em, SolrInitializer.getServerInstance());
+        deleteFeatureSource(em);
         getContext().getMessages().add(new SimpleMessage(getBundle().getString("viewer_admin.attributesourceactionbean.asremoved")));
         return new ForwardResolution(EDITJSP);
     }
 
-    private void deleteFeatureTypes(EntityManager em, SolrServer server, List<SimpleFeatureType> fts){
+    private void deleteFeatureTypes(EntityManager em, List<SimpleFeatureType> fts){
         if (!fts.isEmpty()) {
             em.createQuery("update Layer set featureType = null where featureType in :fts").setParameter("fts", fts).executeUpdate();
             em.createQuery("update ConfiguredAttribute set featureType=null where featureType in :fts").setParameter("fts",fts).executeUpdate();
             em.createQuery("update ConfiguredAttribute set valueListFeatureType=null where valueListFeatureType in :fts").setParameter("fts",fts).executeUpdate();
-
-            List<SolrConf> confs = em.createQuery("FROM SolrConf where simpleFeatureType in :fts", SolrConf.class).setParameter("fts",fts).getResultList();
-            for (SolrConf conf : confs) {
-                ConfigureSolrActionBean.deleteSolrConfiguration(em, conf, server);
-            }
         }
     }
 
-    protected void deleteFeatureSource(EntityManager em, SolrServer server){
-       this.deleteFeatureTypes(em, server, featureSource.getFeatureTypes());
+    protected void deleteFeatureSource(EntityManager em){
+        this.deleteFeatureTypes(em, featureSource.getFeatureTypes());
 
         em.createQuery("update ConfiguredAttribute set valueListFeatureSource=null, valueListLabelName=null,valueListValueName=null where valueListFeatureSource in :fs").setParameter("fs",featureSource).executeUpdate();
 
@@ -296,7 +289,7 @@ public class AttributeSourceActionBean extends LocalizableActionBean {
         ));
 
         List<SimpleFeatureType> fts = this.changedFeatureTypes.get(UpdateResult.Status.MISSING);
-        deleteFeatureTypes(em, SolrInitializer.getServerInstance(), fts);
+        deleteFeatureTypes(em, fts);
         em.persist(featureSource);
         em.getTransaction().commit();
         

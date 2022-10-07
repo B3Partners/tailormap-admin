@@ -378,16 +378,6 @@
     </dependency>
     <dependency>
       <groupId>org.tailormap-gbimaps</groupId>
-      <artifactId>solr-commons</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.tailormap-gbimaps</groupId>
-          <artifactId>viewer-config-persistence</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.tailormap-gbimaps</groupId>
       <artifactId>web-commons</artifactId>
       <exclusions>
         <exclusion>
@@ -426,10 +416,6 @@
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.solr</groupId>
-      <artifactId>solr-solrj</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
