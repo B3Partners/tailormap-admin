@@ -20,17 +20,19 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "16 23 * * 0"
 
 jobs:
   build:
     name: Ubuntu Java 11 Build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     services:
       postgres:
         # docker run -h tailormap-db --name tailormap-db -it --rm -d \
-        #  -e POSTGRES_USER=${DB_USER} -e POSTGRES_DB=${DB_NAME} -e POSTGRES_PASSWORD=${DB_PASS} -p 5432:5432 postgres:14.1-alpine
-        image: postgres:14.1-alpine
+        #  -e POSTGRES_USER=${DB_USER} -e POSTGRES_DB=${DB_NAME} -e POSTGRES_PASSWORD=${DB_PASS} -p 5432:5432 postgres:14-alpine
+        image: postgres:14-alpine
         env:
           POSTGRES_USER: ${{ env.DB_USER }}
           POSTGRES_PASSWORD: ${{ env.DB_PASS }}
@@ -96,7 +98,7 @@ jobs:
           curl http://localhost:8080/admin/action/admin/upgradecheck/ping
 
       - name: Deploy artifacts
-        if: ${{ github.ref == 'refs/heads/main' && ( github.event_name == 'push' || github.event_name == 'workflow_dispatch' ) }}
+        if: ${{ github.ref == 'refs/heads/main' && ( github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) }}
         env:
           REPO_B3P_ACTOR: ${{ secrets.REPO_B3P_ACTOR }}
           REPO_B3P_TOKEN: ${{ secrets.REPO_B3P_TOKEN }}
