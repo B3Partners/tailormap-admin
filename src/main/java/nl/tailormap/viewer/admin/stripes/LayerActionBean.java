@@ -225,7 +225,7 @@ public class LayerActionBean extends LocalizableActionBean {
                 featureSourceId = simpleFeatureType.getFeatureSource().getId();
             }
 
-            allServiceLayers = Stripersist.getEntityManager().createQuery("from Layer where service = :service and name <> '' order by name")
+            allServiceLayers = Stripersist.getEntityManager().createQuery("from Layer where service = :service and name <> '' order by name", Layer.class)
                             .setParameter("service", layer.getService()).getResultList();
 
             findApplicationsUsedIn();
