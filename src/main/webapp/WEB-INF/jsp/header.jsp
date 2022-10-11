@@ -36,9 +36,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <%--                            <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.CycloramaConfigurationActionBean" id="menu_cyclorama"><fmt:message key="viewer_admin.header.7" /></stripes:link></li>--%>
                        </ul>
                     </li>
-<%--                    <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.DocumentActionBean" id="menu_documenten"><fmt:message key="viewer_admin.header.10" /></stripes:link></li>--%>
-<%--                    <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.ServiceUsageMatrixActionBean" id="menu_serviceusagematrix"><fmt:message key="viewer_admin.header.11" /></stripes:link></li>--%>
-<%--                    <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.BookmarkActionBean" id="menu_bookmarks"><fmt:message key="viewer_admin.header.12" /></stripes:link></li>--%>
                 </ul>
             </li>
 </security:allowed>
