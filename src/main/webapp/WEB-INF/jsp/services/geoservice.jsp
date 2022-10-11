@@ -215,15 +215,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <td><fmt:message key="viewer_admin.geoservice.21" />:</td>
             <td><stripes-dynattr:password name="password" autocomplete="new-password" maxlength="255" size="30"/></td>
         </tr>
-        <tr id="geofenceHeader">
-            <td><fmt:message key="viewer_admin.geoservice.51" />:</td>
-            <td><stripes-dynattr:text name="geofenceHeader" maxlength="255" size="30">${geofenceHeader}</stripes-dynattr:text></td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <label><stripes:checkbox name="useIntersect"/> <fmt:message key="viewer_admin.geoservice.22" /></label>
-            </td>
-        </tr>
+<%--        <tr id="geofenceHeader">--%>
+<%--            <td><fmt:message key="viewer_admin.geoservice.51" />:</td>--%>
+<%--            <td><stripes-dynattr:text name="geofenceHeader" maxlength="255" size="30">${geofenceHeader}</stripes-dynattr:text></td>--%>
+<%--        </tr>--%>
+<%--        <tr>--%>
+<%--            <td colspan="2">--%>
+<%--                <label><stripes:checkbox name="useIntersect"/> <fmt:message key="viewer_admin.geoservice.22" /></label>--%>
+<%--            </td>--%>
+<%--        </tr>--%>
         <tr id="useProxy">
             <td colspan="2">
                 <label><stripes:checkbox name="useProxy"/> <fmt:message key="viewer_admin.geoservice.23" /></label>
