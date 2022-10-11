@@ -70,7 +70,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         function checkProtocol() {
             var protocol = Ext.query("select[name='protocol']")[0].value;
             var tilingProtocol = Ext.query("select[name='tilingProtocol']")[0].value;
-            Ext.fly('agsVersion').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "arcgis");
+            // Ext.fly('agsVersion').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "arcgis");
             Ext.fly('useUrlTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
             Ext.fly('useWFSTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
             Ext.fly('wmsExcTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms");
@@ -85,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             Ext.fly('extensionTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "tiled" &&  tilingProtocol !== "WMTS");
             Ext.fly('crsTr').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "tiled" &&  tilingProtocol !== "WMTS");
             Ext.fly('useProxy').setVisibilityMode(Ext.Element.DISPLAY).setVisible(protocol === "wms"|| (protocol === "tiled" &&  tilingProtocol === "WMTS"));
-        };
+        }
         Ext.onReady(function() {
             appendPanel('headertext', 'formcontent');
         });
@@ -100,24 +100,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <td>
                 <stripes:select name="protocol" disabled="${edit}" onchange="checkProtocol()" onkeyup="checkProtocol()">
                     <stripes:option value="wms">WMS</stripes:option>
-                    <stripes:option value="arcgis">ArcGIS MapServer (REST)</stripes:option>
+<%--                    <stripes:option value="arcgis">ArcGIS MapServer (REST)</stripes:option>--%>
                     <stripes:option value="tiled">Tiled</stripes:option>
                 </stripes:select>
             </td>
         </tr>
-        <tr id="agsVersion">
-            <td>
-                <fmt:message key="viewer_admin.geoservice.5" />:
-            </td>
-            <td>
-                <stripes:select name="agsVersion" disabled="${edit}" onchange="checkProtocol()" onkeyup="checkProtocol()">
-                    <stripes:option value=""><fmt:message key="viewer_admin.geoservice.6" /></stripes:option>
-                    <stripes:option value="10.x">10.x</stripes:option>
-                    <stripes:option value="9.x">9.x</stripes:option>
-                </stripes:select>
-                <fmt:message key="viewer_admin.geoservice.7" />
-            </td>
-        </tr>
+<%--        <tr id="agsVersion">--%>
+<%--            <td>--%>
+<%--                <fmt:message key="viewer_admin.geoservice.5" />:--%>
+<%--            </td>--%>
+<%--            <td>--%>
+<%--                <stripes:select name="agsVersion" disabled="${edit}" onchange="checkProtocol()" onkeyup="checkProtocol()">--%>
+<%--                    <stripes:option value=""><fmt:message key="viewer_admin.geoservice.6" /></stripes:option>--%>
+<%--                    <stripes:option value="10.x">10.x</stripes:option>--%>
+<%--                    <stripes:option value="9.x">9.x</stripes:option>--%>
+<%--                </stripes:select>--%>
+<%--                <fmt:message key="viewer_admin.geoservice.7" />--%>
+<%--            </td>--%>
+<%--        </tr>--%>
         <tr id="useUrlTr">
             <td colspan="2">
                 <label>
@@ -170,11 +170,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <td>
             <label>
                 <stripes:select name="tilingProtocol" onchange="checkProtocol()" onkeyup="checkProtocol()">
-                    <stripes:option value="TMS">TMS</stripes:option>
+<%--                    <stripes:option value="TMS">TMS</stripes:option>--%>
                     <stripes:option value="WMTS">WMTS</stripes:option>
-                    <stripes:option value="WMSc">WMSc</stripes:option>
-                    <stripes:option value="OSM">OSM</stripes:option>
-                    <stripes:option value="ArcGisRest">ArcGisRest Map Cache</stripes:option>
+<%--                    <stripes:option value="WMSc">WMSc</stripes:option>--%>
+<%--                    <stripes:option value="OSM">OSM</stripes:option>--%>
+<%--                    <stripes:option value="ArcGisRest">ArcGisRest Map Cache</stripes:option>--%>
                 </stripes:select>
             </label>
             </td>

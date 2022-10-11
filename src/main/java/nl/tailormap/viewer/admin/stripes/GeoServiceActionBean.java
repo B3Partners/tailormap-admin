@@ -39,7 +39,6 @@ import nl.tailormap.viewer.config.app.Application;
 import nl.tailormap.viewer.config.app.ApplicationLayer;
 import nl.tailormap.viewer.config.app.Level;
 import nl.tailormap.viewer.config.security.Group;
-import nl.tailormap.viewer.config.services.ArcGISService;
 import nl.tailormap.viewer.config.services.AttributeDescriptor;
 import nl.tailormap.viewer.config.services.BoundingBox;
 import nl.tailormap.viewer.config.services.Category;
@@ -53,7 +52,6 @@ import nl.tailormap.viewer.config.services.TileSet;
 import nl.tailormap.viewer.config.services.UpdateResult;
 import nl.tailormap.viewer.config.services.WMSExceptionType;
 import nl.tailormap.viewer.config.services.WMSService;
-import nl.tailormap.viewer.helpers.services.ArcGISServiceHelper;
 import nl.tailormap.viewer.helpers.services.GeoserviceFactoryHelper;
 import nl.tailormap.viewer.helpers.services.TilingServiceHelper;
 import nl.tailormap.viewer.helpers.services.WMSServiceHelper;
@@ -507,10 +505,10 @@ public class GeoServiceActionBean extends LocalizableActionBean {
             protocol = service.getProtocol();
             url = service.getUrl();
             switch (protocol) {
-                case ArcGISService.PROTOCOL:
-                    ClobElement assumeVersion = service.getDetails().get(ArcGISService.DETAIL_ASSUME_VERSION);
-                    agsVersion = assumeVersion == null ? null : assumeVersion.getValue();
-                    break;
+//                case ArcGISService.PROTOCOL:
+//                    ClobElement assumeVersion = service.getDetails().get(ArcGISService.DETAIL_ASSUME_VERSION);
+//                    agsVersion = assumeVersion == null ? null : assumeVersion.getValue();
+//                    break;
                 case TileService.PROTOCOL:
                     TileService ser = (TileService) service;
                     tilingProtocol = ser.getTilingProtocol();
@@ -912,10 +910,10 @@ public class GeoServiceActionBean extends LocalizableActionBean {
                 service.getDetails().put("tiling.disable", new ClobElement(disableTiling + ""));
                 service.getDetails().put("tiling.gutter", new ClobElement(tilingGutter == null ? "0" : tilingGutter + ""));
                 break;
-            case ArcGISService.PROTOCOL:
-                params.put(ArcGISService.PARAM_ASSUME_VERSION, agsVersion);
-                service = ArcGISServiceHelper.loadFromUrl(url, params, status, em);
-                break;
+//            case ArcGISService.PROTOCOL:
+//                params.put(ArcGISService.PARAM_ASSUME_VERSION, agsVersion);
+//                service = ArcGISServiceHelper.loadFromUrl(url, params, status, em);
+//                break;
             case TileService.PROTOCOL:
                 params.put(TileService.PARAM_SERVICENAME, serviceName);
                 params.put(TileService.PARAM_RESOLUTIONS, resolutions);

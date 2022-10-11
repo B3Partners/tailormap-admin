@@ -48,7 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <td>
                                 <stripes:select name="protocol" disabled="true">
                                     <stripes:option value="wfs">WFS</stripes:option>
-                                    <stripes:option value="arcgis">ArcGIS Server</stripes:option>
+<%--                                    <stripes:option value="arcgis">ArcGIS Server</stripes:option>--%>
                                     <stripes:option value="jdbc">JDBC</stripes:option>
                                 </stripes:select>
                             </td>

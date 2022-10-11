@@ -23,6 +23,7 @@ import nl.tailormap.viewer.config.services.Layer;
 import nl.tailormap.viewer.util.TestUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -67,32 +68,33 @@ public class GeoServiceActionBeanTest extends TestUtil {
         }
     }
 
-    @Test
-    public void addArcGISService() {
-        String url = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer";
-        try {
-            String protocol = "arcgis";
-            boolean overrideUrl = false;
-            Category cat = new Category();
-            cat.setId(1L);
-            ActionBeanContext context = new ActionBeanContext();
-
-            GeoServiceActionBean ab = new GeoServiceActionBean();
-            ab.setUrl(url);
-            ab.setProtocol(protocol);
-            ab.setOverrideUrl(overrideUrl);
-            ab.setCategory(cat);
-            ab.setContext(context);
-            ab.addService(entityManager);
-            GeoService service = ab.getService();
-
-            List<Layer> layers = service.loadLayerTree(entityManager);
-            assertEquals(2, layers.size(), "The number of layers should be the same");
-            assertEquals(url, service.getUrl(), "The url should be the same");
-        } catch (Exception ex) {
-            log.error("Error testing adding a geoservice: " + url, ex);
-            fail("Error testing adding a geoservice: " + url);
-        }
-    }
+//    @Test
+//    @Disabled("ArcGIS is not supported")
+//    public void addArcGISService() {
+//        String url = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer";
+//        try {
+//            String protocol = "arcgis";
+//            boolean overrideUrl = false;
+//            Category cat = new Category();
+//            cat.setId(1L);
+//            ActionBeanContext context = new ActionBeanContext();
+//
+//            GeoServiceActionBean ab = new GeoServiceActionBean();
+//            ab.setUrl(url);
+//            ab.setProtocol(protocol);
+//            ab.setOverrideUrl(overrideUrl);
+//            ab.setCategory(cat);
+//            ab.setContext(context);
+//            ab.addService(entityManager);
+//            GeoService service = ab.getService();
+//
+//            List<Layer> layers = service.loadLayerTree(entityManager);
+//            assertEquals(2, layers.size(), "The number of layers should be the same");
+//            assertEquals(url, service.getUrl(), "The url should be the same");
+//        } catch (Exception ex) {
+//            log.error("Error testing adding a geoservice: " + url, ex);
+//            fail("Error testing adding a geoservice: " + url);
+//        }
+//    }
 
 }
