@@ -31,12 +31,10 @@ import net.sourceforge.stripes.validation.ValidationErrors;
 import net.sourceforge.stripes.validation.ValidationMethod;
 import nl.tailormap.i18n.LocalizableActionBean;
 import nl.tailormap.viewer.config.security.Group;
-import nl.tailormap.viewer.config.services.ArcGISFeatureSource;
 import nl.tailormap.viewer.config.services.FeatureSource;
 import nl.tailormap.viewer.config.services.FeatureSourceUpdateResult;
 import nl.tailormap.viewer.config.services.JDBCFeatureSource;
 import nl.tailormap.viewer.config.services.SimpleFeatureType;
-import nl.tailormap.viewer.config.services.SolrConf;
 import nl.tailormap.viewer.config.services.UpdateResult;
 import nl.tailormap.viewer.config.services.WFSFeatureSource;
 import nl.tailormap.viewer.helpers.featuresources.FeatureSourceFactoryHelper;
@@ -414,9 +412,10 @@ public class AttributeSourceActionBean extends LocalizableActionBean {
                 protocolType = "WFS";
             } else if (source instanceof JDBCFeatureSource) {
                 protocolType = "JDBC";
-            } else if (source instanceof ArcGISFeatureSource) {
-                protocolType = "ArcGIS";
             }
+//            else if (source instanceof ArcGISFeatureSource) {
+//                protocolType = "ArcGIS";
+//            }
             JSONObject j = this.getGridRow(source.getId().intValue(), source.getName(), source.getUrl(), protocolType);
             jsonData.put(j);
         }

@@ -48,7 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <td>
                                 <stripes:select name="protocol" disabled="true">
                                     <stripes:option value="wfs">WFS</stripes:option>
-                                    <stripes:option value="arcgis">ArcGIS Server</stripes:option>
+<%--                                    <stripes:option value="arcgis">ArcGIS Server</stripes:option>--%>
                                     <stripes:option value="jdbc">JDBC</stripes:option>
                                 </stripes:select>
                             </td>
@@ -76,9 +76,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </div>
                     <c:if test="${!actionBean.updatable}">
                         * <fmt:message key="viewer_admin.editattributesource.11" />
-                    </c:if>
-                    <c:if test="${actionBean.featureSource.id != null}">
-                        <br> <a href="javascript: void(0)" onclick='openServiceUsageMatrix(<c:out value="${actionBean.featureSource.id}"/>)'><fmt:message key="viewer_admin.editattributesource.12" /></a>
                     </c:if>
                     <script type="text/javascript">
                         function updateConfirm() {
@@ -216,9 +213,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         }
                     </script>
                     <stripes:submit name="newAttributeSource"><fmt:message key="viewer_admin.editattributesource.28" /></stripes:submit>
-                    <c:if test="${not empty actionBean.changedFeatureTypes}">
-                        <a href="javascript: void(0)" onclick='openServiceUsageMatrix(<c:out value="${actionBean.changedFeatureSourceId}"/>)'><fmt:message key="viewer_admin.editattributesource.27" /></a>
-                    </c:if>
                 </c:otherwise>
             </c:choose>
         </stripes:form>
@@ -227,28 +221,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             Ext.onReady(function() {
                 appendPanel('headertext', 'formcontent');
             });
-            function openServiceUsageMatrix(featureSourceId){ 
-                var url= ""+serviceUsageMatrixUrl;
-
-                if (changedFeatureTypes.length > 0){
-                    if (url.indexOf("?")>0){
-                        url+="&";
-                    }else{
-                        url+="?";
-                    }
-                    url+="changedFeatureTypes="+Ext.JSON.encode(changedFeatureTypes);                
-                }
-                if (featureSourceId){
-                    if (url.indexOf("?")>0){
-                    url+="&";
-                    }else{
-                        url+="?";
-                    }
-                    url += "featureSource="+featureSourceId;
-                }
-                this.parent.window.location.href=url;
-            }
-            var serviceUsageMatrixUrl='<stripes:url beanclass="nl.tailormap.viewer.admin.stripes.ServiceUsageMatrixActionBean" event="view"/>';
             var changedFeatureSource = "";
             var changedFeatureTypes={};
             <c:forEach items="${actionBean.changedFeatureTypes}" var="change">
