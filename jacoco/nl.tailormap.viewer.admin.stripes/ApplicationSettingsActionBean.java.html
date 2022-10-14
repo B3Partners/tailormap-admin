@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationSettingsActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">ApplicationSettingsActionBean.java</span></div><h1>ApplicationSettingsActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2016 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.DontBind;
+import net.sourceforge.stripes.action.DontValidate;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.RedirectResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import net.sourceforge.stripes.validation.ValidateNestedProperties;
+import net.sourceforge.stripes.validation.ValidationErrors;
+import net.sourceforge.stripes.validation.ValidationMethod;
+import nl.tailormap.viewer.config.CRS;
+import nl.tailormap.viewer.config.ClobElement;
+import nl.tailormap.viewer.config.app.Application;
+import nl.tailormap.viewer.config.app.Level;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.security.User;
+import nl.tailormap.viewer.config.services.BoundingBox;
+import nl.tailormap.viewer.config.services.CoordinateReferenceSystem;
+import nl.tailormap.viewer.helpers.app.ApplicationHelper;
+import nl.tailormap.viewer.util.SelectedContentCache;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ *
+ * @author Jytte Schaeffer
+ */
+@UrlBinding(&quot;/action/applicationsettings/&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN,Group.APPLICATION_ADMIN})
+<span class="fc" id="L65">public class ApplicationSettingsActionBean extends ApplicationActionBean {</span>
+<span class="fc" id="L66">    private static final Log log = LogFactory.getLog(ApplicationSettingsActionBean.class);</span>
+
+    private static final String JSP = &quot;/WEB-INF/jsp/application/applicationSettings.jsp&quot;;
+
+    private static final String DEFAULT_SPRITE = &quot;/viewer/viewer-html/sprite.svg&quot;;
+    private static final String LANGUAGE_CODES_KEY = &quot;tailormap.i18n.languagecodes&quot;;
+    public static final String PROJECTION_NAMES_KEY = &quot;tailormap.projections.epsgnames&quot;;
+    public static final String PROJECTION_CODES_KEY = &quot;tailormap.projections.epsgcodes&quot;;
+
+    @Validate
+    private String name;
+    @Validate
+    private String version;
+    @Validate
+    private String title;
+    @Validate
+    private String language;
+    @Validate
+    private String owner;
+    @Validate
+    private boolean authenticatedRequired;
+
+<span class="fc" id="L88">    @Validate</span>
+    private boolean mashupMustPointToPublishedVersion = false;
+
+    @Validate
+    private String mashupName;
+
+    @Validate
+    private boolean mustUpdateComponents;
+
+<span class="fc" id="L97">    @Validate</span>
+    private Map&lt;String,ClobElement&gt; details = new HashMap&lt;&gt;();
+
+    private String[] languageCodes;
+    private List&lt;CRS&gt; crses;
+    
+    @Validate
+    private String projection;
+    @ValidateNestedProperties({
+                @Validate(field=&quot;minx&quot;, maxlength=255),
+                @Validate(field=&quot;miny&quot;, maxlength=255),
+                @Validate(field=&quot;maxx&quot;, maxlength=255),
+                @Validate(field=&quot;maxy&quot;, maxlength=255)
+    })
+    private BoundingBox startExtent;
+
+    @ValidateNestedProperties({
+                @Validate(field=&quot;minx&quot;, maxlength=255),
+                @Validate(field=&quot;miny&quot;, maxlength=255),
+                @Validate(field=&quot;maxx&quot;, maxlength=255),
+                @Validate(field=&quot;maxy&quot;, maxlength=255)
+    })
+    private BoundingBox maxExtent;
+
+
+<span class="fc" id="L122">    @Validate</span>
+    private List&lt;String&gt; groupsRead = new ArrayList&lt;&gt;();
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+
+    public Map&lt;String,ClobElement&gt; getDetails() {
+<span class="nc" id="L128">        return details;</span>
+    }
+
+    public void setDetails(Map&lt;String, ClobElement&gt; details) {
+<span class="nc" id="L132">        this.details = details;</span>
+<span class="nc" id="L133">    }</span>
+
+    public boolean getAuthenticatedRequired() {
+<span class="nc" id="L136">        return authenticatedRequired;</span>
+    }
+
+    public void setAuthenticatedRequired(boolean authenticatedRequired) {
+<span class="nc" id="L140">        this.authenticatedRequired = authenticatedRequired;</span>
+<span class="nc" id="L141">    }</span>
+
+    public String getName() {
+<span class="nc" id="L144">        return name;</span>
+    }
+
+    public void setName(String name) {
+<span class="fc" id="L148">        this.name = name;</span>
+<span class="fc" id="L149">    }</span>
+
+    public String getOwner() {
+<span class="nc" id="L152">        return owner;</span>
+    }
+
+    public void setOwner(String owner) {
+<span class="nc" id="L156">        this.owner = owner;</span>
+<span class="nc" id="L157">    }</span>
+
+    public String getVersion() {
+<span class="nc" id="L160">        return version;</span>
+    }
+
+    public void setVersion(String version) {
+<span class="fc" id="L164">        this.version = version;</span>
+<span class="fc" id="L165">    }</span>
+
+<span class="nc" id="L167">    public String getTitle() { return title; }</span>
+
+<span class="nc" id="L169">    public void setTitle(String title) { this.title = title; }</span>
+<span class="nc" id="L170">    public String getLanguage() { return language; }</span>
+
+<span class="nc" id="L172">    public void setLanguage(String language) { this.language = language; }</span>
+
+    public BoundingBox getStartExtent() {
+<span class="nc" id="L175">        return startExtent;</span>
+    }
+
+    public void setStartExtent(BoundingBox startExtent) {
+<span class="nc" id="L179">        this.startExtent = startExtent;</span>
+<span class="nc" id="L180">    }</span>
+
+    public BoundingBox getMaxExtent() {
+<span class="nc" id="L183">        return maxExtent;</span>
+    }
+
+    public void setMaxExtent(BoundingBox maxExtent) {
+<span class="nc" id="L187">        this.maxExtent = maxExtent;</span>
+<span class="nc" id="L188">    }</span>
+
+    public String getMashupName() {
+<span class="nc" id="L191">        return mashupName;</span>
+    }
+
+    public void setMashupName(String mashupName) {
+<span class="nc" id="L195">        this.mashupName = mashupName;</span>
+<span class="nc" id="L196">    }</span>
+
+    public boolean isMashupMustPointToPublishedVersion() {
+<span class="nc" id="L199">        return mashupMustPointToPublishedVersion;</span>
+    }
+
+    public void setMashupMustPointToPublishedVersion(boolean mashupMustPointToPublishedVersion) {
+<span class="fc" id="L203">        this.mashupMustPointToPublishedVersion = mashupMustPointToPublishedVersion;</span>
+<span class="fc" id="L204">    }</span>
+
+    public boolean isMustUpdateComponents() {
+<span class="nc" id="L207">        return mustUpdateComponents;</span>
+    }
+
+    public void setMustUpdateComponents(boolean mustUpdateComponents) {
+<span class="nc" id="L211">        this.mustUpdateComponents = mustUpdateComponents;</span>
+<span class="nc" id="L212">    }</span>
+
+    public List&lt;String&gt; getGroupsRead() {
+<span class="nc" id="L215">        return groupsRead;</span>
+    }
+
+    public void setGroupsRead(List&lt;String&gt; groupsRead) {
+<span class="nc" id="L219">        this.groupsRead = groupsRead;</span>
+<span class="nc" id="L220">    }</span>
+<span class="nc" id="L221">    public String[] getLanguageCodes() { return languageCodes; }</span>
+
+<span class="nc" id="L223">    public void setLanguageCodes(String[] languageCodes) { this.languageCodes = languageCodes; }</span>
+    public List&lt;CRS&gt; getCrses() {
+<span class="nc" id="L225">        return crses;</span>
+    }
+
+    public void setCrses(List&lt;CRS&gt; crses) {
+<span class="nc" id="L229">        this.crses = crses;</span>
+<span class="nc" id="L230">    }</span>
+
+    public String getProjection() {
+<span class="nc" id="L233">        return projection;</span>
+    }
+
+    public void setProjection(String projection) {
+<span class="nc" id="L237">        this.projection = projection;</span>
+<span class="nc" id="L238">    }</span>
+    //&lt;/editor-fold&gt;
+
+    @DefaultHandler
+    @DontValidate
+    public Resolution view(){
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        if(application != null){</span>
+<span class="nc" id="L245">            details = application.getDetails();</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">            if(application.getOwner() != null){</span>
+<span class="nc" id="L247">                owner = application.getOwner().getUsername();</span>
+            }
+<span class="nc" id="L249">            startExtent = application.getStartExtent();</span>
+<span class="nc" id="L250">            maxExtent = application.getMaxExtent();</span>
+<span class="nc" id="L251">            name = application.getName();</span>
+<span class="nc" id="L252">            title = application.getTitle();</span>
+<span class="nc" id="L253">            language = application.getLang();</span>
+<span class="nc" id="L254">            version = application.getVersion();</span>
+<span class="nc" id="L255">            authenticatedRequired = application.isAuthenticatedRequired();</span>
+<span class="nc" id="L256">            groupsRead.addAll (application.getReaders());</span>
+<span class="nc" id="L257">            projection = application.getProjectionCode();</span>
+        }
+        // DEFAULT VALUES
+<span class="nc bnc" id="L260" title="All 2 branches missed.">        if(!details.containsKey(&quot;iconSprite&quot;)) {</span>
+<span class="nc" id="L261">            details.put(&quot;iconSprite&quot;, new ClobElement(DEFAULT_SPRITE));</span>
+        }
+<span class="nc bnc" id="L263" title="All 2 branches missed.">        if(!details.containsKey(&quot;stylesheetMetadata&quot;)) {</span>
+            // TODO: Default value stylesheet metadata
+<span class="nc" id="L265">            details.put(&quot;stylesheetMetadata&quot;, new ClobElement(&quot;&quot;));</span>
+        }
+<span class="nc bnc" id="L267" title="All 2 branches missed.">        if(!details.containsKey(&quot;stylesheetPrint&quot;)) {</span>
+            // TODO: Default value stylesheet printen
+<span class="nc" id="L269">            details.put(&quot;stylesheetPrint&quot;, new ClobElement(&quot;&quot;));</span>
+        }
+<span class="nc" id="L271">        String languageCodesString = context.getServletContext().getInitParameter(LANGUAGE_CODES_KEY);</span>
+<span class="nc" id="L272">        languageCodes = StringUtils.stripAll(languageCodesString.split(&quot;,&quot;));</span>
+<span class="nc" id="L273">        String codesString = context.getServletContext().getInitParameter(PROJECTION_CODES_KEY);</span>
+<span class="nc" id="L274">        String namesString = context.getServletContext().getInitParameter(PROJECTION_NAMES_KEY);</span>
+<span class="nc" id="L275">        String[] codes = codesString.split(&quot;;&quot;);</span>
+<span class="nc" id="L276">        String[] names = namesString.split(&quot;,&quot;);</span>
+<span class="nc" id="L277">        crses = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">        for (int i = 0; i &lt; names.length; i++) {</span>
+<span class="nc" id="L279">            CRS c = new CRS(names[i], codes[i]);</span>
+<span class="nc" id="L280">            crses.add(c);</span>
+        }
+<span class="nc bnc" id="L282" title="All 4 branches missed.">        if(projection == null &amp;&amp; !crses.isEmpty()){</span>
+<span class="nc" id="L283">            projection = crses.get(0).getCode();</span>
+        }
+<span class="nc" id="L285">        return new ForwardResolution(JSP);</span>
+    }
+
+    @DontValidate
+    public Resolution newApplication(){
+<span class="nc" id="L290">        application = null;</span>
+<span class="nc" id="L291">        applicationId = -1L;</span>
+        // DEFAULT VALUES
+<span class="nc" id="L293">        details.put(&quot;iconSprite&quot;, new ClobElement(DEFAULT_SPRITE));</span>
+        // TODO: Default value stylesheet metadata
+<span class="nc" id="L295">        details.put(&quot;stylesheetMetadata&quot;, new ClobElement(&quot;&quot;));</span>
+        // TODO: Default value stylesheet printen
+<span class="nc" id="L297">        details.put(&quot;stylesheetPrint&quot;, new ClobElement(&quot;&quot;));</span>
+<span class="nc" id="L298">        return view();</span>
+    }
+
+    @DontBind
+    public Resolution cancel() {
+<span class="nc" id="L303">        return new ForwardResolution(JSP);</span>
+    }
+
+    public Resolution save() {
+<span class="nc bnc" id="L307" title="All 2 branches missed.">        if(application == null){</span>
+<span class="nc" id="L308">            application = new Application();</span>
+
+            /*
+             * A new application always has a root and a background level.
+             */
+<span class="nc" id="L313">            Level root = new Level();</span>
+<span class="nc" id="L314">            root.setName(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.applabel&quot;));</span>
+
+<span class="nc" id="L316">            Level background = new Level();</span>
+<span class="nc" id="L317">            background.setName(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.background&quot;));</span>
+<span class="nc" id="L318">            background.setBackground(true);</span>
+<span class="nc" id="L319">            root.getChildren().add(background);</span>
+<span class="nc" id="L320">            background.setParent(root);</span>
+
+<span class="nc" id="L322">            Stripersist.getEntityManager().persist(background);</span>
+<span class="nc" id="L323">            Stripersist.getEntityManager().persist(root);</span>
+<span class="nc" id="L324">            application.setRoot(root);</span>
+        }
+
+<span class="nc" id="L327">        bindAppProperties();</span>
+
+<span class="nc" id="L329">        Stripersist.getEntityManager().persist(application);</span>
+<span class="nc" id="L330">        Stripersist.getEntityManager().getTransaction().commit();</span>
+
+<span class="nc" id="L332">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.appsaved&quot;)));</span>
+
+<span class="nc" id="L334">        setApplication(application);</span>
+
+<span class="nc" id="L336">        return view();</span>
+    }
+
+    /* XXX */
+    private void bindAppProperties() {
+
+<span class="fc" id="L342">        application.setName(name);</span>
+<span class="fc" id="L343">        application.setVersion(version);</span>
+<span class="fc" id="L344">        application.setTitle(title);</span>
+<span class="fc" id="L345">        application.setLang(language);</span>
+
+<span class="pc bpc" id="L347" title="1 of 2 branches missed.">        if (owner != null) {</span>
+<span class="nc" id="L348">            User appOwner = Stripersist.getEntityManager().find(User.class, owner);</span>
+<span class="nc" id="L349">            application.setOwner(appOwner);</span>
+        }
+<span class="fc" id="L351">        application.setStartExtent(startExtent);</span>
+<span class="fc" id="L352">        application.setMaxExtent(maxExtent);</span>
+
+<span class="fc" id="L354">        application.setAuthenticatedRequired(authenticatedRequired);</span>
+
+<span class="fc" id="L356">        application.getReaders().clear();</span>
+<span class="pc bpc" id="L357" title="1 of 2 branches missed.">        for (String group : groupsRead) {</span>
+<span class="nc" id="L358">            application.getReaders().add(group);</span>
+<span class="nc" id="L359">        }</span>
+<span class="fc" id="L360">        application.authorizationsModified();</span>
+
+<span class="fc" id="L362">        application.setProjectionCode(projection);</span>
+<span class="pc bpc" id="L363" title="1 of 2 branches missed.">        for (Map.Entry&lt;String, ClobElement&gt; e : application.getDetails().entrySet()) {</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">            if (Application.preventClearDetails.contains(e.getKey())) {</span>
+<span class="nc" id="L365">                details.put(e.getKey(), e.getValue());</span>
+            }
+<span class="nc" id="L367">        }</span>
+
+<span class="fc" id="L369">        application.getDetails().clear();</span>
+<span class="fc" id="L370">        application.getDetails().putAll(details);</span>
+<span class="fc" id="L371">    }</span>
+
+    @ValidationMethod(on=&quot;save&quot;)
+    public void validate(ValidationErrors errors) throws Exception {
+<span class="nc bnc" id="L375" title="All 2 branches missed.">        if(name == null) {</span>
+<span class="nc" id="L376">            errors.add(&quot;name&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.noname&quot;)));</span>
+<span class="nc" id="L377">            return;</span>
+        }
+
+        try {
+            Long foundId;
+<span class="nc bnc" id="L382" title="All 2 branches missed.">            if(version == null){</span>
+<span class="nc" id="L383">                foundId = (Long)Stripersist.getEntityManager().createQuery(&quot;select id from Application where name = :name and version is null&quot;)</span>
+<span class="nc" id="L384">                        .setMaxResults(1)</span>
+<span class="nc" id="L385">                        .setParameter(&quot;name&quot;, name)</span>
+<span class="nc" id="L386">                        .getSingleResult();</span>
+            }else{
+<span class="nc" id="L388">                foundId = (Long)Stripersist.getEntityManager().createQuery(&quot;select id from Application where name = :name and version = :version&quot;)</span>
+<span class="nc" id="L389">                        .setMaxResults(1)</span>
+<span class="nc" id="L390">                        .setParameter(&quot;name&quot;, name)</span>
+<span class="nc" id="L391">                        .setParameter(&quot;version&quot;, version)</span>
+<span class="nc" id="L392">                        .getSingleResult();</span>
+            }
+
+<span class="nc bnc" id="L395" title="All 4 branches missed.">            if(application != null &amp;&amp; application.getId() != null){</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">                if( !foundId.equals(application.getId()) ){</span>
+<span class="nc" id="L397">                    errors.add(&quot;name&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.appnotfound&quot;)));</span>
+                }
+            }else{
+<span class="nc" id="L400">                errors.add(&quot;name&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.appnotfound&quot;)));</span>
+            }
+<span class="nc" id="L402">        } catch(NoResultException nre) {</span>
+            // name version combination is unique
+<span class="nc" id="L404">        }</span>
+
+        /*
+         * Check if owner is an existing user.
+         */
+<span class="nc bnc" id="L409" title="All 2 branches missed.">        if(owner != null){</span>
+            try {
+<span class="nc" id="L411">                User appOwner = Stripersist.getEntityManager().find(User.class, owner);</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">                if(appOwner == null){</span>
+<span class="nc" id="L413">                    errors.add(&quot;owner&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.nouser&quot;)));</span>
+                }
+<span class="nc" id="L415">            } catch(NoResultException nre) {</span>
+<span class="nc" id="L416">                errors.add(&quot;owner&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.nouser&quot;)));</span>
+<span class="nc" id="L417">            }</span>
+        }
+<span class="nc bnc" id="L419" title="All 2 branches missed.">        if(startExtent != null){</span>
+<span class="nc bnc" id="L420" title="All 8 branches missed.">            if(startExtent.getMinx() == null || startExtent.getMiny() == null || startExtent.getMaxx() == null || startExtent.getMaxy() == null ){</span>
+<span class="nc" id="L421">                errors.add(&quot;startExtent&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.nostartext&quot;)));</span>
+            }
+            // force application CRS on startExtent
+<span class="nc bnc" id="L424" title="All 2 branches missed.">            if (null == startExtent.getCrs())</span>
+<span class="nc" id="L425">                startExtent.setCrs(new CoordinateReferenceSystem(projection.substring(0, projection.indexOf('['))));</span>
+        }
+<span class="nc bnc" id="L427" title="All 2 branches missed.">        if(maxExtent != null){</span>
+<span class="nc bnc" id="L428" title="All 8 branches missed.">            if(maxExtent.getMinx() == null || maxExtent.getMiny() == null || maxExtent.getMaxx() == null || maxExtent.getMaxy() == null ){</span>
+<span class="nc" id="L429">                errors.add(&quot;maxExtent&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.nomaxext&quot;)));</span>
+            }
+            // force application CRS on maxExtent
+<span class="nc bnc" id="L432" title="All 2 branches missed.">            if (null == maxExtent.getCrs())</span>
+<span class="nc" id="L433">                maxExtent.setCrs(new CoordinateReferenceSystem(projection.substring(0, projection.indexOf('['))));</span>
+        }
+<span class="nc" id="L435">    }</span>
+
+    public Resolution copy() throws Exception {
+<span class="nc" id="L438">        EntityManager em = Stripersist.getEntityManager();</span>
+        try {
+<span class="nc" id="L440">            Object o = em.createQuery(&quot;select 1 from Application where name = :name&quot;)</span>
+<span class="nc" id="L441">                .setMaxResults(1)</span>
+<span class="nc" id="L442">                .setParameter(&quot;name&quot;, name)</span>
+<span class="nc" id="L443">                .getSingleResult();</span>
+
+<span class="nc" id="L445">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.copyexists&quot;), name));</span>
+<span class="nc" id="L446">            return new RedirectResolution(this.getClass());</span>
+<span class="nc" id="L447">        } catch(NoResultException nre) {</span>
+            // name is unique
+        }
+
+        try {
+<span class="nc" id="L452">            copyApplication(em);</span>
+<span class="nc" id="L453">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.appcopied&quot;)));</span>
+<span class="nc" id="L454">            return new RedirectResolution(this.getClass());</span>
+<span class="nc" id="L455">        } catch(Exception e) {</span>
+<span class="nc" id="L456">            log.error(String.format(&quot;Error copying application #%d named %s %swith new name %s&quot;,</span>
+<span class="nc" id="L457">                    application.getId(),</span>
+<span class="nc" id="L458">                    application.getName(),</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">                    application.getVersion() == null ? &quot;&quot; : &quot;v&quot; + application.getVersion() + &quot; &quot;,</span>
+                    name), e);
+<span class="nc" id="L461">            StringBuilder ex = new StringBuilder(e.toString());</span>
+<span class="nc" id="L462">            Throwable cause = e.getCause();</span>
+<span class="nc bnc" id="L463" title="All 2 branches missed.">            while(cause != null) {</span>
+<span class="nc" id="L464">                ex.append(&quot;;\n&lt;br&gt;&quot;).append(cause);</span>
+<span class="nc" id="L465">                cause = cause.getCause();</span>
+            }
+<span class="nc" id="L467">            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.copyerror&quot;), ex.toString()));</span>
+<span class="nc" id="L468">            return new ForwardResolution(JSP);</span>
+        }
+    }
+    
+    protected void copyApplication(EntityManager em) throws Exception {
+<span class="fc" id="L473">        Application copy = null;</span>
+        // When the selected application is a mashup, don't use the copy routine, but make another mashup of it. This prevents some detached entity exceptions.
+<span class="fc bfc" id="L475" title="All 2 branches covered.">        if(application.isMashup()){</span>
+<span class="fc" id="L476">            copy = ApplicationHelper.createMashup(application, name, em, false);</span>
+<span class="fc" id="L477">            SelectedContentCache.setApplicationCacheDirty(copy, Boolean.TRUE, true, em);</span>
+        }else{
+<span class="fc" id="L479">            bindAppProperties();</span>
+
+<span class="fc" id="L481">            copy = ApplicationHelper.deepCopy(application);</span>
+            // don't save changes to original app
+<span class="fc" id="L483">            em.detach(application);</span>
+
+<span class="fc" id="L485">            em.persist(copy);</span>
+<span class="fc" id="L486">            em.persist(copy);</span>
+<span class="fc" id="L487">            em.flush();</span>
+<span class="fc" id="L488">            SelectedContentCache.setApplicationCacheDirty(copy, Boolean.TRUE, false, em);</span>
+        }
+<span class="fc" id="L490">        em.getTransaction().commit();</span>
+
+<span class="fc" id="L492">        setApplication(copy);</span>
+<span class="fc" id="L493">    }</span>
+
+    public Resolution mashup(){
+<span class="nc" id="L496">        ValidationErrors errors = context.getValidationErrors();</span>
+        try {
+<span class="nc" id="L498">            EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L499">            Application mashup = ApplicationHelper.createMashup(application, mashupName, em,mustUpdateComponents);</span>
+<span class="nc" id="L500">            em.persist(mashup);</span>
+<span class="nc" id="L501">            em.getTransaction().commit();</span>
+
+<span class="nc" id="L503">            setApplication(mashup);</span>
+<span class="nc" id="L504">        } catch (Exception ex) {</span>
+<span class="nc" id="L505">            log.error(&quot;Error creating mashup&quot;,ex);</span>
+<span class="nc" id="L506">            errors.add(&quot;Fout&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.applicationsettingsbean.nomashup&quot;)));</span>
+<span class="nc" id="L507">        }</span>
+<span class="nc" id="L508">        return new RedirectResolution(ApplicationSettingsActionBean.class);</span>
+    }
+
+    public Resolution publish (){
+        // Find current published application and make backup
+<span class="nc" id="L513">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L514">        publish(em);</span>
+<span class="nc" id="L515">        return new RedirectResolution(ChooseApplicationActionBean.class);</span>
+    }
+    
+    protected void publish(EntityManager em){
+          try {
+<span class="fc" id="L520">            Application oldPublished = (Application)em.createQuery(&quot;from Application where name = :name AND version IS null&quot;)</span>
+<span class="fc" id="L521">                .setMaxResults(1)</span>
+<span class="fc" id="L522">                .setParameter(&quot;name&quot;, name)</span>
+<span class="fc" id="L523">                .getSingleResult();</span>
+
+<span class="fc" id="L525">            Date nowDate = new Date(System.currentTimeMillis());</span>
+<span class="fc" id="L526">            SimpleDateFormat sdf = (SimpleDateFormat) SimpleDateFormat.getDateInstance();</span>
+<span class="fc" id="L527">            sdf.applyPattern(&quot;HH-mm_dd-MM-yyyy&quot;);</span>
+<span class="fc" id="L528">            String now = sdf.format(nowDate);</span>
+<span class="fc" id="L529">            String uniqueVersion = findUniqueVersion(name, &quot;B_&quot;+now , em);</span>
+<span class="fc" id="L530">            oldPublished.setVersion(uniqueVersion);</span>
+<span class="fc" id="L531">            em.persist(oldPublished);</span>
+<span class="pc bpc" id="L532" title="1 of 2 branches missed.">            if(mashupMustPointToPublishedVersion){</span>
+<span class="fc bfc" id="L533" title="All 2 branches covered.">                for (Application mashup: ApplicationHelper.getMashups(oldPublished, em)) {</span>
+<span class="fc" id="L534">                    mashup.setRoot(application.getRoot());//nog iets doen met veranderde layerids uit cofniguratie</span>
+<span class="fc" id="L535">                    SelectedContentCache.setApplicationCacheDirty(mashup,true, false,em);</span>
+<span class="fc" id="L536">                    ApplicationHelper.transferMashupLevels(mashup, oldPublished,em);</span>
+<span class="fc" id="L537">                    ApplicationHelper.transferMashupComponents(mashup, application);</span>
+<span class="fc" id="L538">                    em.persist(mashup);</span>
+<span class="fc" id="L539">                }</span>
+            }
+<span class="fc" id="L541">        } catch (NoResultException nre) {</span>
+<span class="fc" id="L542">        }</span>
+<span class="fc" id="L543">        application.setVersion(null);</span>
+<span class="fc" id="L544">        em.persist(application);</span>
+<span class="fc" id="L545">        em.getTransaction().commit();</span>
+
+<span class="fc" id="L547">        setApplication(null);</span>
+<span class="fc" id="L548">    }</span>
+
+      /**
+     * Checks if a Application with given name already exists and if needed
+     * returns name with sequence number in brackets added to make it unique.
+     *
+     * @param name Name to make unique
+     * @param version version to check
+     *
+     * @return A unique name for a FeatureSource
+     */
+    public static String findUniqueVersion(String name, String version, EntityManager em) {
+<span class="fc" id="L560">        int uniqueCounter = 0;</span>
+        while(true) {
+            String testVersion;
+<span class="pc bpc" id="L563" title="1 of 2 branches missed.">            if(uniqueCounter == 0) {</span>
+<span class="fc" id="L564">                testVersion = version;</span>
+            } else {
+<span class="nc" id="L566">                testVersion = version + &quot; (&quot; + uniqueCounter + &quot;)&quot;;</span>
+            }
+            try {
+<span class="fc" id="L569">                em.createQuery(&quot;select 1 from Application where name = :name AND version = :version&quot;)</span>
+<span class="fc" id="L570">                    .setParameter(&quot;name&quot;, name)</span>
+<span class="fc" id="L571">                    .setParameter(&quot;version&quot;, testVersion)</span>
+<span class="fc" id="L572">                    .setMaxResults(1)</span>
+<span class="nc" id="L573">                    .getSingleResult();</span>
+
+<span class="nc" id="L575">                uniqueCounter++;</span>
+<span class="fc" id="L576">            } catch(NoResultException nre) {</span>
+<span class="fc" id="L577">                version = testVersion;</span>
+<span class="fc" id="L578">                break;</span>
+<span class="nc" id="L579">            }</span>
+<span class="nc" id="L580">        }</span>
+<span class="fc" id="L581">        return version;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

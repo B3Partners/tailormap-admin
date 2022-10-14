@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LayerActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">LayerActionBean.java</span></div><h1>LayerActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2011-2015 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.Before;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.RedirectResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.controller.LifecycleStage;
+import net.sourceforge.stripes.validation.Validate;
+import net.sourceforge.stripes.validation.ValidateNestedProperties;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.config.ClobElement;
+import nl.tailormap.viewer.config.app.Application;
+import nl.tailormap.viewer.config.app.ApplicationLayer;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.services.FeatureSource;
+import nl.tailormap.viewer.config.services.GeoService;
+import nl.tailormap.viewer.config.services.Layer;
+import nl.tailormap.viewer.config.services.SimpleFeatureType;
+import nl.tailormap.viewer.util.SelectedContentCache;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+/**
+ *
+ * @author Jytte Schaeffer
+ */
+@UrlBinding(&quot;/action/layer&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN,Group.REGISTRY_ADMIN})
+<span class="nc" id="L60">public class LayerActionBean extends LocalizableActionBean {</span>
+
+    private static final String JSP = &quot;/WEB-INF/jsp/services/layer.jsp&quot;;
+    private ActionBeanContext context;
+    @Validate
+    @ValidateNestedProperties({
+        @Validate(field = &quot;titleAlias&quot;, label=&quot;Naam&quot;),
+        @Validate(field = &quot;legendImageUrl&quot;, label=&quot;Legenda&quot;),
+        @Validate(field = &quot;exception_type&quot;)
+    })
+    private Layer layer;
+    @Validate
+    private String parentId;
+    private List&lt;Group&gt; allGroups;
+<span class="nc" id="L74">    private SortedSet&lt;String&gt; applicationsUsedIn = new TreeSet&lt;&gt;();</span>
+<span class="nc" id="L75">    @Validate</span>
+    private List&lt;String&gt; groupsRead = new ArrayList&lt;&gt;();
+<span class="nc" id="L77">    @Validate</span>
+    private List&lt;String&gt; groupsWrite = new ArrayList&lt;&gt;();
+<span class="nc" id="L79">    @Validate</span>
+    private List&lt;String&gt; groupsPreventGeomEdit = new ArrayList&lt;&gt;();
+<span class="nc" id="L81">    @Validate</span>
+    private Map&lt;String, String&gt; details = new HashMap&lt;&gt;();
+    @Validate
+    private SimpleFeatureType simpleFeatureType;
+    @Validate
+    private Long featureSourceId;
+    private List&lt;FeatureSource&gt; featureSources;
+
+    /**
+     * A list of all layers of the service for selecting a hi dpi substitue layer.
+     */
+    private List&lt;Layer&gt; allServiceLayers;
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+    public ActionBeanContext getContext() {
+<span class="nc" id="L96">        return context;</span>
+    }
+
+    public void setContext(ActionBeanContext context) {
+<span class="nc" id="L100">        this.context = context;</span>
+<span class="nc" id="L101">    }</span>
+
+    public Map&lt;String, String&gt; getDetails() {
+<span class="nc" id="L104">        return details;</span>
+    }
+
+    public void setDetails(Map&lt;String, String&gt; details) {
+<span class="nc" id="L108">        this.details = details;</span>
+<span class="nc" id="L109">    }</span>
+
+    public Layer getLayer() {
+<span class="nc" id="L112">        return layer;</span>
+    }
+
+    public void setLayer(Layer layer) {
+<span class="nc" id="L116">        this.layer = layer;</span>
+<span class="nc" id="L117">    }</span>
+
+    public List&lt;Group&gt; getAllGroups() {
+<span class="nc" id="L120">        return allGroups;</span>
+    }
+
+    public void setAllGroups(List&lt;Group&gt; allGroups) {
+<span class="nc" id="L124">        this.allGroups = allGroups;</span>
+<span class="nc" id="L125">    }</span>
+
+    public List&lt;String&gt; getGroupsRead() {
+<span class="nc" id="L128">        return groupsRead;</span>
+    }
+
+    public void setGroupsRead(List&lt;String&gt; groupsRead) {
+<span class="nc" id="L132">        this.groupsRead = groupsRead;</span>
+<span class="nc" id="L133">    }</span>
+
+    public List&lt;String&gt; getGroupsWrite() {
+<span class="nc" id="L136">        return groupsWrite;</span>
+    }
+
+    public void setGroupsWrite(List&lt;String&gt; groupsWrite) {
+<span class="nc" id="L140">        this.groupsWrite = groupsWrite;</span>
+<span class="nc" id="L141">    }</span>
+
+    public List&lt;String&gt; getGroupsPreventGeomEdit() {
+<span class="nc" id="L144">        return groupsPreventGeomEdit;</span>
+    }
+
+    public void setGroupsPreventGeomEdit(List&lt;String&gt; groupsPreventGeomEdit) {
+<span class="nc" id="L148">        this.groupsPreventGeomEdit = groupsPreventGeomEdit;</span>
+<span class="nc" id="L149">    }</span>
+
+    public SortedSet&lt;String&gt; getApplicationsUsedIn() {
+<span class="nc" id="L152">        return applicationsUsedIn;</span>
+    }
+
+    public void setApplicationsUsedIn(SortedSet&lt;String&gt; applicationsUsedIn) {
+<span class="nc" id="L156">        this.applicationsUsedIn = applicationsUsedIn;</span>
+<span class="nc" id="L157">    }</span>
+
+    public SimpleFeatureType getSimpleFeatureType() {
+<span class="nc" id="L160">        return simpleFeatureType;</span>
+    }
+
+    public void setSimpleFeatureType(SimpleFeatureType simpleFeatureType) {
+<span class="nc" id="L164">        this.simpleFeatureType = simpleFeatureType;</span>
+<span class="nc" id="L165">    }</span>
+
+    public Long getFeatureSourceId() {
+<span class="nc" id="L168">        return featureSourceId;</span>
+    }
+
+    public void setFeatureSourceId(Long featureSourceId) {
+<span class="nc" id="L172">        this.featureSourceId = featureSourceId;</span>
+<span class="nc" id="L173">    }</span>
+
+    public List&lt;FeatureSource&gt; getFeatureSources() {
+<span class="nc" id="L176">        return featureSources;</span>
+    }
+
+    public void setFeatureSources(List&lt;FeatureSource&gt; featureSources) {
+<span class="nc" id="L180">        this.featureSources = featureSources;</span>
+<span class="nc" id="L181">    }</span>
+
+    public String getParentId() {
+<span class="nc" id="L184">        return parentId;</span>
+    }
+
+    public void setParentId(String parentId) {
+<span class="nc" id="L188">        this.parentId = parentId;</span>
+<span class="nc" id="L189">    }</span>
+
+    public List&lt;Layer&gt; getAllServiceLayers() {
+<span class="nc" id="L192">        return allServiceLayers;</span>
+    }
+
+    public void setAllServiceLayers(List&lt;Layer&gt; allServiceLayers) {
+<span class="nc" id="L196">        this.allServiceLayers = allServiceLayers;</span>
+<span class="nc" id="L197">    }</span>
+    //&lt;/editor-fold&gt;
+
+    @Before(stages = LifecycleStage.BindingAndValidation)
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void load() {
+<span class="nc" id="L203">        allGroups = Stripersist.getEntityManager().createQuery(&quot;from Group&quot;).getResultList();</span>
+<span class="nc" id="L204">        featureSources = Stripersist.getEntityManager().createQuery(&quot;from FeatureSource&quot;, FeatureSource.class).getResultList();</span>
+<span class="nc" id="L205">    }</span>
+        
+   @DefaultHandler
+    public Resolution edit() {
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (layer != null) {</span>
+<span class="nc" id="L210">            details = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            for(Map.Entry&lt;String,ClobElement&gt; e: layer.getDetails().entrySet()) {</span>
+<span class="nc" id="L212">                details.put(e.getKey(), e.getValue().getValue());</span>
+<span class="nc" id="L213">            }</span>
+
+<span class="nc bnc" id="L215" title="All 4 branches missed.">            if (&quot;tiled&quot;.equals(layer.getService().getProtocol()) &amp;&amp; !details.containsKey(&quot;hidpi.mode&quot;)) {</span>
+<span class="nc" id="L216">                details.put(&quot;hidpi.mode&quot;, &quot;disabled&quot;);</span>
+            }
+
+<span class="nc" id="L219">            groupsRead.addAll(layer.getReaders());</span>
+<span class="nc" id="L220">            groupsWrite.addAll(layer.getWriters());</span>
+<span class="nc" id="L221">            groupsPreventGeomEdit.addAll(layer.getPreventGeomEditors());</span>
+
+<span class="nc bnc" id="L223" title="All 2 branches missed.">            if (layer.getFeatureType() != null) {</span>
+<span class="nc" id="L224">                simpleFeatureType = layer.getFeatureType();</span>
+<span class="nc" id="L225">                featureSourceId = simpleFeatureType.getFeatureSource().getId();</span>
+            }
+
+<span class="nc" id="L228">            allServiceLayers = Stripersist.getEntityManager().createQuery(&quot;from Layer where service = :service and name &lt;&gt; '' order by name&quot;, Layer.class)</span>
+<span class="nc" id="L229">                            .setParameter(&quot;service&quot;, layer.getService()).getResultList();</span>
+
+<span class="nc" id="L231">            findApplicationsUsedIn();</span>
+        }
+<span class="nc" id="L233">        return new ForwardResolution(JSP);</span>
+    }
+
+    private void findApplicationsUsedIn() {
+<span class="nc" id="L237">        List&lt;Application&gt; applications = findApplications(layer);</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">        for (Application application : applications) {</span>
+<span class="nc" id="L239">            applicationsUsedIn.add(application.getNameWithVersion());</span>
+<span class="nc" id="L240">        }</span>
+<span class="nc" id="L241">    }</span>
+
+    private List&lt;Application&gt; findApplications(Layer layer) {
+<span class="nc" id="L244">        List&lt;Application&gt; apps = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L245">        GeoService service = layer.getService();</span>
+<span class="nc" id="L246">        String layerName = layer.getName();</span>
+<span class="nc" id="L247">        EntityManager em = Stripersist.getEntityManager();</span>
+
+<span class="nc" id="L249">        List&lt;ApplicationLayer&gt; applicationLayers = layer.getApplicationLayers(em);</span>
+
+<span class="nc bnc" id="L251" title="All 2 branches missed.">        for (ApplicationLayer appLayer : applicationLayers) {</span>
+            /*
+             * The parent level of the applicationLayer is needed to find out in
+             * which application the Layer is used. This solution is not good
+             * when there are many levels.
+             */
+<span class="nc" id="L257">            List&lt;Application&gt; applications = em.createQuery(&quot;from Application&quot;, Application.class).getResultList();</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">            for (Application app : applications) {</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">                if (app.getRoot().containsLayerInSubtree(appLayer)) {</span>
+<span class="nc" id="L260">                    apps.add(app);</span>
+                }
+<span class="nc" id="L262">            }</span>
+<span class="nc" id="L263">        }</span>
+<span class="nc" id="L264">        return apps;</span>
+    }
+
+    public Resolution save() {
+        // Only remove details which are editable and re-added layer if not empty,
+        // retain other details (for example &quot;wms.styles&quot;)
+        // See JSP for which keys are edited
+<span class="nc" id="L271">        Arrays.asList(</span>
+                Layer.EXTRA_KEY_METADATA_STYLESHEET_URL,
+                Layer.EXTRA_KEY_DOWNLOAD_URL,
+                Layer.EXTRA_KEY_FILTERABLE,
+                Layer.DETAIL_ALTERNATE_LEGEND_IMAGE_URL,
+                Layer.EXTRA_KEY_ATTRIBUTION
+<span class="nc" id="L277">        ).forEach(layer.getDetails().keySet()::remove);</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">        for(Map.Entry&lt;String,String&gt; e: details.entrySet()) {</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">            if(e.getValue() != null) { // Don't insert null value ClobElement</span>
+<span class="nc" id="L280">                layer.getDetails().put(e.getKey(), new ClobElement(e.getValue()));</span>
+            }
+<span class="nc" id="L282">        }</span>
+
+<span class="nc" id="L284">        layer.getReaders().clear();</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">        for (String groupName : groupsRead) {</span>
+<span class="nc" id="L286">            layer.getReaders().add(groupName);</span>
+<span class="nc" id="L287">        }</span>
+
+<span class="nc" id="L289">        layer.getWriters().clear();</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">        for (String groupName : groupsWrite) {</span>
+<span class="nc" id="L291">            layer.getWriters().add(groupName);</span>
+<span class="nc" id="L292">        }</span>
+
+<span class="nc" id="L294">        layer.getPreventGeomEditors().clear();</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">        for (String groupName : groupsPreventGeomEdit) {</span>
+<span class="nc" id="L296">            layer.getPreventGeomEditors().add(groupName);</span>
+<span class="nc" id="L297">        }</span>
+<span class="nc" id="L298">        EntityManager em = Stripersist.getEntityManager();       </span>
+<span class="nc" id="L299">        layer.setFeatureType(simpleFeatureType);</span>
+
+<span class="nc" id="L301">        em.persist(layer);</span>
+<span class="nc" id="L302">        layer.getService().authorizationsModified();</span>
+<span class="nc" id="L303">        List&lt;Application&gt; apps = findApplications(layer);</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">        for (Application application : apps) {</span>
+<span class="nc" id="L305">            SelectedContentCache.setApplicationCacheDirty(application, true, false, em);</span>
+<span class="nc" id="L306">        }</span>
+<span class="nc" id="L307">        em.getTransaction().commit();</span>
+<span class="nc" id="L308">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.layeractionbean.layersaved&quot;)));</span>
+
+<span class="nc" id="L310">        return new RedirectResolution(this.getClass()).flash(this).addParameter(&quot;layer&quot;, layer.getId());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

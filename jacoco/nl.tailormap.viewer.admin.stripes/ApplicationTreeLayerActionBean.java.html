@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationTreeLayerActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">ApplicationTreeLayerActionBean.java</span></div><h1>ApplicationTreeLayerActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.Before;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.DontValidate;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import nl.tailormap.viewer.config.ClobElement;
+import nl.tailormap.viewer.config.app.ApplicationLayer;
+import nl.tailormap.viewer.config.app.ConfiguredAttribute;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.services.AttributeDescriptor;
+import nl.tailormap.viewer.config.services.FeatureSource;
+import nl.tailormap.viewer.config.services.FeatureTypeRelation;
+import nl.tailormap.viewer.config.services.Layer;
+import nl.tailormap.viewer.config.services.SimpleFeatureType;
+import nl.tailormap.viewer.config.services.StyleLibrary;
+import nl.tailormap.viewer.config.services.WMSService;
+import nl.tailormap.viewer.helpers.featuresources.FeatureSourceFactoryHelper;
+import nl.tailormap.viewer.helpers.featuresources.SimpleFeatureTypeHelper;
+import nl.tailormap.viewer.util.SelectedContentCache;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ *
+ * @author Jytte Schaeffer
+ */
+@UrlBinding(&quot;/action/applicationtreelayer&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN, Group.APPLICATION_ADMIN})
+<span class="fc" id="L65">public class ApplicationTreeLayerActionBean extends ApplicationActionBean {</span>
+
+    private static final String JSP = &quot;/WEB-INF/jsp/application/applicationTreeLayer.jsp&quot;;
+    private static final String ATTRIBUTES_CONFIG_KEY = &quot;attributeConfig&quot;;
+    private static final String ATTRIBUTES_ORDER_KEY = &quot;attributeOrder&quot;;
+    
+    @Validate
+    private ApplicationLayer applicationLayer;
+<span class="fc" id="L73">    @Validate</span>
+    private List&lt;String&gt; groupsRead = new ArrayList&lt;&gt;();
+<span class="fc" id="L75">    @Validate</span>
+    private List&lt;String&gt; groupsWrite = new ArrayList&lt;&gt;();
+<span class="fc" id="L77">    @Validate</span>
+    private Map&lt;String, String&gt; details = new HashMap&lt;&gt;();
+
+<span class="fc" id="L80">    @Validate</span>
+    private List&lt;String&gt; selectedAttributes = new ArrayList&lt;&gt;();
+
+<span class="fc" id="L83">    private Map&lt;String,String&gt; attributeAliases = new HashMap&lt;&gt;();</span>
+    
+<span class="fc" id="L85">    private List&lt;Map&lt;String, String&gt;&gt; styles = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L86">    private JSONObject stylesTitleJson = new JSONObject();</span>
+    
+    private boolean editable;
+
+    private Long appLayerFeatureType;
+    
+<span class="fc" id="L92">    @Validate</span>
+    private JSONObject attributesJSON = new JSONObject();
+    
+<span class="fc" id="L95">    private JSONArray attributesConfig = new JSONArray();</span>
+    
+    @Validate(on=&quot;getUniqueValues&quot;)
+    private String attribute;
+    
+    private String displayName;
+
+    @DefaultHandler
+    public Resolution view() {
+<span class="nc" id="L104">        return new ForwardResolution(JSP);</span>
+    }
+
+    @Before
+    public void loadInfo() throws JSONException{
+<span class="nc" id="L109">        Layer layer = applicationLayer.getService().getSingleLayer(applicationLayer.getLayerName(), Stripersist.getEntityManager());</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if(layer == null) {</span>
+<span class="nc" id="L111">            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString(&quot;viewer_admin.applicationtreelayeractionbean.notfound&quot;)));</span>
+<span class="nc" id="L112">            return;</span>
+        }
+
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        for(StyleLibrary sld: layer.getService().getStyleLibraries()) {</span>
+<span class="nc" id="L116">            Map&lt;String, String&gt; style = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L117">            JSONObject styleTitleJson = new JSONObject();</span>
+
+<span class="nc" id="L119">            style.put(&quot;id&quot;, &quot;sld:&quot; + sld.getId());</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            style.put(&quot;title&quot;, &quot;SLD style: &quot; + sld.getTitle() + (sld.isDefaultStyle() ? &quot; (default)&quot; : &quot;&quot;));</span>
+
+            // Find stuff for layerName
+<span class="nc bnc" id="L123" title="All 2 branches missed.">            if(sld.getNamedLayerUserStylesJson() != null) {</span>
+<span class="nc" id="L124">                JSONObject sldNamedLayerJson = new JSONObject(sld.getNamedLayerUserStylesJson());</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                if(sldNamedLayerJson.has(layer.getName())) {</span>
+<span class="nc" id="L126">                    JSONObject namedLayer = sldNamedLayerJson.getJSONObject(layer.getName());</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                    if(namedLayer.has(&quot;title&quot;)) {</span>
+<span class="nc" id="L128">                        styleTitleJson.put(&quot;namedLayerTitle&quot;, namedLayer.get(&quot;title&quot;));</span>
+                    }
+<span class="nc" id="L130">                    JSONArray userStyles = namedLayer.getJSONArray(&quot;styles&quot;);</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">                    if(userStyles.length() &gt; 0) {</span>
+<span class="nc" id="L132">                        JSONObject userStyle = userStyles.getJSONObject(0);</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">                        if(userStyle.has(&quot;title&quot;)) {</span>
+<span class="nc" id="L134">                            styleTitleJson.put(&quot;styleTitle&quot;, userStyle.get(&quot;title&quot;));</span>
+                        }
+                    }
+                }
+            }
+<span class="nc" id="L139">            styles.add(style);</span>
+<span class="nc" id="L140">            stylesTitleJson.put(style.get(&quot;id&quot;), styleTitleJson);</span>
+
+<span class="nc" id="L142">        }</span>
+<span class="nc bnc" id="L143" title="All 4 branches missed.">        if (applicationLayer.getService() instanceof WMSService &amp;&amp; layer.getDetails().containsKey(Layer.DETAIL_WMS_STYLES)) {</span>
+<span class="nc" id="L144">            JSONArray wmsStyles = new JSONArray(layer.getDetails().get(Layer.DETAIL_WMS_STYLES).getValue());</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">            for(int i = 0; i &lt; wmsStyles.length(); i++) {</span>
+<span class="nc" id="L146">                JSONObject wmsStyle = wmsStyles.getJSONObject(i);</span>
+<span class="nc" id="L147">                Map&lt;String, String&gt; style = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L148">                style.put(&quot;id&quot;, &quot;wms:&quot; + wmsStyle.getString(&quot;name&quot;));</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                style.put(&quot;title&quot;, &quot;WMS server style: &quot; + wmsStyle.getString(&quot;name&quot;) + (wmsStyle.has(&quot;title&quot;) ? &quot; (&quot; + wmsStyle.getString(&quot;title&quot;) + &quot;)&quot; : &quot;&quot;));</span>
+<span class="nc" id="L150">                JSONObject styleTitleJson = new JSONObject();</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                styleTitleJson.put(&quot;styleTitle&quot;, wmsStyle.has(&quot;title&quot;) ? wmsStyle.getString(&quot;title&quot;) : wmsStyle.getString(&quot;name&quot;));</span>
+<span class="nc" id="L152">                styleTitleJson.put(&quot;name&quot;, wmsStyle.getString(&quot;name&quot;));</span>
+<span class="nc" id="L153">                styles.add(style);</span>
+<span class="nc" id="L154">                stylesTitleJson.put(style.get(&quot;id&quot;), styleTitleJson);</span>
+            }
+        }
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        if(!styles.isEmpty()) {</span>
+<span class="nc" id="L158">            List&lt;Map&lt;String, String&gt;&gt; temp = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L159">            Map&lt;String, String&gt; s = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L160">            s.put(&quot;id&quot;, &quot;registry_default&quot;);</span>
+<span class="nc" id="L161">            s.put(&quot;title&quot;, getBundle().getString(&quot;viewer_admin.applicationtreelayeractionbean.defstyle&quot;));</span>
+<span class="nc" id="L162">            temp.add(s);</span>
+<span class="nc" id="L163">            s = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L164">            s.put(&quot;id&quot;, &quot;none&quot;);</span>
+<span class="nc" id="L165">            s.put(&quot;title&quot;, getBundle().getString(&quot;viewer_admin.applicationtreelayeractionbean.nodefstyle&quot;));</span>
+<span class="nc" id="L166">            temp.add(s);</span>
+<span class="nc" id="L167">            temp.addAll(styles);</span>
+<span class="nc" id="L168">            styles = temp;</span>
+        }
+
+<span class="nc bnc" id="L171" title="All 4 branches missed.">        if(layer.getFeatureType() != null &amp;&amp; !layer.getFeatureType().getAttributes().isEmpty()) {</span>
+<span class="nc" id="L172">            SimpleFeatureType sft = layer.getFeatureType();</span>
+<span class="nc" id="L173">            editable = sft.isWriteable();</span>
+<span class="nc" id="L174">            appLayerFeatureType = sft.getId();</span>
+        }
+<span class="nc" id="L176">    }</span>
+
+    @Before
+    public void synchronizeFeatureType() throws JSONException {
+<span class="nc" id="L180">        SimpleFeatureTypeHelper.synchronizeFeaturetype(applicationLayer, Stripersist.getEntityManager(),context, getBundle(),attributeAliases, false);</span>
+<span class="nc" id="L181">        Layer layer = applicationLayer.getService().getSingleLayer(applicationLayer.getLayerName(), Stripersist.getEntityManager());</span>
+        // Synchronize configured attributes with layer feature type
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (layer != null) {</span>
+<span class="nc bnc" id="L184" title="All 4 branches missed.">            if (layer.getFeatureType() != null &amp;&amp; !layer.getFeatureType().getAttributes().isEmpty()) {</span>
+
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                if (attributesJSON.has(ATTRIBUTES_CONFIG_KEY)) {</span>
+<span class="nc" id="L187">                    attributesConfig = attributesJSON.getJSONArray(ATTRIBUTES_CONFIG_KEY);</span>
+                } else {
+<span class="nc" id="L189">                    attributesConfig = new JSONArray();</span>
+                    // JSON info about attributed required for editing
+<span class="nc" id="L191">                    makeAttributeJSONArray(layer.getFeatureType());</span>
+                }
+            }
+        }
+<span class="nc" id="L195">    }</span>
+    
+    @DontValidate
+    public Resolution edit() throws JSONException {
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (applicationLayer != null) {</span>
+<span class="nc" id="L200">            details = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            for(Map.Entry&lt;String,ClobElement&gt; e: applicationLayer.getDetails().entrySet()) {</span>
+<span class="nc" id="L202">                details.put(e.getKey(), e.getValue().getValue());</span>
+<span class="nc" id="L203">            }</span>
+
+<span class="nc" id="L205">            groupsRead.addAll(applicationLayer.getReaders());</span>
+<span class="nc" id="L206">            groupsWrite.addAll(applicationLayer.getWriters());</span>
+
+            // Fill visible checkboxes
+<span class="nc bnc" id="L209" title="All 2 branches missed.">            for(ConfiguredAttribute ca: applicationLayer.getAttributes()) {</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                if(ca.isVisible()) {</span>
+<span class="nc" id="L211">                    selectedAttributes.add(ca.getFullName());</span>
+                }
+<span class="nc" id="L213">            }</span>
+        }
+
+<span class="nc" id="L216">        return new ForwardResolution(JSP);</span>
+    }
+    
+
+    private void sortPerFeatureType(final SimpleFeatureType layerSft, List&lt;ConfiguredAttribute&gt; cas) {
+<span class="nc" id="L221">        List&lt;FeatureTypeRelation&gt; relations = layerSft.getRelations();</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        for (FeatureTypeRelation relation : relations) {</span>
+<span class="nc" id="L223">             SimpleFeatureType foreign = relation.getForeignFeatureType();</span>
+             // Sort the attributes of the foreign featuretype. The &quot;owning&quot; featuretype is sorted below, so it doesn't need a call to this method.
+<span class="nc" id="L225">             sortPerFeatureType(foreign, cas);</span>
+<span class="nc" id="L226">        }</span>
+<span class="nc" id="L227">    }</span>
+    
+    public Resolution attributes() throws JSONException{
+<span class="nc" id="L230">        attributesConfig = new JSONArray();</span>
+        
+<span class="nc" id="L232">        Layer layer = applicationLayer.getService().getSingleLayer(applicationLayer.getLayerName(), Stripersist.getEntityManager());</span>
+<span class="nc" id="L233">        makeAttributeJSONArray(layer.getFeatureType());</span>
+<span class="nc" id="L234">        return new StreamingResolution(&quot;application/json&quot;, new StringReader(attributesConfig.toString()));</span>
+    }
+
+    private void makeAttributeJSONArray(final SimpleFeatureType layerSft) throws JSONException {
+<span class="nc" id="L238">        List&lt;ConfiguredAttribute&gt; cas = applicationLayer.getAttributes();</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">        if(layerSft != null){</span>
+            // Sort the attributes by name (per featuretype)
+<span class="nc" id="L241">            sortPerFeatureType(layerSft, cas);</span>
+        }
+
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        for(ConfiguredAttribute ca: cas) {</span>
+<span class="nc" id="L245">            JSONObject j = ca.toJSONObject();</span>
+            
+            // Copy alias over from feature type
+<span class="nc" id="L248">            SimpleFeatureType sft= ca.getFeatureType();</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">            if (sft==null){</span>
+<span class="nc" id="L250">                sft=layerSft;</span>
+            }
+<span class="nc" id="L252">            AttributeDescriptor ad = sft.getAttribute(ca.getAttributeName());</span>
+<span class="nc" id="L253">            j.put(&quot;alias&quot;, ad.getAlias());</span>
+<span class="nc" id="L254">            j.put(&quot;featureTypeAttribute&quot;, ad.toJSONObject());</span>
+            
+<span class="nc" id="L256">            attributesConfig.put(j);</span>
+<span class="nc" id="L257">        }</span>
+<span class="nc" id="L258">    }    </span>
+    
+    public Resolution getUniqueValues() throws JSONException {
+<span class="nc" id="L261">        JSONObject json = new JSONObject();</span>
+<span class="nc" id="L262">        json.put(&quot;success&quot;, Boolean.FALSE);</span>
+
+        try {
+<span class="nc" id="L265">            Layer layer = applicationLayer.getService().getSingleLayer(applicationLayer.getLayerName(), Stripersist.getEntityManager());</span>
+<span class="nc bnc" id="L266" title="All 4 branches missed.">            if(layer != null &amp;&amp; layer.getFeatureType() != null) {</span>
+<span class="nc" id="L267">                SimpleFeatureType sft = layer.getFeatureType();</span>
+<span class="nc" id="L268">                List&lt;String&gt; beh = FeatureSourceFactoryHelper.calculateUniqueValues(sft, attribute, null);</span>
+<span class="nc" id="L269">                json.put(&quot;uniqueValues&quot;, new JSONArray(beh));</span>
+<span class="nc" id="L270">                json.put(&quot;success&quot;, Boolean.TRUE);</span>
+            }
+<span class="nc" id="L272">        } catch(Exception e) {</span>
+<span class="nc" id="L273">            json.put(&quot;msg&quot;, e.toString());</span>
+<span class="nc" id="L274">        }</span>
+<span class="nc" id="L275">        return new StreamingResolution(&quot;application/json&quot;, new StringReader(json.toString()));</span>
+    }
+
+    public Resolution save() throws JSONException {
+<span class="nc" id="L279">        EntityManager em = Stripersist.getEntityManager();</span>
+        // Only remove details which are editable and re-added layer if not empty,
+        // retain other details possibly used in other parts than this page
+        // See JSP for which keys are edited         
+<span class="nc" id="L283">        Arrays.asList(</span>
+                &quot;titleAlias&quot;,
+                &quot;legendImageUrl&quot;,
+                &quot;transparency&quot;,
+                &quot;influenceradius&quot;,
+                &quot;summary.title&quot;,
+                &quot;summary.image&quot;,
+                &quot;summary.texteditor&quot;,
+                &quot;summary.description&quot;,
+                &quot;summary.link&quot;,
+                &quot;editfunction.title&quot;,
+                &quot;style&quot;,
+                &quot;metadataurl&quot;,
+                &quot;summary.noHtmlEncode&quot;,
+                &quot;summary.nl2br&quot;,
+                &quot;summary.retrieveUploads&quot;,
+                &quot;editfeature.usernameAttribute&quot;,
+                &quot;editfeature.uploadDocument&quot;,
+                &quot;editfeature.uploadDocument.types&quot;,
+                &quot;stylesOrder&quot;
+<span class="nc" id="L303">        ).forEach(applicationLayer.getDetails().keySet()::remove);</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">        for(Map.Entry&lt;String,String&gt; e: details.entrySet()) {</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">            if(e.getValue() != null) { // Don't insert null value ClobElement </span>
+<span class="nc" id="L306">                applicationLayer.getDetails().put(e.getKey(), new ClobElement(e.getValue()));</span>
+            }
+<span class="nc" id="L308">        }</span>
+
+<span class="nc" id="L310">        applicationLayer.getReaders().clear();</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">        for (String groupName : groupsRead) {</span>
+<span class="nc" id="L312">            applicationLayer.getReaders().add(groupName);</span>
+<span class="nc" id="L313">        }</span>
+
+<span class="nc" id="L315">        applicationLayer.getWriters().clear();</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">        for (String groupName : groupsWrite) {</span>
+<span class="nc" id="L317">            applicationLayer.getWriters().add(groupName);</span>
+<span class="nc" id="L318">        }</span>
+
+<span class="nc bnc" id="L320" title="All 4 branches missed.">        if (applicationLayer.getAttributes() != null &amp;&amp; applicationLayer.getAttributes().size() &gt; 0) {</span>
+<span class="nc" id="L321">            JSONArray attributeOrder = attributesJSON.getJSONArray(ATTRIBUTES_ORDER_KEY);</span>
+<span class="nc" id="L322">            List&lt;ConfiguredAttribute&gt; appAttributes = applicationLayer.getAttributes();</span>
+<span class="nc" id="L323">            applicationLayer.setAttributes(processAttributes(em, attributeOrder, attributesConfig, appAttributes));</span>
+        }
+        
+<span class="nc" id="L326">        em.persist(applicationLayer);</span>
+<span class="nc" id="L327">        application.authorizationsModified();</span>
+
+<span class="nc" id="L329">        displayName = applicationLayer.getDisplayName(em);</span>
+<span class="nc" id="L330">        SelectedContentCache.setApplicationCacheDirty(application, true, false,em);</span>
+        
+<span class="nc" id="L332">        em.getTransaction().commit();</span>
+
+<span class="nc" id="L334">        attributesConfig = new JSONArray();</span>
+            
+<span class="nc" id="L336">        Layer layer = applicationLayer.getService().getSingleLayer(applicationLayer.getLayerName(), em);</span>
+<span class="nc" id="L337">        makeAttributeJSONArray(layer.getFeatureType());</span>
+
+<span class="nc" id="L339">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.applicationtreelayeractionbean.layersaved&quot;)));</span>
+<span class="nc" id="L340">        return edit();</span>
+    }
+    
+    protected List&lt;ConfiguredAttribute&gt; processAttributes(EntityManager em, JSONArray attributeOrder,JSONArray attributesConfig, List&lt;ConfiguredAttribute&gt; appAttributes ) {
+<span class="fc" id="L344">        Map&lt;String, JSONObject&gt; attributeOrderMap = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L345">        Map&lt;String, JSONObject&gt; attributeConfigMap = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L346" title="All 2 branches covered.">        for (Object o : attributeOrder) {</span>
+<span class="fc" id="L347">            JSONObject order = (JSONObject) o;</span>
+<span class="fc" id="L348">            attributeOrderMap.put(order.getString(&quot;longname&quot;), order);</span>
+<span class="fc" id="L349">        }</span>
+
+<span class="fc bfc" id="L351" title="All 2 branches covered.">        for (Object o : attributesConfig) {</span>
+<span class="fc" id="L352">            JSONObject config = (JSONObject) o;</span>
+<span class="fc" id="L353">            attributeConfigMap.put(config.getString(&quot;longname&quot;), config);</span>
+<span class="fc" id="L354">        }</span>
+
+<span class="fc bfc" id="L356" title="All 2 branches covered.">        for (ConfiguredAttribute appAttribute : appAttributes) {</span>
+<span class="fc" id="L357">            JSONObject orderConfigObject = attributeOrderMap.get(appAttribute.getLongName());</span>
+
+            //save visible
+<span class="pc bpc" id="L360" title="2 of 4 branches missed.">            if (orderConfigObject != null &amp;&amp; orderConfigObject.has(&quot;checked&quot;)) {</span>
+<span class="fc" id="L361">                appAttribute.setVisible(orderConfigObject.getBoolean(&quot;checked&quot;));</span>
+            } else {
+<span class="nc" id="L363">                appAttribute.setVisible(false);</span>
+            }
+
+            // save folder label
+<span class="pc bpc" id="L367" title="2 of 4 branches missed.">            if (orderConfigObject != null &amp;&amp; orderConfigObject.has(&quot;folder_label&quot;)) {</span>
+<span class="nc" id="L368">                appAttribute.setLabel(orderConfigObject.getString(&quot;folder_label&quot;));</span>
+            }
+
+            //save editable
+<span class="fc" id="L372">            JSONObject configObject = attributeConfigMap.get(appAttribute.getLongName());</span>
+<span class="fc bfc" id="L373" title="All 2 branches covered.">            if (configObject != null) {</span>
+
+<span class="pc bpc" id="L375" title="1 of 2 branches missed.">                if (configObject.has(&quot;editable&quot;)) {</span>
+<span class="fc" id="L376">                    appAttribute.setEditable(configObject.getBoolean(&quot;editable&quot;));</span>
+                }
+<span class="pc bpc" id="L378" title="1 of 2 branches missed.">                if (configObject.has(&quot;editAlias&quot;)) {</span>
+<span class="fc" id="L379">                    appAttribute.setEditAlias(configObject.getString(&quot;editAlias&quot;));</span>
+                }
+<span class="pc bpc" id="L381" title="1 of 2 branches missed.">                if (configObject.has(&quot;editvalues&quot;)) {</span>
+<span class="fc" id="L382">                    appAttribute.setEditValues(configObject.get(&quot;editvalues&quot;).toString());</span>
+                }
+<span class="pc bpc" id="L384" title="1 of 2 branches missed.">                if (configObject.has(&quot;editHeight&quot;)) {</span>
+<span class="fc" id="L385">                    appAttribute.setEditHeight(configObject.getString(&quot;editHeight&quot;));</span>
+                }
+
+                //save selectable
+<span class="pc bpc" id="L389" title="1 of 2 branches missed.">                if (configObject.has(&quot;selectable&quot;)) {</span>
+<span class="fc" id="L390">                    appAttribute.setSelectable(configObject.getBoolean(&quot;selectable&quot;));</span>
+                }
+<span class="pc bpc" id="L392" title="1 of 2 branches missed.">                if (configObject.has(&quot;filterable&quot;)) {</span>
+<span class="fc" id="L393">                    appAttribute.setFilterable(configObject.getBoolean(&quot;filterable&quot;));</span>
+                }
+
+<span class="pc bpc" id="L396" title="1 of 2 branches missed.">                if (configObject.has(&quot;defaultValue&quot;)) {</span>
+<span class="fc" id="L397">                    appAttribute.setDefaultValue(configObject.getString(&quot;defaultValue&quot;));</span>
+                }
+
+<span class="pc bpc" id="L400" title="3 of 4 branches missed.">                if (configObject.has(&quot;valueListFeatureSource&quot;) &amp;&amp; !configObject.isNull(&quot;valueListFeatureSource&quot;)) {</span>
+<span class="nc" id="L401">                    Long id = configObject.getLong(&quot;valueListFeatureSource&quot;);</span>
+<span class="nc" id="L402">                    FeatureSource fs = em.find(FeatureSource.class, id);</span>
+<span class="nc" id="L403">                    appAttribute.setValueListFeatureSource(fs);</span>
+                }
+
+<span class="pc bpc" id="L406" title="3 of 4 branches missed.">                if (configObject.has(&quot;valueListFeatureType&quot;) &amp;&amp; !configObject.isNull(&quot;valueListFeatureType&quot;)) {</span>
+<span class="nc" id="L407">                    Long id = configObject.getLong(&quot;valueListFeatureType&quot;);</span>
+<span class="nc" id="L408">                    SimpleFeatureType ft = em.find(SimpleFeatureType.class, id);</span>
+<span class="nc" id="L409">                    appAttribute.setValueListFeatureType(ft);</span>
+                }
+
+<span class="pc bpc" id="L412" title="3 of 4 branches missed.">                if (configObject.has(&quot;valueListValueAttribute&quot;) &amp;&amp; !configObject.isNull(&quot;valueListValueAttribute&quot;)) {</span>
+<span class="nc" id="L413">                    appAttribute.setValueListValueName(configObject.getString(&quot;valueListValueAttribute&quot;));</span>
+                }
+
+<span class="pc bpc" id="L416" title="3 of 4 branches missed.">                if (configObject.has(&quot;valueListLabelAttribute&quot;) &amp;&amp; !configObject.isNull(&quot;valueListLabelAttribute&quot;)) {</span>
+<span class="nc" id="L417">                    appAttribute.setValueListLabelName(configObject.getString(&quot;valueListLabelAttribute&quot;));</span>
+                }
+
+<span class="pc bpc" id="L420" title="2 of 4 branches missed.">                if (configObject.has(&quot;valueList&quot;) &amp;&amp; !configObject.isNull(&quot;valueList&quot;)) {</span>
+<span class="fc" id="L421">                    appAttribute.setValueList(configObject.getString(&quot;valueList&quot;));</span>
+                }
+
+<span class="pc bpc" id="L424" title="1 of 2 branches missed.">                if (configObject.has(&quot;allowValueListOnly&quot;)) {</span>
+<span class="fc" id="L425">                    appAttribute.setAllowValueListOnly(configObject.getBoolean(&quot;allowValueListOnly&quot;));</span>
+                }
+<span class="pc bpc" id="L427" title="1 of 2 branches missed.">                if (configObject.has(&quot;disallowNullValue&quot;)) {</span>
+<span class="fc" id="L428">                    appAttribute.setDisallowNullValue(configObject.getBoolean(&quot;disallowNullValue&quot;));</span>
+                }
+
+<span class="fc" id="L431">                boolean automaticValue = configObject.getBoolean(&quot;automaticValue&quot;);</span>
+<span class="pc bpc" id="L432" title="1 of 2 branches missed.">                if (configObject.has(&quot;automaticValue&quot;)) {</span>
+<span class="fc" id="L433">                    appAttribute.setAutomaticValue(automaticValue);</span>
+                }
+
+<span class="pc bpc" id="L436" title="2 of 4 branches missed.">                if (configObject.has(&quot;automaticValueType&quot;) &amp;&amp; automaticValue) {</span>
+<span class="nc" id="L437">                    appAttribute.setAutomaticValueType(configObject.optString(&quot;automaticValueType&quot;));</span>
+                } else {
+<span class="fc" id="L439">                    appAttribute.setAutomaticValueType(null);</span>
+                }
+<span class="pc bpc" id="L441" title="1 of 2 branches missed.">                if (configObject.has(&quot;disableUserEdit&quot;)) {</span>
+<span class="fc" id="L442">                    appAttribute.setDisableUserEdit(configObject.getBoolean(&quot;disableUserEdit&quot;));</span>
+                }
+            }
+<span class="fc" id="L445">        }</span>
+        
+<span class="fc" id="L447">        List&lt;ConfiguredAttribute&gt; newOrder = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L448" title="All 2 branches covered.">        for (Object o : attributeOrder) {</span>
+<span class="fc" id="L449">            JSONObject orderObject = (JSONObject) o;</span>
+<span class="fc" id="L450">            String longname = orderObject.getString(&quot;longname&quot;);</span>
+<span class="pc bpc" id="L451" title="1 of 2 branches missed.">            for (ConfiguredAttribute appAttribute : appAttributes) {</span>
+<span class="fc bfc" id="L452" title="All 2 branches covered.">                if (appAttribute.getLongName().equals(longname)) {</span>
+<span class="fc" id="L453">                    newOrder.add(appAttribute);</span>
+<span class="fc" id="L454">                    break;</span>
+                }
+<span class="fc" id="L456">            }</span>
+<span class="fc" id="L457">        }</span>
+<span class="fc" id="L458">        return newOrder;  </span>
+    }
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+    public ApplicationLayer getApplicationLayer() {
+<span class="nc" id="L463">        return applicationLayer;</span>
+    }
+
+    public void setApplicationLayer(ApplicationLayer applicationLayer) {
+<span class="nc" id="L467">        this.applicationLayer = applicationLayer;</span>
+<span class="nc" id="L468">    }</span>
+
+    public Map&lt;String, String&gt; getDetails() {
+<span class="nc" id="L471">        return details;</span>
+    }
+
+    public void setDetails(Map&lt;String, String&gt; details) {
+<span class="nc" id="L475">        this.details = details;</span>
+<span class="nc" id="L476">    }</span>
+
+    public List&lt;String&gt; getSelectedAttributes() {
+<span class="nc" id="L479">        return selectedAttributes;</span>
+    }
+
+    public void setSelectedAttributes(List&lt;String&gt; selectedAttributes) {
+<span class="nc" id="L483">        this.selectedAttributes = selectedAttributes;</span>
+<span class="nc" id="L484">    }</span>
+
+    public JSONObject getAttributesJSON() {
+<span class="nc" id="L487">        return attributesJSON;</span>
+    }
+
+    public void setAttributesJSON(JSONObject attributesJSON) {
+<span class="nc" id="L491">        this.attributesJSON = attributesJSON;</span>
+<span class="nc" id="L492">    }</span>
+
+
+    public boolean isEditable() {
+<span class="nc" id="L496">        return editable;</span>
+    }
+
+    public void setEditable(boolean editable) {
+<span class="nc" id="L500">        this.editable = editable;</span>
+<span class="nc" id="L501">    }</span>
+
+    public List&lt;String&gt; getGroupsWrite() {
+<span class="nc" id="L504">        return groupsWrite;</span>
+    }
+
+    public void setGroupsWrite(List&lt;String&gt; groupsWrite) {
+<span class="nc" id="L508">        this.groupsWrite = groupsWrite;</span>
+<span class="nc" id="L509">    }</span>
+
+    public List&lt;String&gt; getGroupsRead() {
+<span class="nc" id="L512">        return groupsRead;</span>
+    }
+
+    public void setGroupsRead(List&lt;String&gt; groupsRead) {
+<span class="nc" id="L516">        this.groupsRead = groupsRead;</span>
+<span class="nc" id="L517">    }</span>
+
+    public String getAttribute() {
+<span class="nc" id="L520">        return attribute;</span>
+    }
+
+    public void setAttribute(String attribute) {
+<span class="nc" id="L524">        this.attribute = attribute;</span>
+<span class="nc" id="L525">    }</span>
+
+    public Map&lt;String, String&gt; getAttributeAliases() {
+<span class="nc" id="L528">        return attributeAliases;</span>
+    }
+
+    public void setAttributeAliases(Map&lt;String, String&gt; attributeAliases) {
+<span class="nc" id="L532">        this.attributeAliases = attributeAliases;</span>
+<span class="nc" id="L533">    }</span>
+    
+    public List&lt;Map&lt;String,String&gt;&gt; getStyles() {
+<span class="nc" id="L536">        return styles;</span>
+    }
+
+    public void setStyles(List&lt;Map&lt;String,String&gt;&gt; styles) {
+<span class="nc" id="L540">        this.styles = styles;</span>
+<span class="nc" id="L541">    }</span>
+
+    public JSONObject getStylesTitleJson() {
+<span class="nc" id="L544">        return stylesTitleJson;</span>
+    }
+
+    public void setStylesTitleJson(JSONObject stylesTitleJson) {
+<span class="nc" id="L548">        this.stylesTitleJson = stylesTitleJson;</span>
+<span class="nc" id="L549">    }</span>
+    
+    public String getDisplayName() {
+<span class="nc" id="L552">        return displayName;</span>
+    }
+
+    public void setDisplayName(String displayName) {
+<span class="nc" id="L556">        this.displayName = displayName;</span>
+<span class="nc" id="L557">    }</span>
+
+    public Long getAppLayerFeatureType() {
+<span class="nc" id="L560">        return appLayerFeatureType;</span>
+    }
+
+    public void setAppLayerFeatureType(Long appLayerFeatureType) {
+<span class="nc" id="L564">        this.appLayerFeatureType = appLayerFeatureType;</span>
+<span class="nc" id="L565">    }    </span>
+    
+    public JSONArray getAttributesConfig() {
+<span class="nc" id="L568">        return attributesConfig;</span>
+    }
+
+    public void setAttributesConfig(JSONArray attributesConfig) {
+<span class="nc" id="L572">        this.attributesConfig = attributesConfig;</span>
+<span class="nc" id="L573">    }</span>
+
+    
+    //&lt;/editor-fold&gt;    
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

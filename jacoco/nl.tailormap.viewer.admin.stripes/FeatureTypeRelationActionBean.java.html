@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FeatureTypeRelationActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">FeatureTypeRelationActionBean.java</span></div><h1>FeatureTypeRelationActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.DontBind;
+import net.sourceforge.stripes.action.DontValidate;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import net.sourceforge.stripes.validation.ValidateNestedProperties;
+import net.sourceforge.stripes.validation.ValidationErrors;
+import net.sourceforge.stripes.validation.ValidationMethod;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.config.services.AttributeDescriptor;
+import nl.tailormap.viewer.config.services.FeatureSource;
+import nl.tailormap.viewer.config.services.FeatureTypeRelation;
+import nl.tailormap.viewer.config.services.FeatureTypeRelationKey;
+import nl.tailormap.viewer.config.services.SimpleFeatureType;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+/**
+ *
+ * @author Roy Braam
+ */
+@UrlBinding(&quot;/action/featuretyperelation/{$event}&quot;)
+<span class="nc" id="L62">public class FeatureTypeRelationActionBean extends LocalizableActionBean {</span>
+    private ActionBeanContext context;
+    private static final String JSP = &quot;/WEB-INF/jsp/services/featuretyperelation.jsp&quot;;
+    private static final String EDITJSP = &quot;/WEB-INF/jsp/services/editfeaturetyperelation.jsp&quot;;
+
+<span class="nc" id="L67">    private List&lt;FeatureTypeRelation&gt; relations = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L68">    private List&lt;SimpleFeatureType&gt; featureTypes = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L69">    private List&lt;SimpleFeatureType&gt; foreignFeatureTypes = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L70">    private List&lt;FeatureSource&gt; featureSources = new ArrayList&lt;&gt;();</span>
+    
+    private Long featureSourceId;
+    private Long featureTypeId;
+<span class="nc" id="L74">    @Validate</span>
+    private Map&lt;Integer,Long&gt; leftSide = new HashMap&lt;&gt;();
+<span class="nc" id="L76">    private Map&lt;Integer,Long&gt; rightSide = new HashMap&lt;&gt;();</span>
+    /**
+     * For filling the grid
+     */
+    @Validate
+    private int page;
+    @Validate
+    private int start;
+    @Validate
+    private int limit;
+    @Validate
+    private String sort;
+    @Validate
+    private String dir;
+    @Validate
+    private JSONArray filter;
+    
+    @Validate
+    @ValidateNestedProperties({
+        @Validate(field=&quot;featureType&quot;, required=true, on=&quot;save&quot;),
+        @Validate(field=&quot;foreignFeatureType&quot;, required=true, on=&quot;save&quot;),
+        @Validate(field=&quot;type&quot;, required=true, on=&quot;save&quot;)
+    })
+    private FeatureTypeRelation relation;
+        
+    @DefaultHandler
+    public Resolution view() {
+        //relations = Stripersist.getEntityManager().createQuery(&quot;from FeatureTypeRelation&quot;).getResultList();
+<span class="nc" id="L104">        return new ForwardResolution(JSP);</span>
+    }
+    
+    public Resolution save(){                                        
+<span class="nc" id="L108">        Iterator&lt;Integer&gt; it=leftSide.keySet().iterator();</span>
+        
+<span class="nc" id="L110">        relation.getRelationKeys().clear();</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        while (it.hasNext()){</span>
+<span class="nc" id="L112">            Integer i=it.next();</span>
+<span class="nc" id="L113">            Long leftId= leftSide.get(i);</span>
+<span class="nc" id="L114">            Long rightId= rightSide.get(i);</span>
+<span class="nc bnc" id="L115" title="All 8 branches missed.">            if (leftId==null || rightId==null || leftId ==-1 || rightId ==-1){</span>
+<span class="nc" id="L116">                getContext().getMessages().add(new SimpleError(getBundle().getString(&quot;viewer_admin.featuretyperelationactionbean.relmissing&quot;)));</span>
+<span class="nc" id="L117">                return new ForwardResolution(EDITJSP);</span>
+            }
+<span class="nc" id="L119">            AttributeDescriptor left = Stripersist.getEntityManager().find(AttributeDescriptor.class, leftId);</span>
+<span class="nc" id="L120">            AttributeDescriptor right  = Stripersist.getEntityManager().find(AttributeDescriptor.class, rightId);</span>
+<span class="nc" id="L121">            FeatureTypeRelationKey key = new FeatureTypeRelationKey(relation,left,right);</span>
+<span class="nc" id="L122">            relation.getRelationKeys().add(key);</span>
+<span class="nc" id="L123">        }</span>
+<span class="nc" id="L124">        Stripersist.getEntityManager().persist(relation);</span>
+<span class="nc" id="L125">        Stripersist.getEntityManager().getTransaction().commit();</span>
+        
+<span class="nc" id="L127">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.featuretyperelationactionbean.relsaved&quot;)));</span>
+<span class="nc" id="L128">        return new ForwardResolution(EDITJSP);</span>
+    }
+    
+    public Resolution edit() {
+<span class="nc" id="L132">        featureSources = Stripersist.getEntityManager().createQuery(&quot;from FeatureSource&quot;, FeatureSource.class).getResultList();</span>
+<span class="nc bnc" id="L133" title="All 4 branches missed.">        if (relation!=null &amp;&amp; relation.getFeatureType()!=null){</span>
+<span class="nc" id="L134">            featureTypes = Stripersist.getEntityManager().createQuery(&quot;from SimpleFeatureType s where s.featureSource = :f&quot;, SimpleFeatureType.class).setParameter(&quot;f&quot;, relation.getFeatureType().getFeatureSource()).getResultList();</span>
+        }
+<span class="nc bnc" id="L136" title="All 4 branches missed.">        if (relation!=null &amp;&amp; relation.getForeignFeatureType()!=null){</span>
+<span class="nc" id="L137">            foreignFeatureTypes = Stripersist.getEntityManager().createQuery(&quot;from SimpleFeatureType s where s.featureSource = :f&quot;, SimpleFeatureType.class).setParameter(&quot;f&quot;, relation.getForeignFeatureType().getFeatureSource()).getResultList();</span>
+        }
+<span class="nc" id="L139">        Stripersist.getEntityManager().getTransaction().commit();</span>
+<span class="nc" id="L140">        return new ForwardResolution(EDITJSP);</span>
+    }
+    
+    @DontBind
+    public Resolution cancel() {        
+<span class="nc" id="L145">        return new ForwardResolution(EDITJSP);</span>
+    }
+    
+    public Resolution delete() {
+<span class="nc" id="L149">        Stripersist.getEntityManager().remove(relation);</span>
+<span class="nc" id="L150">        Stripersist.getEntityManager().getTransaction().commit();</span>
+<span class="nc" id="L151">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.featuretyperelationactionbean.relrem&quot;)));</span>
+<span class="nc" id="L152">        return new ForwardResolution(EDITJSP);</span>
+    }
+    
+    @DontValidate
+    public Resolution getGridData() throws JSONException { 
+<span class="nc" id="L157">        JSONArray jsonData = new JSONArray();</span>
+        
+<span class="nc" id="L159">        String filterFeaturetype = &quot;&quot;;</span>
+<span class="nc" id="L160">        String filterForeignFeaturetype = &quot;&quot;;</span>
+        
+<span class="nc" id="L162">        Session sess = (Session)Stripersist.getEntityManager().getDelegate();</span>
+<span class="nc" id="L163">        Criteria c = sess.createCriteria(FeatureTypeRelation.class);</span>
+        
+        /* Sorting is delivered by the frontend
+         * as two variables: sort which holds the column name and dir which
+         * holds the direction (ASC, DESC).
+         */
+<span class="nc" id="L169">        c.createAlias(&quot;featureType&quot;, &quot;f&quot;);</span>
+<span class="nc" id="L170">        c.createAlias(&quot;f.featureSource&quot;, &quot;fs&quot;);</span>
+<span class="nc" id="L171">        c.createAlias(&quot;foreignFeatureType&quot;, &quot;ff&quot;);</span>
+<span class="nc" id="L172">        c.createAlias(&quot;ff.featureSource&quot;, &quot;ffs&quot;);</span>
+<span class="nc bnc" id="L173" title="All 4 branches missed.">        if(sort != null &amp;&amp; dir != null){</span>
+<span class="nc" id="L174">            Order order = null;</span>
+<span class="nc bnc" id="L175" title="All 4 branches missed.">            if (sort.equals(&quot;featuretype&quot;) || sort.equals(&quot;foreignFeaturetype&quot;)){</span>
+<span class="nc" id="L176">                sort=&quot;f&quot;;</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                if (sort.equals(&quot;foreignFeaturetype&quot;)){</span>
+<span class="nc" id="L178">                    sort=&quot;ff&quot;;</span>
+                }
+<span class="nc" id="L180">                String sort1 = sort+&quot;s.name&quot;;</span>
+<span class="nc" id="L181">                String sort2 = sort+&quot;.typeName&quot;;</span>
+<span class="nc" id="L182">                String sort3 = sort+&quot;.description&quot;;</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                if(dir.equals(&quot;ASC&quot;)){</span>
+<span class="nc" id="L184">                    c.addOrder(Order.asc(sort1).ignoreCase());</span>
+<span class="nc" id="L185">                    c.addOrder(Order.asc(sort2).ignoreCase());</span>
+<span class="nc" id="L186">                    c.addOrder(Order.asc(sort3).ignoreCase());</span>
+                }else{
+<span class="nc" id="L188">                    c.addOrder(Order.desc(sort1).ignoreCase());</span>
+<span class="nc" id="L189">                    c.addOrder(Order.desc(sort2).ignoreCase());</span>
+<span class="nc" id="L190">                    c.addOrder(Order.desc(sort3).ignoreCase());</span>
+                }
+            }
+            
+        }
+        /* 
+         * FILTERING: filter is delivered by frontend as JSON array [{property, value}]
+         * for demo purposes the value is now returned, ofcourse here should the DB
+         * query be built to filter the right records
+         */
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        if(this.getFilter() != null) {</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            for(int k = 0; k &lt; this.getFilter().length(); k++) {</span>
+<span class="nc" id="L202">                JSONObject j = this.getFilter().getJSONObject(k);</span>
+<span class="nc" id="L203">                String property = j.getString(&quot;property&quot;);</span>
+<span class="nc" id="L204">                String value = j.getString(&quot;value&quot;);                </span>
+<span class="nc bnc" id="L205" title="All 4 branches missed.">                if (property.equals(&quot;featuretype&quot;) ||property.equals(&quot;foreignFeaturetype&quot;)){</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">                    if(property.equals(&quot;featuretype&quot;)) {</span>
+<span class="nc" id="L207">                        property= &quot;f&quot;;</span>
+                        //filterFeaturetype = value;
+<span class="nc bnc" id="L209" title="All 2 branches missed.">                    }else if(property.equals(&quot;foreignFeaturetype&quot;)){</span>
+<span class="nc" id="L210">                        property= &quot;ff&quot;;                 </span>
+                    }
+<span class="nc" id="L212">                    String filt1 = property+&quot;s.name&quot;;</span>
+<span class="nc" id="L213">                    String filt2 = property+&quot;.typeName&quot;;</span>
+<span class="nc" id="L214">                    String filt3 = property+&quot;.description&quot;;</span>
+<span class="nc" id="L215">                    c.add(Restrictions.or(Restrictions.ilike(filt1,value,MatchMode.ANYWHERE),</span>
+<span class="nc" id="L216">                            Restrictions.or(Restrictions.ilike(filt2,value,MatchMode.ANYWHERE),</span>
+<span class="nc" id="L217">                            Restrictions.ilike(filt3, value,MatchMode.ANYWHERE))));</span>
+                }
+            }
+        }
+        
+<span class="nc" id="L222">        int rowCount = c.list().size();</span>
+        
+<span class="nc" id="L224">        c.setMaxResults(limit);</span>
+<span class="nc" id="L225">        c.setFirstResult(start);</span>
+        
+<span class="nc" id="L227">        List relations = c.list();</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        for (Object o : relations) {</span>
+<span class="nc" id="L229">            FeatureTypeRelation relation = (FeatureTypeRelation) o;</span>
+<span class="nc" id="L230">            JSONObject j = this.getGridRow(relation.getId().intValue(), relation.getFeatureType(), relation.getForeignFeatureType());</span>
+<span class="nc" id="L231">            jsonData.put(j);</span>
+<span class="nc" id="L232">        }</span>
+        
+<span class="nc" id="L234">        final JSONObject grid = new JSONObject();</span>
+<span class="nc" id="L235">        grid.put(&quot;totalCount&quot;, rowCount);</span>
+<span class="nc" id="L236">        grid.put(&quot;gridrows&quot;, jsonData);</span>
+    
+<span class="nc" id="L238">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+           @Override
+           public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L241">               response.getWriter().print(grid);</span>
+<span class="nc" id="L242">           }</span>
+        };
+    }
+    /**
+     * Get the attribute names for the given FeatureType that are not of type Geometry
+     * @return A JSON object formated as:
+     *  Object {
+     *      attributes [{id,name}{id,name}]
+     *      error
+     *  }
+     */
+    public Resolution getAttributesForFeaturetype () throws JSONException{
+<span class="nc" id="L254">        final JSONObject json = new JSONObject();</span>
+<span class="nc" id="L255">        boolean success=false;</span>
+<span class="nc" id="L256">        SimpleFeatureType featureType = Stripersist.getEntityManager().find(SimpleFeatureType.class, featureTypeId);</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">        if (featureType!=null){                        </span>
+<span class="nc" id="L258">            JSONArray array = new JSONArray();</span>
+<span class="nc" id="L259">            List&lt;AttributeDescriptor&gt; attributes=featureType.getAttributes();</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">            for (AttributeDescriptor attr : attributes){</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">                if (!AttributeDescriptor.GEOMETRY_TYPES.contains(attr.getType())){</span>
+<span class="nc" id="L262">                    JSONObject ob = new JSONObject();</span>
+<span class="nc" id="L263">                    ob.put(&quot;id&quot;, attr.getId());</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                    if (attr.getAlias()!=null){</span>
+<span class="nc" id="L265">                        ob.put(&quot;name&quot;,attr.getAlias());</span>
+                    }else{
+<span class="nc" id="L267">                        ob.put(&quot;name&quot;,attr.getName());</span>
+                    }
+<span class="nc" id="L269">                    array.put(ob);</span>
+                }
+<span class="nc" id="L271">            }</span>
+<span class="nc" id="L272">            json.put(&quot;attributes&quot;, array);</span>
+<span class="nc" id="L273">            success=true;</span>
+<span class="nc" id="L274">        }else{</span>
+<span class="nc" id="L275">            json.put(&quot;error&quot;, getBundle().getString(&quot;viewer_admin.featuretyperelationactionbean.noftfound&quot;));</span>
+        }
+<span class="nc" id="L277">        json.put(&quot;success&quot;, success);</span>
+<span class="nc" id="L278">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+           @Override
+           public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L281">               response.getWriter().print(json);</span>
+<span class="nc" id="L282">           }</span>
+        };
+    }
+    /**
+     * Get the featuretypes of the given feature source id.
+     * @return A JSON object formated as:
+     *  Object {
+     *      featuretypes [{id,name}{id,name}]
+     *      error
+     *  }
+     */
+    public Resolution getFeatureTypesForSource () throws JSONException{
+<span class="nc" id="L294">        final JSONObject json = new JSONObject();</span>
+<span class="nc" id="L295">        boolean success=false;  </span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">        if (featureSourceId==null){</span>
+<span class="nc" id="L297">            json.put(&quot;error&quot;, &quot;No featureSourceId found&quot;);</span>
+        }else{
+<span class="nc" id="L299">            FeatureSource featureSource = Stripersist.getEntityManager().find(FeatureSource.class, featureSourceId);</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">            if (featureSource!=null){                        </span>
+<span class="nc" id="L301">                JSONArray array = new JSONArray();</span>
+<span class="nc" id="L302">                List&lt;SimpleFeatureType&gt; featureTypes=featureSource.getFeatureTypes();</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">                for (SimpleFeatureType ft : featureTypes){</span>
+<span class="nc" id="L304">                    JSONObject ob = new JSONObject();</span>
+<span class="nc" id="L305">                    ob.put(&quot;id&quot;, ft.getId());</span>
+<span class="nc" id="L306">                    String name = ft.getTypeName();</span>
+<span class="nc bnc" id="L307" title="All 2 branches missed.">                    if (!StringUtils.isBlank(ft.getDescription())){</span>
+<span class="nc" id="L308">                        name+=&quot; (&quot;+ft.getDescription()+&quot;)&quot;;</span>
+                    }
+<span class="nc" id="L310">                    ob.put(&quot;name&quot;,name);                </span>
+<span class="nc" id="L311">                    array.put(ob);</span>
+<span class="nc" id="L312">                }</span>
+<span class="nc" id="L313">                json.put(&quot;featuretypes&quot;, array);            </span>
+<span class="nc" id="L314">                success=true;</span>
+<span class="nc" id="L315">            }else{</span>
+<span class="nc" id="L316">                json.put(&quot;error&quot;, getBundle().getString(&quot;viewer_admin.featuretyperelationactionbean.noftfound&quot;));</span>
+            }
+        }
+<span class="nc" id="L319">        json.put(&quot;success&quot;, success);</span>
+<span class="nc" id="L320">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+           @Override
+           public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L323">               response.getWriter().print(json);</span>
+<span class="nc" id="L324">           }</span>
+        };
+    }
+    
+    private JSONObject getGridRow(int i, SimpleFeatureType featuretype, SimpleFeatureType foreignFeaturetype) throws JSONException {
+<span class="nc" id="L329">        JSONObject j = new JSONObject();</span>
+<span class="nc" id="L330">        j.put(&quot;id&quot;, i);</span>
+<span class="nc" id="L331">        String typeName= featuretype.getFeatureSource().getName()+&quot;: &quot;+featuretype.getTypeName();</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">        if (featuretype.getDescription()!=null){</span>
+<span class="nc" id="L333">            typeName +=&quot; (&quot;+featuretype.getDescription()+&quot;)&quot;;</span>
+        }
+<span class="nc" id="L335">        j.put(&quot;featuretype&quot;, typeName);        </span>
+<span class="nc" id="L336">        String foreignTypeName = foreignFeaturetype.getFeatureSource().getName()+&quot;: &quot;+foreignFeaturetype.getTypeName();</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">        if (foreignFeaturetype.getDescription()!=null){</span>
+<span class="nc" id="L338">            foreignTypeName+= &quot; (&quot;+foreignFeaturetype.getDescription()+&quot;)&quot;;</span>
+        }
+<span class="nc" id="L340">        j.put(&quot;foreignFeaturetype&quot;,foreignTypeName);</span>
+<span class="nc" id="L341">        return j;</span>
+    }
+    
+    @ValidationMethod(on=&quot;save&quot;)
+    public void validate(ValidationErrors errors){
+<span class="nc bnc" id="L346" title="All 2 branches missed.">        if (relation!=null){</span>
+<span class="nc bnc" id="L347" title="All 4 branches missed.">            if (leftSide.isEmpty() || rightSide.isEmpty()){</span>
+<span class="nc" id="L348">                getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString(&quot;viewer_admin.featuretyperelationactionbean.relmiss&quot;)));</span>
+            }
+        }
+<span class="nc" id="L351">    }</span>
+    
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Getters/setters&quot;&gt;
+    public ActionBeanContext getContext() {
+<span class="nc" id="L355">        return context;</span>
+    }
+    
+    public void setContext(ActionBeanContext context) {
+<span class="nc" id="L359">        this.context = context;</span>
+<span class="nc" id="L360">    }</span>
+
+    public List&lt;FeatureTypeRelation&gt; getRelations() {
+<span class="nc" id="L363">        return relations;</span>
+    }
+
+    public void setRelations(List&lt;FeatureTypeRelation&gt; relations) {
+<span class="nc" id="L367">        this.relations = relations;</span>
+<span class="nc" id="L368">    }</span>
+
+    public FeatureTypeRelation getRelation() {
+<span class="nc" id="L371">        return relation;</span>
+    }
+
+    public void setRelation(FeatureTypeRelation relation) {
+<span class="nc" id="L375">        this.relation = relation;</span>
+<span class="nc" id="L376">    }</span>
+
+    public void setFeatureTypes(List&lt;SimpleFeatureType&gt; featureTypes) {
+<span class="nc" id="L379">        this.featureTypes = featureTypes;</span>
+<span class="nc" id="L380">    }</span>
+
+    public int getPage() {
+<span class="nc" id="L383">        return page;</span>
+    }
+
+    public void setPage(int page) {
+<span class="nc" id="L387">        this.page = page;</span>
+<span class="nc" id="L388">    }</span>
+
+    public int getStart() {
+<span class="nc" id="L391">        return start;</span>
+    }
+
+    public void setStart(int start) {
+<span class="nc" id="L395">        this.start = start;</span>
+<span class="nc" id="L396">    }</span>
+
+    public int getLimit() {
+<span class="nc" id="L399">        return limit;</span>
+    }
+
+    public void setLimit(int limit) {
+<span class="nc" id="L403">        this.limit = limit;</span>
+<span class="nc" id="L404">    }</span>
+
+    public String getSort() {
+<span class="nc" id="L407">        return sort;</span>
+    }
+
+    public void setSort(String sort) {
+<span class="nc" id="L411">        this.sort = sort;</span>
+<span class="nc" id="L412">    }</span>
+
+    public String getDir() {
+<span class="nc" id="L415">        return dir;</span>
+    }
+
+    public void setDir(String dir) {
+<span class="nc" id="L419">        this.dir = dir;</span>
+<span class="nc" id="L420">    }</span>
+
+    public JSONArray getFilter() {
+<span class="nc" id="L423">        return filter;</span>
+    }
+
+    public void setFilter(JSONArray filter) {
+<span class="nc" id="L427">        this.filter = filter;</span>
+<span class="nc" id="L428">    }</span>
+
+    public List&lt;SimpleFeatureType&gt; getForeignFeatureTypes() {
+<span class="nc" id="L431">        return foreignFeatureTypes;</span>
+    }
+
+    public void setForeignFeatureTypes(List&lt;SimpleFeatureType&gt; foreignFeatureTypes) {
+<span class="nc" id="L435">        this.foreignFeatureTypes = foreignFeatureTypes;</span>
+<span class="nc" id="L436">    }</span>
+
+    public List&lt;FeatureSource&gt; getFeatureSources() {
+<span class="nc" id="L439">        return featureSources;</span>
+    }
+
+    public void setFeatureSources(List&lt;FeatureSource&gt; featureSources) {
+<span class="nc" id="L443">        this.featureSources = featureSources;</span>
+<span class="nc" id="L444">    }</span>
+
+    public Long getFeatureSourceId() {
+<span class="nc" id="L447">        return featureSourceId;</span>
+    }
+
+    public void setFeatureSourceId(Long featureSourceId) {
+<span class="nc" id="L451">        this.featureSourceId = featureSourceId;</span>
+<span class="nc" id="L452">    }</span>
+
+    public Long getFeatureTypeId() {
+<span class="nc" id="L455">        return featureTypeId;</span>
+    }
+
+    public void setFeatureTypeId(Long featureTypeId) {
+<span class="nc" id="L459">        this.featureTypeId = featureTypeId;</span>
+<span class="nc" id="L460">    }</span>
+
+    public List&lt;SimpleFeatureType&gt; getFeatureTypes() {
+<span class="nc" id="L463">        return featureTypes;</span>
+    }
+
+    public Map&lt;Integer,Long&gt; getLeftSide() {
+<span class="nc" id="L467">        return leftSide;</span>
+    }
+
+    public void setLeftSide(Map&lt;Integer,Long&gt; leftSide) {
+<span class="nc" id="L471">        this.leftSide = leftSide;</span>
+<span class="nc" id="L472">    }</span>
+
+    public Map&lt;Integer,Long&gt; getRightSide() {
+<span class="nc" id="L475">        return rightSide;</span>
+    }
+
+    public void setRightSide(Map&lt;Integer,Long&gt; rightSide) {
+<span class="nc" id="L479">        this.rightSide = rightSide;</span>
+<span class="nc" id="L480">    }</span>
+    //&lt;/editor-fold&gt;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

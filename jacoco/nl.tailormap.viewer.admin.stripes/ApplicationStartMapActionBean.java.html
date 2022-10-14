@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationStartMapActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">ApplicationStartMapActionBean.java</span></div><h1>ApplicationStartMapActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2016 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.DontValidate;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import nl.tailormap.viewer.config.app.Application;
+import nl.tailormap.viewer.config.app.ApplicationLayer;
+import nl.tailormap.viewer.config.app.Level;
+import nl.tailormap.viewer.config.app.StartLayer;
+import nl.tailormap.viewer.config.app.StartLevel;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.util.SelectedContentCache;
+import nl.tailormap.web.stripes.ErrorMessageResolution;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletResponse;
+import java.io.StringReader;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ *
+ * @author Jytte Schaeffer
+ * @author Meine Toonen
+ */
+<span class="fc" id="L58">@UrlBinding(&quot;/action/applicationstartmap/{$event}&quot;)</span>
+@StrictBinding
+@RolesAllowed({Group.ADMIN,Group.APPLICATION_ADMIN}) 
+<span class="fc" id="L61">public class ApplicationStartMapActionBean extends ApplicationActionBean {</span>
+
+    private static final String JSP = &quot;/WEB-INF/jsp/application/applicationStartMap.jsp&quot;;
+    
+    @Validate
+    private String selectedContent;
+    private JSONArray jsonContent;
+    
+    @Validate
+    private String contentToBeSelected;
+    
+    @Validate
+    private String checkedLayersString;
+    private JSONArray jsonCheckedLayers;
+    //private List&lt;Long&gt; checkedLayers = new ArrayList();
+    
+<span class="fc" id="L77">    private JSONArray allCheckedLayers = new JSONArray();</span>
+    
+    @Validate
+    private String readdedLayersString;
+    private JSONArray readdedLayers;
+    
+    @Validate
+    private String nodeId;
+    @Validate
+    private String levelId;
+    private Level rootlevel;
+    
+<span class="fc" id="L89">    @Validate</span>
+    private String removedRecordsString = new String();
+    
+<span class="fc" id="L92">    private Set&lt;Long&gt; levelsToBeRemoved = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L93">    private Set&lt;Long&gt; layersToBeRemoved = new HashSet&lt;&gt;();</span>
+
+    @DefaultHandler
+    @DontValidate
+    public Resolution view() throws JSONException {
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (application == null) {</span>
+<span class="nc" id="L99">            getContext().getMessages().add(new SimpleError(getBundle().getString(&quot;viewer_admin.applicationstartmapactionbean.actfirst&quot;)));</span>
+<span class="nc" id="L100">            return new ForwardResolution(&quot;/WEB-INF/jsp/application/chooseApplication.jsp&quot;);</span>
+        } else {
+<span class="nc" id="L102">            rootlevel = application.getRoot();</span>
+<span class="nc" id="L103">            getCheckedLayerList(allCheckedLayers, rootlevel, application);</span>
+        }
+
+<span class="nc" id="L106">        return new ForwardResolution(JSP);</span>
+    }
+    
+    public Resolution save() throws JSONException {
+        
+<span class="nc" id="L111">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L112">        saveStartMap(em);</span>
+<span class="nc" id="L113">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.applicationstartmapactionbean.skbsaved&quot;)));</span>
+        
+<span class="nc" id="L115">        getCheckedLayerList(allCheckedLayers, rootlevel, application);</span>
+        
+<span class="nc" id="L117">        return new ForwardResolution(JSP);</span>
+    }
+    
+    protected void saveStartMap(EntityManager em){
+<span class="fc" id="L121">        rootlevel = application.getRoot();</span>
+        
+<span class="fc" id="L123">        jsonContent = new JSONArray(selectedContent);</span>
+<span class="fc" id="L124">        jsonCheckedLayers = new JSONArray(checkedLayersString);</span>
+<span class="fc" id="L125">        readdedLayers = new JSONArray(readdedLayersString);</span>
+        
+<span class="fc" id="L127">        JSONArray objToRemove = new JSONArray();</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        if(removedRecordsString != null){</span>
+<span class="fc" id="L129">            objToRemove = new JSONArray(removedRecordsString);</span>
+        }
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        for (Object obj : objToRemove) {</span>
+<span class="fc" id="L132">            JSONObject o = (JSONObject)obj;</span>
+<span class="fc" id="L133">            String type = o.getString(&quot;type&quot;);</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">            if(type.equals(&quot;layer&quot;)){</span>
+<span class="fc" id="L135">                layersToBeRemoved.add(o.getLong(&quot;id&quot;));</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">            }else if( type.equals(&quot;level&quot;)){</span>
+<span class="fc" id="L137">                levelsToBeRemoved.add(o.getLong(&quot;id&quot;));</span>
+            }
+<span class="fc" id="L139">        }</span>
+        
+<span class="fc" id="L141">        walkAppTreeForSave(rootlevel,em,false);</span>
+<span class="fc" id="L142">        SelectedContentCache.setApplicationCacheDirty(application, true,false,true,em);</span>
+<span class="fc" id="L143">        em.getTransaction().commit();</span>
+<span class="fc" id="L144">    }</span>
+    
+    public Resolution canContentBeSelected() {
+        try {
+<span class="nc" id="L148">            jsonContent = new JSONArray(selectedContent);</span>
+            
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            if(jsonContent.length() == 0) {</span>
+<span class="nc" id="L151">                JSONObject obj = new JSONObject();</span>
+<span class="nc" id="L152">                obj.put(&quot;result&quot;, true);</span>
+<span class="nc" id="L153">                return new StreamingResolution(&quot;application/json&quot;, new StringReader(obj.toString()));</span>
+            }
+            
+<span class="nc" id="L156">            JSONObject o = new JSONObject(contentToBeSelected);        </span>
+
+<span class="nc" id="L158">            Boolean result = true;</span>
+<span class="nc" id="L159">            String message = null;</span>
+
+<span class="nc" id="L161">            String id = o.getString(&quot;id&quot;);</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">            if(o.get(&quot;type&quot;).equals(&quot;layer&quot;)) {</span>
+                // kaarten kunnen los worden toegevoegd.
+            }else{
+<span class="nc" id="L165">                Level level = Stripersist.getEntityManager().find(Level.class, Long.valueOf(id));</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                if(level == null) {</span>
+<span class="nc" id="L167">                    result = false;</span>
+<span class="nc" id="L168">                    message = MessageFormat.format(getBundle().getString(&quot;viewer_admin.applicationstartmapactionbean.unknown&quot;), id);</span>
+                } else {
+<span class="nc bnc" id="L170" title="All 2 branches missed.">                    if(!level.hasLayerInSubtree()) {</span>
+<span class="nc" id="L171">                        message = getBundle().getString(&quot;viewer_admin.applicationstartmapactionbean.nomap&quot;);</span>
+<span class="nc" id="L172">                        result = false;</span>
+
+                    } else {
+                        /* A level can not be selected if:
+                        * any level in selectedContent is the level is a sublevel of the level
+                        * any level in selectedContent is a parent (recursive) of the level
+                        */
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                        for(int i = 0; i &lt; jsonContent.length(); i++) {</span>
+<span class="nc" id="L180">                            JSONObject content = jsonContent.getJSONObject(i);</span>
+
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                            if(content.getString(&quot;type&quot;).equals(&quot;level&quot;)) {</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                                if(id.equals(content.getString(&quot;id&quot;))) {</span>
+<span class="nc" id="L184">                                    result = false;</span>
+<span class="nc" id="L185">                                    message = getBundle().getString(&quot;viewer_admin.applicationstartmapactionbean.alreadyselected0&quot;);</span>
+<span class="nc" id="L186">                                    break;</span>
+                                }
+
+<span class="nc" id="L189">                                Level l = Stripersist.getEntityManager().find(Level.class, Long.valueOf(content.getString(&quot;id&quot;)));</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                                if(l != null) {</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">                                    if(l.isInSubtreeOf(level)) {</span>
+<span class="nc" id="L192">                                        result = false;</span>
+<span class="nc" id="L193">                                        message = getBundle().getString(&quot;viewer_admin.applicationstartmapactionbean.alreadyselected1&quot;);</span>
+<span class="nc" id="L194">                                        break;</span>
+                                    }
+                                }
+<span class="nc" id="L197">                            } else {</span>
+<span class="nc" id="L198">                                ApplicationLayer appLayer = Stripersist.getEntityManager().find(ApplicationLayer.class, Long.valueOf(content.getString(&quot;id&quot;)));</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">                                if(level.containsLayerInSubtree(appLayer)) {</span>
+<span class="nc" id="L200">                                    result = false;</span>
+<span class="nc" id="L201">                                    message = getBundle().getString(&quot;viewer_admin.applicationstartmapactionbean.alreadyselected2&quot;);</span>
+<span class="nc" id="L202">                                    break;</span>
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+<span class="nc" id="L209">            JSONObject obj = new JSONObject();</span>
+<span class="nc" id="L210">            obj.put(&quot;result&quot;, result);</span>
+<span class="nc" id="L211">            obj.put(&quot;message&quot;, message);</span>
+<span class="nc" id="L212">            return new StreamingResolution(&quot;application/json&quot;, new StringReader(obj.toString()));</span>
+
+<span class="nc" id="L214">        } catch(NumberFormatException | JSONException e) {</span>
+<span class="nc" id="L215">            return new ErrorMessageResolution(&quot;Exception &quot; + e.getClass() + &quot;: &quot; + e.getMessage());</span>
+        }
+    }
+    
+    protected void walkAppTreeForSave(Level l, EntityManager em, boolean unremove) throws JSONException{
+        
+<span class="fc bfc" id="L221" title="All 2 branches covered.">        if(shouldBeRemoved(l)){</span>
+<span class="fc" id="L222">            removeStartLevel(l, em);</span>
+        }else{
+<span class="fc" id="L224">            boolean wasNew = false;</span>
+<span class="fc" id="L225">            StartLevel sl = l.getStartLevels().get(application);</span>
+<span class="fc bfc" id="L226" title="All 2 branches covered.">            if(sl == null){</span>
+<span class="fc" id="L227">                wasNew = true;</span>
+<span class="fc" id="L228">                sl = new StartLevel();</span>
+<span class="fc" id="L229">                sl.setApplication(application);</span>
+<span class="fc" id="L230">                sl.setLevel(l);</span>
+<span class="fc" id="L231">                l.getStartLevels().put(application, sl);</span>
+            }
+            
+<span class="fc" id="L234">            sl.setSelectedIndex(getSelectedContentIndex(l));</span>
+<span class="fc bfc" id="L235" title="All 6 branches covered.">            boolean unremoveChilds = (sl.isRemoved() &amp;&amp; sl.getSelectedIndex() != null) || unremove;</span>
+<span class="fc bfc" id="L236" title="All 2 branches covered.">            if(unremoveChilds){</span>
+<span class="fc" id="L237">                sl.setRemoved(false);</span>
+            }
+<span class="fc bfc" id="L239" title="All 2 branches covered.">            for(ApplicationLayer al: l.getLayers()) {</span>
+<span class="fc" id="L240">                StartLayer startLayer = al.getStartLayers().get(application);</span>
+<span class="fc bfc" id="L241" title="All 2 branches covered.">                if(shouldBeRemoved(al)){</span>
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">                    if (startLayer == null) {</span>
+<span class="nc" id="L243">                        startLayer = new StartLayer();</span>
+<span class="nc" id="L244">                        startLayer.setApplication(application);</span>
+<span class="nc" id="L245">                        startLayer.setApplicationLayer(al);</span>
+<span class="nc" id="L246">                        startLayer.setRemoved(true);</span>
+<span class="nc" id="L247">                        al.getStartLayers().put(application, startLayer);</span>
+                    }else{
+<span class="fc" id="L249">                        startLayer.setRemoved(true);</span>
+                    }
+                }else{
+<span class="pc bpc" id="L252" title="4 of 8 branches missed.">                    if(!wasNew &amp;&amp; !unremoveChilds &amp;&amp; startLayer == null &amp;&amp; !layerExistsInJSONArray(al)){</span>
+                        // if the startLevel was new, there is no startLayer. So if it wasn't new, and there isn't a startLayer, it means the startLayer was removed
+                        // in a previous session, so don't create a new one.
+<span class="nc" id="L255">                        continue;</span>
+                    }
+<span class="fc bfc" id="L257" title="All 2 branches covered.">                    if(startLayer == null){</span>
+<span class="fc" id="L258">                        startLayer = new StartLayer();</span>
+<span class="fc" id="L259">                        startLayer.setApplication(application);</span>
+<span class="fc" id="L260">                        startLayer.setApplicationLayer(al);</span>
+<span class="fc" id="L261">                        al.getStartLayers().put(application, startLayer);</span>
+                    }
+
+<span class="fc" id="L264">                    startLayer.setSelectedIndex(getSelectedContentIndex(al));</span>
+<span class="fc" id="L265">                    startLayer.setChecked(getCheckedForLayerId(al.getId()));</span>
+<span class="pc bpc" id="L266" title="1 of 4 branches missed.">                    if(unremoveChilds || startLayer.getSelectedIndex() != null){</span>
+<span class="fc" id="L267">                        startLayer.setRemoved(false);</span>
+                    }
+                }
+                
+<span class="fc" id="L271">            }</span>
+
+<span class="fc bfc" id="L273" title="All 2 branches covered.">            for(Level child: l.getChildren()) {</span>
+<span class="fc" id="L274">                walkAppTreeForSave(child,em, unremoveChilds);</span>
+<span class="fc" id="L275">            }</span>
+        }
+<span class="fc" id="L277">    }</span>
+    
+    private boolean shouldBeRemoved(Object l){
+<span class="fc bfc" id="L280" title="All 2 branches covered.">        if(l instanceof Level){</span>
+<span class="fc" id="L281">            Level level = (Level)l;</span>
+<span class="fc" id="L282">            return levelsToBeRemoved.contains(level.getId());</span>
+        }
+        
+<span class="pc bpc" id="L285" title="1 of 2 branches missed.">        if(l instanceof ApplicationLayer){</span>
+<span class="fc" id="L286">            ApplicationLayer al = (ApplicationLayer)l;</span>
+<span class="fc" id="L287">            return layersToBeRemoved.contains(al.getId());</span>
+        }
+<span class="nc" id="L289">        return false;</span>
+    }
+    
+    private boolean getCheckedForLayerId(Long levelid) throws JSONException {
+<span class="pc bpc" id="L293" title="1 of 2 branches missed.">        for(int i = 0; i &lt; jsonCheckedLayers.length(); i++){</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">            if(levelid.equals((long) jsonCheckedLayers.getInt(i))) {</span>
+<span class="nc" id="L295">                return true;</span>
+            }
+        }
+<span class="fc" id="L298">        return false;</span>
+    }
+    
+    private Integer getSelectedContentIndex(Level l) throws JSONException{
+<span class="fc" id="L302">        Integer index = null;</span>
+        
+<span class="fc bfc" id="L304" title="All 2 branches covered.">        for(int i = 0; i &lt; jsonContent.length(); i++){</span>
+<span class="fc" id="L305">            JSONObject js = jsonContent.getJSONObject(i);</span>
+<span class="fc" id="L306">            String id = js.get(&quot;id&quot;).toString();</span>
+<span class="fc" id="L307">            String type = js.get(&quot;type&quot;).toString();</span>
+<span class="pc bpc" id="L308" title="1 of 4 branches missed.">            if(id.equals(l.getId().toString()) &amp;&amp; type.equals(&quot;level&quot;)){</span>
+<span class="fc" id="L309">                index = i;</span>
+            }
+        }
+        
+<span class="fc" id="L313">        return index;</span>
+    }
+    
+    private Integer getSelectedContentIndex(ApplicationLayer al) throws JSONException{
+<span class="fc" id="L317">        Integer index = null;</span>
+        
+<span class="fc bfc" id="L319" title="All 2 branches covered.">        for(int i = 0; i &lt; jsonContent.length(); i++){</span>
+<span class="fc" id="L320">            JSONObject js = jsonContent.getJSONObject(i);</span>
+<span class="fc" id="L321">            String id = js.get(&quot;id&quot;).toString();</span>
+<span class="fc" id="L322">            String type = js.get(&quot;type&quot;).toString();</span>
+<span class="pc bpc" id="L323" title="1 of 4 branches missed.">            if(id.equals(al.getId().toString()) &amp;&amp; type.equals(&quot;layer&quot;)){</span>
+<span class="nc" id="L324">                index = i;</span>
+            }
+        }
+        
+<span class="fc" id="L328">        return index;</span>
+    }
+
+    public Resolution loadApplicationTree() throws JSONException {
+
+<span class="nc" id="L333">        EntityManager em = Stripersist.getEntityManager();</span>
+
+<span class="nc" id="L335">        final JSONArray children = new JSONArray();</span>
+
+<span class="nc bnc" id="L337" title="All 2 branches missed.">        if (!nodeId.equals(&quot;n&quot;)) {</span>
+
+<span class="nc" id="L339">            String type = nodeId.substring(0, 1);</span>
+<span class="nc" id="L340">            int id = Integer.parseInt(nodeId.substring(1));</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">            if (type.equals(&quot;n&quot;)) {</span>
+<span class="nc" id="L342">                Level l = em.find(Level.class, (long) id);</span>
+<span class="nc" id="L343">                List&lt;Level&gt; levels = l.getChildren();</span>
+<span class="nc" id="L344">                Collections.sort(levels);</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">                for (Level sub : levels) {</span>
+<span class="nc" id="L346">                    JSONObject j = new JSONObject();</span>
+<span class="nc" id="L347">                    j.put(&quot;id&quot;, &quot;n&quot; + sub.getId());</span>
+<span class="nc" id="L348">                    j.put(&quot;name&quot;, sub.getName());</span>
+<span class="nc" id="L349">                    j.put(&quot;type&quot;, &quot;level&quot;);</span>
+<span class="nc bnc" id="L350" title="All 4 branches missed.">                    j.put(&quot;isLeaf&quot;, sub.getChildren().isEmpty() &amp;&amp; sub.getLayers().isEmpty());</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">                    if (sub.getParent() != null) {</span>
+<span class="nc" id="L352">                        j.put(&quot;parentid&quot;, sub.getParent().getId());</span>
+                    }
+<span class="nc" id="L354">                    children.put(j);</span>
+<span class="nc" id="L355">                }</span>
+
+<span class="nc bnc" id="L357" title="All 2 branches missed.">                for (ApplicationLayer layer : l.getLayers()) {</span>
+<span class="nc" id="L358">                    JSONObject j = new JSONObject();</span>
+<span class="nc" id="L359">                    j.put(&quot;id&quot;, &quot;s&quot; + layer.getId());</span>
+<span class="nc" id="L360">                    j.put(&quot;name&quot;, layer.getDisplayName(em));</span>
+<span class="nc" id="L361">                    j.put(&quot;type&quot;, &quot;layer&quot;);</span>
+<span class="nc" id="L362">                    j.put(&quot;isLeaf&quot;, true);</span>
+<span class="nc" id="L363">                    j.put(&quot;parentid&quot;, nodeId);</span>
+<span class="nc" id="L364">                    children.put(j);</span>
+<span class="nc" id="L365">                }</span>
+            }
+        }
+
+<span class="nc" id="L369">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+
+            @Override
+            public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L373">                response.getWriter().print(children);</span>
+<span class="nc" id="L374">            }</span>
+        };
+    }
+
+    public Resolution loadSelectedLayers() throws JSONException {
+<span class="nc" id="L379">        EntityManager em = Stripersist.getEntityManager();</span>
+
+<span class="nc" id="L381">        final JSONArray children = loadSelectedLayers(em);</span>
+        
+<span class="nc" id="L383">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+
+            @Override
+            public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L387">                response.getWriter().print(children.toString());</span>
+<span class="nc" id="L388">            }</span>
+        };
+    }
+    
+    protected JSONArray loadSelectedLayers(EntityManager em){
+        
+<span class="fc" id="L394">        final JSONArray children = new JSONArray();</span>
+<span class="fc" id="L395">        rootlevel = application.getRoot();</span>
+<span class="fc" id="L396">        readdedLayers = new JSONArray(readdedLayersString);</span>
+
+<span class="pc bpc" id="L398" title="2 of 4 branches missed.">        if(levelId != null &amp;&amp; levelId.substring(1).equals(rootlevel.getId().toString())){</span>
+<span class="nc" id="L399">            List&lt;Object&gt; selectedObjects = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L400">            walkAppTreeForStartMap(selectedObjects, rootlevel, application);</span>
+
+<span class="nc" id="L402">            Collections.sort(selectedObjects, (lhs, rhs) -&gt; {</span>
+                Integer lhsIndex, rhsIndex;
+<span class="nc bnc" id="L404" title="All 2 branches missed.">                if(lhs instanceof StartLevel) {</span>
+<span class="nc" id="L405">                    lhsIndex = ((StartLevel)lhs).getSelectedIndex();</span>
+                } else {
+<span class="nc" id="L407">                    lhsIndex = ((StartLayer)lhs).getSelectedIndex();</span>
+                }
+<span class="nc bnc" id="L409" title="All 2 branches missed.">                if(rhs instanceof StartLevel) {</span>
+<span class="nc" id="L410">                    rhsIndex = ((StartLevel)rhs).getSelectedIndex();</span>
+                } else {
+<span class="nc" id="L412">                    rhsIndex = ((StartLayer)rhs).getSelectedIndex();</span>
+                }
+<span class="nc" id="L414">                return lhsIndex.compareTo(rhsIndex);</span>
+            });
+
+<span class="nc bnc" id="L417" title="All 2 branches missed.">            if(selectedObjects != null){</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">                for (Object map : selectedObjects) {</span>
+<span class="nc bnc" id="L419" title="All 2 branches missed.">                    if (map instanceof StartLayer) {</span>
+<span class="nc" id="L420">                        StartLayer startLayer = (StartLayer) map;</span>
+<span class="nc" id="L421">                        ApplicationLayer layer = startLayer.getApplicationLayer();</span>
+<span class="nc" id="L422">                        JSONObject j = new JSONObject();</span>
+<span class="nc" id="L423">                        j.put(&quot;id&quot;, &quot;s&quot; + layer.getId());</span>
+<span class="nc" id="L424">                        j.put(&quot;name&quot;, layer.getDisplayName(em));</span>
+<span class="nc" id="L425">                        j.put(&quot;type&quot;, &quot;layer&quot;);</span>
+<span class="nc" id="L426">                        j.put(&quot;isLeaf&quot;, true);</span>
+<span class="nc" id="L427">                        j.put(&quot;parentid&quot;, &quot;&quot;);</span>
+<span class="nc" id="L428">                        j.put(&quot;checked&quot;, startLayer.isChecked());</span>
+<span class="nc" id="L429">                        children.put(j);</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">                    } else if (map instanceof StartLevel) {</span>
+<span class="nc" id="L431">                        StartLevel startLevel = (StartLevel) map;</span>
+<span class="nc" id="L432">                        Level level = startLevel.getLevel();</span>
+<span class="nc" id="L433">                        JSONArray checked = new JSONArray();</span>
+<span class="nc" id="L434">                        getCheckedLayerList(checked, level, application);</span>
+
+<span class="nc" id="L436">                        JSONObject j = new JSONObject();</span>
+<span class="nc" id="L437">                        j.put(&quot;id&quot;, &quot;n&quot; + level.getId());</span>
+<span class="nc" id="L438">                        j.put(&quot;name&quot;, startLevel.getLevel().getName());</span>
+<span class="nc" id="L439">                        j.put(&quot;type&quot;, &quot;level&quot;);</span>
+<span class="nc bnc" id="L440" title="All 4 branches missed.">                        j.put(&quot;isLeaf&quot;, level.getChildren().isEmpty() &amp;&amp; level.getLayers().isEmpty());</span>
+<span class="nc" id="L441">                        j.put(&quot;parentid&quot;, &quot;&quot;);</span>
+<span class="nc" id="L442">                        j.put(&quot;checkedlayers&quot;, checked);</span>
+<span class="nc" id="L443">                        children.put(j);</span>
+                    }
+<span class="nc" id="L445">                }</span>
+            }
+<span class="nc" id="L447">        }else{</span>
+<span class="pc bpc" id="L448" title="1 of 2 branches missed.">            assert levelId != null;</span>
+<span class="fc" id="L449">            String type = levelId.substring(0, 1);</span>
+<span class="fc" id="L450">            int id = Integer.parseInt(levelId.substring(1));</span>
+<span class="pc bpc" id="L451" title="1 of 2 branches missed.">            if (type.equals(&quot;n&quot;)) {</span>
+<span class="fc" id="L452">                Level l = em.find(Level.class, (long) id);</span>
+<span class="fc bfc" id="L453" title="All 2 branches covered.">                for (Level sub : l.getChildren()) {</span>
+<span class="fc" id="L454">                    StartLevel sl = sub.getStartLevels().get(application);</span>
+<span class="pc bpc" id="L455" title="3 of 4 branches missed.">                    if(sl != null || !l.getStartLevels().containsKey(application)){</span>
+<span class="pc bpc" id="L456" title="1 of 4 branches missed.">                        if(sl != null &amp;&amp; sl.isRemoved()){</span>
+<span class="fc" id="L457">                            continue;</span>
+                        }
+<span class="fc" id="L459">                        JSONObject j = new JSONObject();</span>
+<span class="fc" id="L460">                        j.put(&quot;id&quot;, &quot;n&quot; + sub.getId());</span>
+<span class="fc" id="L461">                        j.put(&quot;name&quot;, sub.getName());</span>
+<span class="fc" id="L462">                        j.put(&quot;type&quot;, &quot;level&quot;);</span>
+<span class="pc bpc" id="L463" title="2 of 4 branches missed.">                        j.put(&quot;isLeaf&quot;, sub.getChildren().isEmpty() &amp;&amp; sub.getLayers().isEmpty());</span>
+<span class="pc bpc" id="L464" title="1 of 2 branches missed.">                        if (sub.getParent() != null) {</span>
+<span class="fc" id="L465">                            j.put(&quot;parentid&quot;, sub.getParent().getId());</span>
+                        }
+<span class="fc" id="L467">                        children.put(j);</span>
+                    }
+<span class="fc" id="L469">                }</span>
+
+<span class="fc bfc" id="L471" title="All 2 branches covered.">                for (ApplicationLayer layer : l.getLayers()) {</span>
+<span class="fc" id="L472">                    StartLayer startLayer = layer.getStartLayers().get(application);</span>
+<span class="fc bfc" id="L473" title="All 2 branches covered.">                    if (startLayer != null) {</span>
+<span class="fc bfc" id="L474" title="All 2 branches covered.">                        if (startLayer.isRemoved()) {</span>
+<span class="fc" id="L475">                            continue;</span>
+                        }
+
+                        //if the startLevel doesn't exist, it's a new startLayer (so show it)
+                        // if the startLayer doesn't exist, but the startLevel does, it's a removed startLayer, so don't show it.  
+<span class="fc" id="L480">                        JSONObject j = new JSONObject();</span>
+<span class="fc" id="L481">                        j.put(&quot;id&quot;, &quot;s&quot; + layer.getId());</span>
+<span class="fc" id="L482">                        j.put(&quot;name&quot;, layer.getDisplayName(em));</span>
+<span class="fc" id="L483">                        j.put(&quot;type&quot;, &quot;layer&quot;);</span>
+<span class="fc" id="L484">                        j.put(&quot;isLeaf&quot;, true);</span>
+<span class="fc" id="L485">                        j.put(&quot;parentid&quot;, levelId);</span>
+<span class="fc" id="L486">                        j.put(&quot;checked&quot;, startLayer.isChecked());</span>
+<span class="fc" id="L487">                        children.put(j);</span>
+<span class="pc bpc" id="L488" title="1 of 2 branches missed.">                    } else if (layerExistsInJSONArray(layer)) {</span>
+<span class="nc" id="L489">                        JSONObject j = new JSONObject();</span>
+<span class="nc" id="L490">                        j.put(&quot;id&quot;, &quot;s&quot; + layer.getId());</span>
+<span class="nc" id="L491">                        j.put(&quot;name&quot;, layer.getDisplayName(em));</span>
+<span class="nc" id="L492">                        j.put(&quot;type&quot;, &quot;layer&quot;);</span>
+<span class="nc" id="L493">                        j.put(&quot;isLeaf&quot;, true);</span>
+<span class="nc" id="L494">                        j.put(&quot;parentid&quot;, levelId);</span>
+<span class="nc" id="L495">                        j.put(&quot;checked&quot;, false);</span>
+<span class="nc" id="L496">                        children.put(j);</span>
+                    }
+<span class="fc" id="L498">                }</span>
+            }
+        }
+<span class="fc" id="L501">        return children;</span>
+    }
+    
+    private boolean layerExistsInJSONArray(ApplicationLayer layer){
+<span class="pc bpc" id="L505" title="1 of 2 branches missed.">        for (Object l : readdedLayers) {</span>
+<span class="nc" id="L506">            JSONObject obj = (JSONObject)l;</span>
+<span class="nc" id="L507">            int id = obj.getInt(&quot;id&quot;);</span>
+<span class="nc bnc" id="L508" title="All 2 branches missed.">            if(layer.getId() == id){</span>
+<span class="nc" id="L509">                return true;</span>
+            }
+            
+<span class="nc" id="L512">        }</span>
+<span class="fc" id="L513">        return false;</span>
+    }
+    
+    protected static void walkAppTreeForStartMap(List&lt;Object&gt; selectedContent, Level l, Application app){
+<span class="fc" id="L517">        StartLevel sl = l.getStartLevels().get(app);</span>
+<span class="fc" id="L518">        boolean selected = false;</span>
+<span class="pc bpc" id="L519" title="2 of 6 branches missed.">        if(sl != null &amp;&amp; sl.getSelectedIndex() != null &amp;&amp; !sl.isRemoved()) {</span>
+<span class="fc" id="L520">            selected = true;</span>
+<span class="fc" id="L521">            selectedContent.add(sl);</span>
+        }
+       
+<span class="fc bfc" id="L524" title="All 2 branches covered.">        if (!selected) {</span>
+<span class="fc bfc" id="L525" title="All 2 branches covered.">            for (ApplicationLayer al : l.getLayers()) {</span>
+<span class="fc" id="L526">                StartLayer startLayer = al.getStartLayers().get(app);</span>
+<span class="pc bpc" id="L527" title="4 of 6 branches missed.">                if (startLayer != null &amp;&amp; startLayer.getSelectedIndex() != null &amp;&amp; !startLayer.isRemoved()) {</span>
+<span class="nc" id="L528">                    selectedContent.add(startLayer);</span>
+                }
+<span class="fc" id="L530">            }</span>
+        }
+        
+<span class="fc bfc" id="L533" title="All 2 branches covered.">        if (!selected) {</span>
+<span class="fc bfc" id="L534" title="All 2 branches covered.">            for (Level child : l.getChildren()) {</span>
+<span class="fc" id="L535">                walkAppTreeForStartMap(selectedContent, child, app);</span>
+<span class="fc" id="L536">            }</span>
+        }
+<span class="fc" id="L538">    }</span>
+    
+    private static void getCheckedLayerList(JSONArray layers, Level l, Application app) throws JSONException{
+<span class="nc bnc" id="L541" title="All 2 branches missed.">        for(ApplicationLayer al: l.getLayers()) {</span>
+<span class="nc" id="L542">            StartLayer startLayer = al.getStartLayers().get(app);</span>
+<span class="nc bnc" id="L543" title="All 4 branches missed.">            if(startLayer != null &amp;&amp; startLayer.isChecked()) {</span>
+<span class="nc" id="L544">                layers.put(al.getId());</span>
+            }
+<span class="nc" id="L546">        }</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">        for(Level child: l.getChildren()) {</span>
+<span class="nc" id="L548">            getCheckedLayerList(layers, child, app);</span>
+<span class="nc" id="L549">        }</span>
+<span class="nc" id="L550">    }</span>
+    
+    protected void removeStartLevel(Level l, EntityManager em){
+<span class="fc" id="L553">        StartLevel sl = l.getStartLevels().get(application);</span>
+<span class="pc bpc" id="L554" title="1 of 2 branches missed.">        if (sl != null) {</span>
+<span class="fc" id="L555">            List&lt;ApplicationLayer&gt; als = l.getLayers();</span>
+<span class="fc bfc" id="L556" title="All 2 branches covered.">            for (ApplicationLayer al : als) {</span>
+<span class="fc" id="L557">                StartLayer startLayer = al.getStartLayers().get(application);</span>
+<span class="fc bfc" id="L558" title="All 2 branches covered.">                if(startLayer != null){</span>
+<span class="fc" id="L559">                    startLayer.setRemoved(true);</span>
+                }
+<span class="fc" id="L561">            }</span>
+<span class="fc" id="L562">            sl.setRemoved(true);</span>
+
+<span class="fc" id="L564">            List&lt;Level&gt; children = l.getChildren();</span>
+<span class="fc bfc" id="L565" title="All 2 branches covered.">            for (Level child : children) {</span>
+<span class="fc" id="L566">                removeStartLevel(child, em);</span>
+<span class="fc" id="L567">            }</span>
+        }
+<span class="fc" id="L569">    }</span>
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+
+    public String getCheckedLayersString() {
+<span class="nc" id="L574">        return checkedLayersString;</span>
+    }
+
+    public void setCheckedLayersString(String checkedLayersString) {
+<span class="fc" id="L578">        this.checkedLayersString = checkedLayersString;</span>
+<span class="fc" id="L579">    }</span>
+
+    public String getSelectedContent() {
+<span class="nc" id="L582">        return selectedContent;</span>
+    }
+
+    public void setSelectedContent(String selectedContent) {
+<span class="fc" id="L586">        this.selectedContent = selectedContent;</span>
+<span class="fc" id="L587">    }</span>
+
+    public Level getRootlevel() {
+<span class="nc" id="L590">        return rootlevel;</span>
+    }
+
+    public void setRootlevel(Level rootlevel) {
+<span class="nc" id="L594">        this.rootlevel = rootlevel;</span>
+<span class="nc" id="L595">    }</span>
+
+    public String getLevelId() {
+<span class="nc" id="L598">        return levelId;</span>
+    }
+
+    public void setLevelId(String levelId) {
+<span class="fc" id="L602">        this.levelId = levelId;</span>
+<span class="fc" id="L603">    }</span>
+
+    public JSONArray getAllCheckedLayers() {
+<span class="nc" id="L606">        return allCheckedLayers;</span>
+    }
+
+    public void setAllCheckedLayers(JSONArray allCheckedLayers) {
+<span class="nc" id="L610">        this.allCheckedLayers = allCheckedLayers;</span>
+<span class="nc" id="L611">    }</span>
+
+    public String getNodeId() {
+<span class="nc" id="L614">        return nodeId;</span>
+    }
+
+    public void setNodeId(String nodeId) {
+<span class="nc" id="L618">        this.nodeId = nodeId;</span>
+<span class="nc" id="L619">    }</span>
+
+    public String getContentToBeSelected() {
+<span class="nc" id="L622">        return contentToBeSelected;</span>
+    }
+
+    public void setContentToBeSelected(String contentToBeSelected) {
+<span class="nc" id="L626">        this.contentToBeSelected = contentToBeSelected;</span>
+<span class="nc" id="L627">    }</span>
+    
+    public String getRemovedRecordsString() {
+<span class="nc" id="L630">        return removedRecordsString;</span>
+    }
+
+    public void setRemovedRecordsString(String removedRecordsString) {
+<span class="fc" id="L634">        this.removedRecordsString = removedRecordsString;</span>
+<span class="fc" id="L635">    }</span>
+    
+    public String getReaddedLayersString() {
+<span class="nc" id="L638">        return readdedLayersString;</span>
+    }
+
+    public void setReaddedLayersString(String readdedLayersString) {
+<span class="fc" id="L642">        this.readdedLayersString = readdedLayersString;</span>
+<span class="fc" id="L643">    }</span>
+    //&lt;/editor-fold&gt;
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

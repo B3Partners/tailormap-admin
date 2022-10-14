@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GeoServiceRegistryActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">GeoServiceRegistryActionBean.java</span></div><h1>GeoServiceRegistryActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2011-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.After;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.controller.LifecycleStage;
+import net.sourceforge.stripes.validation.Validate;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.services.Category;
+import nl.tailormap.viewer.config.services.GeoService;
+import nl.tailormap.viewer.config.services.Layer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletResponse;
+import java.io.StringReader;
+import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.List;
+
+import static nl.tailormap.viewer.config.services.Category.ROOT_CATEGORY_ID;
+
+/**
+ *
+ * @author Matthijs Laan
+ */
+@UrlBinding(&quot;/action/geoserviceregistry&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN,Group.REGISTRY_ADMIN})
+<span class="nc" id="L58">public class GeoServiceRegistryActionBean extends LocalizableActionBean {</span>
+<span class="nc" id="L59">    private static final Log log = LogFactory.getLog(GeoServiceRegistryActionBean.class);</span>
+    
+    private static final String JSP = &quot;/WEB-INF/jsp/services/geoserviceregistry.jsp&quot;;
+    private ActionBeanContext context;
+
+    @Validate
+    private String nodeId;
+
+    @Validate
+    private String name;
+
+    private Category category;
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters and setters&quot;&gt;
+    public void setContext(ActionBeanContext context) {
+<span class="nc" id="L74">        this.context = context;</span>
+<span class="nc" id="L75">    }</span>
+    
+    public ActionBeanContext getContext() {
+<span class="nc" id="L78">        return context;</span>
+    }
+
+    public String getName() {
+<span class="nc" id="L82">        return name;</span>
+    }
+
+    public void setName(String name) {
+<span class="nc" id="L86">        this.name = name;</span>
+<span class="nc" id="L87">    }</span>
+
+    public Category getCategory() {
+<span class="nc" id="L90">        return category;</span>
+    }
+    
+    public void setCategory(Category category) {
+<span class="nc" id="L94">        this.category = category;</span>
+<span class="nc" id="L95">    }</span>
+
+    public String getNodeId() {
+<span class="nc" id="L98">        return nodeId;</span>
+    }
+
+    public void setNodeId(String nodeId) {
+<span class="nc" id="L102">        this.nodeId = nodeId;</span>
+<span class="nc" id="L103">    }</span>
+    //&lt;/editor-fold&gt;
+        
+    @DefaultHandler
+    public Resolution view() {
+<span class="nc" id="L108">        category = Stripersist.getEntityManager().find(Category.class, ROOT_CATEGORY_ID);</span>
+                
+<span class="nc" id="L110">        return new ForwardResolution(JSP);</span>
+    }
+    
+    @After(on={&quot;addSubcategory&quot;,&quot;saveCategory&quot;,&quot;removeCategory&quot;}, stages= LifecycleStage.BindingAndValidation)
+    public void loadCategory() {
+<span class="nc" id="L115">        EntityManager em = Stripersist.getEntityManager();</span>
+
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if(nodeId != null) {</span>
+            // Demangle id
+            long id;
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            if(nodeId.equals(&quot;0&quot;)) {</span>
+<span class="nc" id="L121">                id = 0L;</span>
+            } else {
+<span class="nc" id="L123">                id = Long.parseLong(nodeId.substring(1));</span>
+            }
+
+<span class="nc" id="L126">            category = em.find(Category.class, id);</span>
+        }
+<span class="nc" id="L128">    }</span>
+    
+    private String checkCategoryAndNameError() {
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if(category == null) {</span>
+<span class="nc" id="L132">            return getBundle().getString(&quot;viewer_admin.geoserviceregistryactionbean.nocat&quot;);</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        } else if(name == null) {</span>
+<span class="nc" id="L134">            return getBundle().getString(&quot;viewer_admin.geoserviceregistryactionbean.noname&quot;);</span>
+        } else {        
+<span class="nc" id="L136">            return null;</span>
+        }
+    }
+    
+    public Resolution addSubcategory() throws JSONException {
+<span class="nc" id="L141">        EntityManager em = Stripersist.getEntityManager();</span>
+        
+<span class="nc" id="L143">        JSONObject json = new JSONObject();</span>
+
+<span class="nc" id="L145">        json.put(&quot;success&quot;, Boolean.FALSE);</span>
+        
+<span class="nc" id="L147">        String error = checkCategoryAndNameError();</span>
+        
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        if(error == null) {</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            for(Category child: category.getChildren()) {</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                if(name.equals(child.getName())) {</span>
+<span class="nc" id="L152">                    error = getBundle().getString(&quot;viewer_admin.geoserviceregistryactionbean.dupname&quot;);</span>
+                }
+<span class="nc" id="L154">            }            </span>
+        }
+        
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        if(error == null) {</span>
+            try {
+<span class="nc" id="L159">                Category c = new Category();</span>
+<span class="nc" id="L160">                c.setName(name);</span>
+<span class="nc" id="L161">                c.setParent(category);</span>
+<span class="nc" id="L162">                category.getChildren().add(c);</span>
+
+<span class="nc" id="L164">                em.persist(c);</span>
+<span class="nc" id="L165">                em.getTransaction().commit();</span>
+
+<span class="nc" id="L167">                JSONObject node = new JSONObject();</span>
+<span class="nc" id="L168">                node.put(&quot;id&quot;, &quot;c&quot; + c.getId());</span>
+<span class="nc" id="L169">                node.put(&quot;name&quot;, c.getName());</span>
+<span class="nc" id="L170">                node.put(&quot;type&quot;, &quot;category&quot;);</span>
+<span class="nc" id="L171">                node.put(&quot;isLeaf&quot;, true);</span>
+<span class="nc" id="L172">                node.put(&quot;parentid&quot;, nodeId);</span>
+<span class="nc" id="L173">                json.put(&quot;node&quot;, node);</span>
+
+<span class="nc" id="L175">                json.put(&quot;success&quot;, Boolean.TRUE);</span>
+<span class="nc" id="L176">            } catch(Exception e) {</span>
+<span class="nc" id="L177">                log.error(&quot;Error adding category:&quot;, e);</span>
+<span class="nc" id="L178">                error =  MessageFormat.format(getBundle().getString(&quot;viewer_admin.geoserviceregistryactionbean.noadd&quot;), e);</span>
+<span class="nc" id="L179">                Throwable t = e;</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">                while(t.getCause() != null) {</span>
+<span class="nc" id="L181">                    t = t.getCause();</span>
+<span class="nc" id="L182">                    error += &quot;; &quot; + t;</span>
+                }                
+<span class="nc" id="L184">            }</span>
+        }
+        
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if(error != null) {</span>
+<span class="nc" id="L188">            json.put(&quot;error&quot;, error);</span>
+        }              
+<span class="nc" id="L190">        return new StreamingResolution(&quot;application/json&quot;, new StringReader(json.toString()));</span>
+    }
+    
+    public Resolution saveCategory() throws JSONException {
+        
+<span class="nc" id="L195">        JSONObject json = new JSONObject();</span>
+
+<span class="nc" id="L197">        json.put(&quot;success&quot;, Boolean.FALSE);</span>
+        
+<span class="nc" id="L199">        String error = checkCategoryAndNameError();</span>
+        
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if(error == null) {</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">            if(category.getParent() != null) {	</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                for(Category sibling: category.getParent().getChildren()) {</span>
+<span class="nc bnc" id="L204" title="All 4 branches missed.">                     if(sibling != category &amp;&amp; name.equals(sibling.getName())) {</span>
+<span class="nc" id="L205">                         error = getBundle().getString(&quot;viewer_admin.geoserviceregistryactionbean.dupname&quot;);</span>
+                     }
+<span class="nc" id="L207">                 }            </span>
+            }
+        }
+        
+<span class="nc bnc" id="L211" title="All 2 branches missed.">        if(error == null) {</span>
+            try {
+<span class="nc" id="L213">                category.setName(name);</span>
+<span class="nc" id="L214">                Stripersist.getEntityManager().getTransaction().commit();</span>
+<span class="nc" id="L215">                json.put(&quot;success&quot;, Boolean.TRUE);</span>
+<span class="nc" id="L216">                json.put(&quot;name&quot;, category.getName());</span>
+<span class="nc" id="L217">            } catch(Exception e) {</span>
+<span class="nc" id="L218">                log.error(&quot;Error changing name category&quot;, e);</span>
+<span class="nc" id="L219">                error =  MessageFormat.format(getBundle().getString(&quot;viewer_admin.geoserviceregistryactionbean.nonamechg&quot;), e);</span>
+<span class="nc" id="L220">                Throwable t = e;</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                while(t.getCause() != null) {</span>
+<span class="nc" id="L222">                    t = t.getCause();</span>
+<span class="nc" id="L223">                    error += &quot;; &quot; + t;</span>
+                }
+<span class="nc" id="L225">            }</span>
+        }
+        
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        if(error != null) {</span>
+<span class="nc" id="L229">            json.put(&quot;error&quot;, error);</span>
+        }              
+<span class="nc" id="L231">        return new StreamingResolution(&quot;application/json&quot;, new StringReader(json.toString()));</span>
+    }
+    
+    public Resolution removeCategory() throws JSONException {
+<span class="nc" id="L235">        JSONObject json = new JSONObject();</span>
+
+<span class="nc" id="L237">        json.put(&quot;success&quot;, Boolean.FALSE);</span>
+<span class="nc" id="L238">        StringBuilder error = null;</span>
+
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        if(category == null) {</span>
+<span class="nc" id="L241">            error = new StringBuilder(getBundle().getString(&quot;viewer_admin.geoserviceregistryactionbean.nocat&quot;));</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">        } else if(category.getParent() == null) {</span>
+<span class="nc" id="L243">            error = new StringBuilder(getBundle().getString(&quot;viewer_admin.geoserviceregistryactionbean.noupcatrem&quot;));</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        } else if(category.getChildren().size() &gt; 0) {</span>
+<span class="nc" id="L245">            error = new StringBuilder(getBundle().getString(&quot;viewer_admin.geoserviceregistryactionbean.catnotempty&quot;));</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">        } else if(category.getServices().size() &gt; 0) {</span>
+<span class="nc" id="L247">            error = new StringBuilder(getBundle().getString(&quot;viewer_admin.geoserviceregistryactionbean.cathassrv&quot;));</span>
+        }
+
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        if(error == null) {</span>
+            try {
+<span class="nc" id="L252">                Category p = category.getParent();</span>
+<span class="nc" id="L253">                p.getChildren().remove(category);</span>
+<span class="nc" id="L254">                Stripersist.getEntityManager().remove(category);</span>
+<span class="nc" id="L255">                Stripersist.getEntityManager().getTransaction().commit();</span>
+<span class="nc" id="L256">                json.put(&quot;success&quot;, Boolean.TRUE);</span>
+<span class="nc" id="L257">            } catch(Exception e) {</span>
+<span class="nc" id="L258">                log.error(&quot;Error deleting category: &quot;, e);</span>
+<span class="nc" id="L259">                error = new StringBuilder(MessageFormat.format(getBundle().getString(&quot;viewer_admin.geoserviceregistryactionbean.catremerr&quot;), e));</span>
+<span class="nc" id="L260">                Throwable t = e;</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">                while(t.getCause() != null) {</span>
+<span class="nc" id="L262">                    t = t.getCause();</span>
+<span class="nc" id="L263">                    error.append(&quot;; &quot;).append(t);</span>
+                }
+<span class="nc" id="L265">            }</span>
+        }
+        
+<span class="nc bnc" id="L268" title="All 2 branches missed.">        if(error != null) {</span>
+<span class="nc" id="L269">            json.put(&quot;error&quot;, error.toString());</span>
+        }              
+<span class="nc" id="L271">        return new StreamingResolution(&quot;application/json&quot;, new StringReader(json.toString()));</span>
+    }
+    
+    public Resolution tree() throws JSONException {
+
+<span class="nc" id="L276">        EntityManager em = Stripersist.getEntityManager();</span>
+        
+<span class="nc" id="L278">        final JSONArray children = new JSONArray();</span>
+        
+<span class="nc" id="L280">        String type = nodeId.substring(0, 1);</span>
+<span class="nc" id="L281">        int id = Integer.parseInt(nodeId.substring(1));</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">        if(type.equals(&quot;c&quot;)) {</span>
+<span class="nc" id="L283">            Category c = em.find(Category.class, (long) id);</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">            for(Category sub: c.getChildren()) {</span>
+<span class="nc" id="L285">                JSONObject j = new JSONObject();</span>
+<span class="nc" id="L286">                j.put(&quot;id&quot;, &quot;c&quot; + sub.getId());</span>
+<span class="nc" id="L287">                j.put(&quot;name&quot;, sub.getName());</span>
+<span class="nc" id="L288">                j.put(&quot;type&quot;, &quot;category&quot;);</span>
+<span class="nc bnc" id="L289" title="All 4 branches missed.">                j.put(&quot;isLeaf&quot;, sub.getChildren().isEmpty() &amp;&amp; sub.getServices().isEmpty());</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">                if(sub.getParent() != null) {</span>
+<span class="nc" id="L291">                    j.put(&quot;parentid&quot;, sub.getParent().getId());</span>
+                }
+<span class="nc" id="L293">                children.put(j);</span>
+<span class="nc" id="L294">            }</span>
+
+<span class="nc bnc" id="L296" title="All 2 branches missed.">            for(GeoService service: c.getServices()) {</span>
+<span class="nc" id="L297">                JSONObject j = new JSONObject();</span>
+<span class="nc" id="L298">                j.put(&quot;id&quot;, &quot;s&quot; + service.getId());</span>
+<span class="nc" id="L299">                j.put(&quot;name&quot;, service.getName());</span>
+<span class="nc" id="L300">                j.put(&quot;type&quot;, &quot;service&quot;);</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">                j.put(&quot;isLeaf&quot;, service.getTopLayer() == null);</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">                j.put(&quot;status&quot;, service.isMonitoringStatusok() ? &quot;ok&quot; : &quot;error&quot;);</span>
+<span class="nc" id="L303">                j.put(&quot;parentid&quot;, nodeId);</span>
+<span class="nc" id="L304">                children.put(j);</span>
+<span class="nc" id="L305">            }</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">        } else if(type.equals(&quot;s&quot;)) {</span>
+<span class="nc" id="L307">            GeoService gs = em.find(GeoService.class, (long) id);</span>
+            // GeoService may be invalid and not have a top layer
+<span class="nc bnc" id="L309" title="All 2 branches missed.">            if(gs.getTopLayer() != null) {</span>
+                List&lt;Layer&gt; layers;
+<span class="nc bnc" id="L311" title="All 2 branches missed.">                if(!gs.getTopLayer().isVirtual()) {</span>
+<span class="nc" id="L312">                    layers = Collections.singletonList(gs.getTopLayer());</span>
+                } else {
+<span class="nc" id="L314">                    layers = gs.getTopLayer().getChildren();</span>
+                }
+<span class="nc bnc" id="L316" title="All 2 branches missed.">                for(Layer sublayer: layers) {</span>
+<span class="nc" id="L317">                    JSONObject j = new JSONObject();</span>
+<span class="nc" id="L318">                    j.put(&quot;id&quot;, &quot;l&quot; + sublayer.getId());</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">                    if(sublayer.getTitleAlias() != null){</span>
+<span class="nc" id="L320">                        j.put(&quot;name&quot;, sublayer.getTitleAlias());</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">                    }else if(sublayer.getTitle() != null){</span>
+<span class="nc" id="L322">                        j.put(&quot;name&quot;, sublayer.getTitle());</span>
+                    }else{
+<span class="nc" id="L324">                        j.put(&quot;name&quot;, sublayer.getName());</span>
+                    }
+<span class="nc" id="L326">                    j.put(&quot;type&quot;, &quot;layer&quot;);</span>
+<span class="nc" id="L327">                    j.put(&quot;isLeaf&quot;, sublayer.getChildren().isEmpty());</span>
+<span class="nc" id="L328">                    j.put(&quot;parentid&quot;, nodeId);</span>
+<span class="nc" id="L329">                    j.put(&quot;isVirtual&quot;, sublayer.isVirtual());</span>
+<span class="nc" id="L330">                    children.put(j);</span>
+<span class="nc" id="L331">                }</span>
+            }
+        }
+<span class="nc bnc" id="L334" title="All 2 branches missed.">        if(type.equals(&quot;l&quot;)) {</span>
+<span class="nc" id="L335">            Layer layer = em.find(Layer.class, (long) id);</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">            for(Layer sublayer: layer.getChildren()) {</span>
+<span class="nc" id="L337">                JSONObject j = new JSONObject();</span>
+<span class="nc" id="L338">                j.put(&quot;id&quot;, &quot;l&quot; + sublayer.getId());</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">                if(sublayer.getTitleAlias() != null){</span>
+<span class="nc" id="L340">                    j.put(&quot;name&quot;, sublayer.getTitleAlias());</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">                }else if(sublayer.getTitle() != null){</span>
+<span class="nc" id="L342">                    j.put(&quot;name&quot;, sublayer.getTitle());</span>
+                }else{
+<span class="nc" id="L344">                    j.put(&quot;name&quot;, sublayer.getName());</span>
+                }
+<span class="nc" id="L346">                j.put(&quot;type&quot;, &quot;layer&quot;);</span>
+<span class="nc" id="L347">                j.put(&quot;isLeaf&quot;, sublayer.getChildren().isEmpty());</span>
+<span class="nc" id="L348">                j.put(&quot;parentid&quot;, nodeId);</span>
+<span class="nc" id="L349">                j.put(&quot;isVirtual&quot;, sublayer.isVirtual());</span>
+<span class="nc" id="L350">                children.put(j);</span>
+<span class="nc" id="L351">            }</span>
+        }
+        
+<span class="nc" id="L354">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+           @Override
+           public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L357">               response.getWriter().print(children);</span>
+<span class="nc" id="L358">           }</span>
+        };
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

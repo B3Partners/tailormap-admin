@@ -1,0 +1,54 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Tailormap Admin,nl.tailormap.viewer.admin,UpgradeCheck,47,0,0,0,21,0,12,0,12,0
+Tailormap Admin,nl.tailormap.viewer.admin.jaas,TailormapLoginModule,168,0,6,0,40,0,13,0,10,0
+Tailormap Admin,nl.tailormap.viewer.admin.jaas,Group,12,0,0,0,5,0,3,0,3,0
+Tailormap Admin,nl.tailormap.viewer.admin.monitoring,GeoServiceMonitoringListener,134,0,6,0,43,0,9,0,6,0
+Tailormap Admin,nl.tailormap.viewer.admin.monitoring,MonitorJob,327,0,18,0,82,0,15,0,6,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,AttributeActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,AttributeActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,CycloramaConfigurationActionBean,269,0,14,0,67,0,23,0,16,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationTreeActionBean,793,141,66,16,168,31,59,7,22,3
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationTreeLayerActionBean,1028,323,104,36,192,70,101,8,37,2
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,AttributeSourceActionBean,1012,110,64,2,227,29,85,9,52,9
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,I18nActionBean,29,0,0,0,6,0,4,0,4,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,GroupActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,DocumentActionBean,459,0,38,0,104,0,44,0,25,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,DocumentActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,BookmarkActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationTreeLevelActionBean,472,431,46,40,88,93,45,20,14,8
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,AfterUpgradeActionBean,156,0,2,0,40,0,10,0,9,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ComponentConfigSourceActionBean.new StreamingResolution() {...},50,0,4,0,7,0,4,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationStartMapActionBean.new StreamingResolution() {...},17,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationStartMapActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,AttributeActionBean,526,0,56,0,129,0,59,0,31,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,AboutActionBean,15,0,0,0,5,0,4,0,4,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,GroupActionBean,507,0,44,0,120,0,52,0,30,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,GeoServiceRegistryActionBean,866,0,86,0,179,0,60,0,17,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationTreeActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,LayerActionBean,518,0,30,0,112,0,47,0,32,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ImageUploadActionBean,440,0,12,0,95,0,25,0,19,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,AttributeSourceActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationTreeActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationTreeActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationTreeActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationTreeActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationTreeActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationTreeActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ChooseApplicationActionBean,937,98,72,6,214,23,70,6,32,5
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationActionBean,48,41,4,4,13,13,8,6,6,4
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,BookmarkActionBean,335,0,24,0,85,0,34,0,22,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,IndexActionBean,15,0,0,0,5,0,4,0,4,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationStartMapActionBean,839,752,95,91,173,162,80,50,20,17
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ChooseApplicationActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ComponentConfigSourceActionBean,99,0,14,0,25,0,13,0,6,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,FeatureTypeRelationActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,FeatureTypeRelationActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,FeatureTypeRelationActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,ApplicationSettingsActionBean,887,282,67,9,182,78,73,11,37,9
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,UserActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,UserActionBean,1165,0,126,0,286,0,116,0,53,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,GeoServiceActionBean,2570,288,208,8,527,57,193,12,85,11
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,GeoServiceRegistryActionBean.new StreamingResolution() {...},16,0,0,0,3,0,2,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes,FeatureTypeRelationActionBean,879,0,70,0,199,0,78,0,43,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes.plugin,ReverseProxyAwareWaitPageInterceptor.new RedirectResolution() {...},19,0,2,0,4,0,3,0,2,0
+Tailormap Admin,nl.tailormap.viewer.admin.stripes.plugin,ReverseProxyAwareWaitPageInterceptor,777,0,61,0,135,0,45,0,12,0

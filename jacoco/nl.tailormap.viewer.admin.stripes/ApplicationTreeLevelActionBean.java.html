@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationTreeLevelActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">ApplicationTreeLevelActionBean.java</span></div><h1>ApplicationTreeLevelActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.DontValidate;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import net.sourceforge.stripes.validation.ValidateNestedProperties;
+import nl.tailormap.viewer.config.app.Application;
+import nl.tailormap.viewer.config.app.ApplicationLayer;
+import nl.tailormap.viewer.config.app.ConfiguredAttribute;
+import nl.tailormap.viewer.config.app.Level;
+import nl.tailormap.viewer.config.app.StartLayer;
+import nl.tailormap.viewer.config.app.StartLevel;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.services.AttributeDescriptor;
+import nl.tailormap.viewer.config.services.Document;
+import nl.tailormap.viewer.config.services.Layer;
+import nl.tailormap.viewer.config.services.SimpleFeatureType;
+import nl.tailormap.viewer.helpers.app.ApplicationHelper;
+import nl.tailormap.viewer.util.SelectedContentCache;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import java.io.StringReader;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ *
+ * @author Jytte Schaeffer
+ */
+
+@UrlBinding(&quot;/action/applicationtreelevel&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN,Group.APPLICATION_ADMIN}) 
+<span class="fc" id="L66">public class ApplicationTreeLevelActionBean extends ApplicationActionBean {</span>
+<span class="fc" id="L67">    private static final Log log = LogFactory.getLog(ApplicationTreeLevelActionBean.class);</span>
+    
+    private static final String JSP = &quot;/WEB-INF/jsp/application/applicationTreeLevel.jsp&quot;;
+    
+    @Validate
+    @ValidateNestedProperties({
+                @Validate(field=&quot;info&quot;, label=&quot;Info&quot;),
+                @Validate(field=&quot;name&quot;, label=&quot;Naam&quot;),
+                @Validate(field=&quot;url&quot;, label=&quot;url&quot;)
+    })
+    private Level level;
+        
+    private boolean layersAllowed;
+    
+<span class="fc" id="L81">    @Validate</span>
+    private List&lt;String&gt; groupsRead = new ArrayList&lt;&gt;();
+    
+    @Validate
+    private String selectedlayers;
+    
+    @Validate
+    private String selecteddocs;
+    
+    @DefaultHandler
+    @DontValidate
+    public Resolution view() {
+        
+<span class="nc" id="L94">        return new ForwardResolution(JSP);</span>
+    }
+    
+    public Resolution delete() {
+<span class="nc" id="L98">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L99">        String error = deleteLevel(em, level);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if(error != null){</span>
+<span class="nc" id="L101">            getContext().getValidationErrors().add(&quot;niveau&quot;, new SimpleError(error));</span>
+        }else{
+<span class="nc" id="L103">            Level parent = level.getParent();</span>
+<span class="nc" id="L104">            parent.getChildren().remove(level);</span>
+<span class="nc" id="L105">            em.persist(parent);</span>
+<span class="nc" id="L106">            em.remove(level);</span>
+<span class="nc" id="L107">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.applicationtreelevelactionbean.dellevel&quot;)));</span>
+        }
+        
+<span class="nc" id="L110">        application.authorizationsModified();        </span>
+<span class="nc" id="L111">        SelectedContentCache.setApplicationCacheDirty(application, true, false,em);</span>
+<span class="nc" id="L112">        em.getTransaction().commit();</span>
+        
+<span class="nc" id="L114">        return new ForwardResolution(JSP);</span>
+    }
+    
+    @DontValidate
+    public Resolution edit() {
+<span class="nc" id="L119">        Level rootLevel = application.getRoot();</span>
+        
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if(level != null){</span>
+<span class="nc" id="L122">            groupsRead.addAll(level.getReaders());</span>
+            
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            if(level.isBackground()){</span>
+<span class="nc" id="L125">                layersAllowed = false;</span>
+<span class="nc bnc" id="L126" title="All 4 branches missed.">            }else if(level.getParent() == null || level.getParent().getId().equals(rootLevel.getId())){</span>
+<span class="nc" id="L127">                layersAllowed = false;</span>
+            }else{
+<span class="nc" id="L129">                layersAllowed = true;</span>
+            }
+        }
+        
+<span class="nc" id="L133">        return new ForwardResolution(JSP);</span>
+    }
+
+    @DontValidate
+    public Resolution saveName() throws JSONException {
+<span class="nc" id="L138">        JSONObject json = new JSONObject();</span>
+
+<span class="nc" id="L140">        json.put(&quot;success&quot;, Boolean.FALSE);</span>
+<span class="nc" id="L141">        StringBuilder error = null;</span>
+        
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if(level == null) {</span>
+<span class="nc" id="L144">            error = new StringBuilder(getBundle().getString(&quot;viewer_admin.applicationtreelevelactionbean.nolevel&quot;));</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        } else if(level.getName() == null) {</span>
+<span class="nc" id="L146">            error = new StringBuilder(getBundle().getString(&quot;viewer_admin.applicationtreelevelactionbean.noname&quot;));</span>
+        } else {
+            try {
+<span class="nc" id="L149">                EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L150">                em.persist(level);</span>
+<span class="nc" id="L151">                SelectedContentCache.setApplicationCacheDirty(application, true, false, em);</span>
+<span class="nc" id="L152">                em.getTransaction().commit();</span>
+<span class="nc" id="L153">                json.put(&quot;name&quot;, level.getName());</span>
+<span class="nc" id="L154">                json.put(&quot;success&quot;, Boolean.TRUE);</span>
+<span class="nc" id="L155">            } catch(Exception e) {</span>
+<span class="nc" id="L156">                log.error(&quot;Fout bij opslaan niveau&quot;, e);</span>
+<span class="nc" id="L157">                error = new StringBuilder(MessageFormat.format(getBundle().getString(&quot;viewer.applicationtreelevelactionbean.levelnosave&quot;), e));</span>
+<span class="nc" id="L158">                Throwable t = e;</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                while(t.getCause() != null) {</span>
+<span class="nc" id="L160">                    t = t.getCause();</span>
+<span class="nc" id="L161">                    error.append(&quot;; &quot;).append(t);</span>
+                }                
+<span class="nc" id="L163">            }</span>
+        }
+<span class="nc bnc" id="L165" title="All 2 branches missed.">        if(error != null) {</span>
+<span class="nc" id="L166">            json.put(&quot;error&quot;, error.toString());</span>
+        }              
+<span class="nc" id="L168">        return new StreamingResolution(&quot;application/json&quot;, new StringReader(json.toString()));</span>
+    }
+    
+    @DontValidate
+    public Resolution deleteAjax() throws JSONException {
+<span class="nc" id="L173">        JSONObject json = new JSONObject();</span>
+
+<span class="nc" id="L175">        json.put(&quot;success&quot;, Boolean.FALSE);</span>
+
+<span class="nc" id="L177">        String error = deleteLevel(Stripersist.getEntityManager(), level);</span>
+        
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        if (error != null) {</span>
+<span class="nc" id="L180">            json.put(&quot;error&quot;, error);</span>
+        } else {
+
+<span class="nc" id="L183">            json.put(&quot;success&quot;, Boolean.TRUE);</span>
+        }
+<span class="nc" id="L185">        return new StreamingResolution(&quot;application/json&quot;, new StringReader(json.toString()));</span>
+    }
+
+    protected String deleteLevel(EntityManager em, Level level){
+<span class="fc" id="L189">        StringBuilder error = null;</span>
+
+<span class="fc" id="L191">        StartLevel sl = level.getStartLevels().get(application);</span>
+<span class="pc bpc" id="L192" title="1 of 2 branches missed.">        if(level == null) {</span>
+<span class="nc" id="L193">            error = new StringBuilder(getBundle().getString(&quot;viewer_admin.applicationtreelevelactionbean.nolevel&quot;));</span>
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">        } else if(level.getParent() == null) {</span>
+<span class="nc" id="L195">            error = new StringBuilder(getBundle().getString(&quot;viewer_admin.applicationtreelevelactionbean.upperlevel&quot;));</span>
+<span class="pc bpc" id="L196" title="1 of 2 branches missed.">        } else if(level.getChildren().size() &gt; 0) {</span>
+<span class="nc" id="L197">            error = new StringBuilder(getBundle().getString(&quot;viewer_admin.applicationtreelevelactionbean.levelsub&quot;));</span>
+<span class="pc bpc" id="L198" title="4 of 6 branches missed.">        } else if(sl != null &amp;&amp; sl.getSelectedIndex() != null &amp;&amp; sl.isRemoved() == false) {</span>
+<span class="nc" id="L199">            error = new StringBuilder(getBundle().getString(&quot;viewer_admin.applicationtreelevelactionbean.leveltoc&quot;));</span>
+<span class="pc bpc" id="L200" title="1 of 2 branches missed.">        } else if(level.getLayers().size() &gt; 0) {</span>
+<span class="nc" id="L201">            error = new StringBuilder(getBundle().getString(&quot;viewer_admin.applicationtreelevelactionbean.levelfilled&quot;));</span>
+        } else {
+            try {
+<span class="fc" id="L204">                Level parent = level.getParent();</span>
+<span class="fc" id="L205">                parent.getChildren().remove(level);</span>
+<span class="fc" id="L206">                List&lt;Application&gt; mashups = ApplicationHelper.getMashups(application, em);</span>
+<span class="fc" id="L207">                mashups.add(application);</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">                for (Application mashup : mashups) {</span>
+<span class="fc" id="L209">                    List&lt;StartLevel&gt; startlevels = mashup.getStartLevels();</span>
+<span class="pc bpc" id="L210" title="2 of 4 branches missed.">                    startlevels.removeIf(next -&gt; sl != null &amp;&amp; next.getLevel().getId().equals(sl.getLevel().getId()));</span>
+<span class="fc" id="L211">                }</span>
+                
+<span class="fc" id="L213">                em.remove(level);</span>
+<span class="fc" id="L214">                application.authorizationsModified();</span>
+<span class="fc" id="L215">                SelectedContentCache.setApplicationCacheDirty(application, true, false, em);</span>
+<span class="fc" id="L216">                em.getTransaction().commit();</span>
+
+<span class="nc" id="L218">            } catch(Exception e) {</span>
+<span class="nc" id="L219">                log.error(&quot;Can not remove level&quot;, e);</span>
+<span class="nc" id="L220">                error = new StringBuilder(MessageFormat.format(getBundle().getString(&quot;viewer.applicationtreelevelactionbean.levelnorem&quot;), e));</span>
+<span class="nc" id="L221">                Throwable t = e;</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">                while(t.getCause() != null) {</span>
+<span class="nc" id="L223">                    t = t.getCause();</span>
+<span class="nc" id="L224">                    error.append(&quot;; &quot;).append(t);</span>
+                }
+<span class="fc" id="L226">            }</span>
+        }
+<span class="pc bpc" id="L228" title="3 of 4 branches missed.">        return (null!=error &amp;&amp; error.length()&gt;0? error.toString():null);</span>
+    }
+    
+    public Resolution save() {                
+        
+<span class="nc" id="L233">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L234">        saveLevel(em);</span>
+<span class="nc" id="L235">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.applicationtreelevelactionbean.levelsaved&quot;)));</span>
+<span class="nc" id="L236">        return edit();</span>
+    }
+    
+    protected void saveLevel(EntityManager em){
+<span class="fc" id="L240">        level.getReaders().clear();</span>
+<span class="pc bpc" id="L241" title="1 of 2 branches missed.">        for(String groupName: groupsRead) {</span>
+<span class="nc" id="L242">            level.getReaders().add(groupName);</span>
+<span class="nc" id="L243">        }</span>
+<span class="fc" id="L244">        updateApplayersInLevel(selectedlayers, level, em);</span>
+        
+<span class="fc" id="L246">        level.getDocuments().clear();</span>
+<span class="pc bpc" id="L247" title="3 of 4 branches missed.">        if(selecteddocs != null &amp;&amp; selecteddocs.length() &gt; 0){</span>
+<span class="nc" id="L248">            String[] docIds = selecteddocs.split(&quot;,&quot;);</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">            for (String docId : docIds) {</span>
+<span class="nc" id="L250">                Long id = Long.valueOf(docId.substring(1));</span>
+<span class="nc" id="L251">                Document doc = em.find(Document.class, id);</span>
+<span class="nc" id="L252">                level.getDocuments().add(doc);</span>
+            }
+        }
+<span class="fc bfc" id="L255" title="All 2 branches covered.">        if (level.getStartLevels().isEmpty()) {</span>
+<span class="fc" id="L256">            StartLevel sl = new StartLevel();</span>
+<span class="fc" id="L257">            sl.setApplication(application);</span>
+<span class="fc" id="L258">            sl.setLevel(level);</span>
+<span class="fc" id="L259">            sl.setSelectedIndex(null);</span>
+<span class="fc" id="L260">            application.getStartLevels().add(sl);</span>
+<span class="fc" id="L261">            level.getStartLevels().put(application, sl);</span>
+        }
+<span class="fc" id="L263">        em.persist(level);</span>
+
+
+<span class="fc" id="L266">        List&lt;Application&gt; mashups = ApplicationHelper.getMashups(application, em);</span>
+<span class="fc" id="L267">        mashups.add(application);</span>
+<span class="fc bfc" id="L268" title="All 2 branches covered.">        for (Application app : mashups) {</span>
+
+<span class="fc" id="L270">            app.authorizationsModified();</span>
+<span class="fc" id="L271">            SelectedContentCache.setApplicationCacheDirty(app, true, false, em);</span>
+<span class="fc" id="L272">        }</span>
+<span class="fc" id="L273">        em.getTransaction().commit();</span>
+        
+<span class="fc" id="L275">    }</span>
+    
+     protected void updateApplayersInLevel(String selectedLayers, Level level, EntityManager em){
+<span class="fc" id="L278">        List&lt;ApplicationLayer&gt; layersToBeRemoved = new ArrayList&lt;&gt;(level.getLayers());</span>
+        
+<span class="fc" id="L280">        List&lt;Application&gt; apps = ApplicationHelper.getMashups(application, em);</span>
+<span class="fc" id="L281">        apps.add(application);</span>
+        
+<span class="fc" id="L283">        level.getLayers().clear();</span>
+<span class="fc bfc" id="L284" title="All 4 branches covered.">        if(selectedLayers != null &amp;&amp; selectedLayers.length() &gt; 0){</span>
+<span class="fc" id="L285">            String[] layerIds = selectedLayers.split(&quot;,&quot;);</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">            for (String layerId : layerIds) {</span>
+<span class="fc" id="L287">                ApplicationLayer appLayer = null;</span>
+<span class="fc bfc" id="L288" title="All 2 branches covered.">                if (layerId.startsWith(&quot;al&quot;)) {</span>
+<span class="fc" id="L289">                    Long id = Long.valueOf(layerId.substring(2));</span>
+<span class="fc" id="L290">                    appLayer = em.find(ApplicationLayer.class, id);</span>
+<span class="fc" id="L291">                    layersToBeRemoved.remove(appLayer);</span>
+<span class="pc bpc" id="L292" title="1 of 2 branches missed.">                } else if (layerId.startsWith(&quot;l&quot;)) {</span>
+<span class="fc" id="L293">                    Long id = Long.valueOf(layerId.substring(1));</span>
+<span class="fc" id="L294">                    Layer layer = em.find(Layer.class, id);</span>
+<span class="pc bpc" id="L295" title="2 of 4 branches missed.">                    if (layer != null &amp;&amp; !layer.isVirtual()) {</span>
+<span class="fc" id="L296">                        appLayer = new ApplicationLayer();</span>
+<span class="fc" id="L297">                        appLayer.setService(layer.getService());</span>
+<span class="fc" id="L298">                        appLayer.setLayerName(layer.getName());</span>
+<span class="fc" id="L299">                        StartLayer sl = new StartLayer();</span>
+<span class="fc" id="L300">                        sl.setApplication(application);</span>
+<span class="fc" id="L301">                        sl.setApplicationLayer(appLayer);</span>
+<span class="fc" id="L302">                        appLayer.getStartLayers().put(application, sl);</span>
+<span class="fc" id="L303">                        application.getStartLayers().add(sl);</span>
+<span class="pc bpc" id="L304" title="1 of 2 branches missed.">                        if (layer.getFeatureType() != null) {</span>
+<span class="fc" id="L305">                            SimpleFeatureType sft = layer.getFeatureType();</span>
+<span class="fc bfc" id="L306" title="All 2 branches covered.">                            for (AttributeDescriptor ad : sft.getAttributes()) {</span>
+<span class="fc" id="L307">                                ConfiguredAttribute confAttribute = new ConfiguredAttribute();</span>
+<span class="fc" id="L308">                                confAttribute.setAttributeName(ad.getName());</span>
+                                // default visible if not geometry type
+<span class="fc bfc" id="L310" title="All 2 branches covered.">                                confAttribute.setVisible(!AttributeDescriptor.GEOMETRY_TYPES.contains(ad.getType()));</span>
+<span class="fc" id="L311">                                appLayer.getAttributes().add(confAttribute);</span>
+<span class="fc" id="L312">                            }</span>
+                        }
+                    }
+                }
+<span class="fc" id="L316">                level.getLayers().add(appLayer);</span>
+            }
+        }
+<span class="fc bfc" id="L319" title="All 2 branches covered.">        for (Application app : apps) {</span>
+<span class="fc" id="L320">            List&lt;StartLayer&gt; startlayers = app.getStartLayers();</span>
+<span class="fc bfc" id="L321" title="All 2 branches covered.">            for (Iterator&lt;StartLayer&gt; iterator = startlayers.iterator(); iterator.hasNext();) {</span>
+<span class="fc" id="L322">                StartLayer next = iterator.next();</span>
+
+<span class="fc bfc" id="L324" title="All 2 branches covered.">                for (ApplicationLayer applicationLayer : layersToBeRemoved) {</span>
+<span class="pc bpc" id="L325" title="1 of 2 branches missed.">                    if (Objects.equals(next.getApplicationLayer().getId(), applicationLayer.getId())) {</span>
+<span class="fc" id="L326">                        iterator.remove();</span>
+                    }
+<span class="fc" id="L328">                }</span>
+<span class="fc" id="L329">            }</span>
+<span class="fc" id="L330">        }</span>
+<span class="fc" id="L331">    }</span>
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+    public List&lt;String&gt; getGroupsRead() {
+<span class="nc" id="L335">        return groupsRead;</span>
+    }
+
+    public void setGroupsRead(List&lt;String&gt; groupsRead) {
+<span class="nc" id="L339">        this.groupsRead = groupsRead;</span>
+<span class="nc" id="L340">    }</span>
+
+    public boolean isLayersAllowed() {
+<span class="nc" id="L343">        return layersAllowed;</span>
+    }
+
+    public void setLayersAllowed(boolean layersAllowed) {
+<span class="nc" id="L347">        this.layersAllowed = layersAllowed;</span>
+<span class="nc" id="L348">    }</span>
+
+    public String getSelectedlayers() {
+<span class="nc" id="L351">        return selectedlayers;</span>
+    }
+
+    public void setSelectedlayers(String selectedlayers) {
+<span class="fc" id="L355">        this.selectedlayers = selectedlayers;</span>
+<span class="fc" id="L356">    }</span>
+
+    public String getSelecteddocs() {
+<span class="nc" id="L359">        return selecteddocs;</span>
+    }
+
+    public void setSelecteddocs(String selecteddocs) {
+<span class="nc" id="L363">        this.selecteddocs = selecteddocs;</span>
+<span class="nc" id="L364">    }</span>
+    
+    public Level getLevel() {
+<span class="nc" id="L367">        return level;</span>
+    }
+    
+    public void setLevel(Level level) {
+<span class="fc" id="L371">        this.level = level;</span>
+<span class="fc" id="L372">    }</span>
+    //&lt;/editor-fold&gt;
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

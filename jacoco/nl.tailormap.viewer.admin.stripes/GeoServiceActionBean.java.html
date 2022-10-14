@@ -1,0 +1,1243 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GeoServiceActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">GeoServiceActionBean.java</span></div><h1>GeoServiceActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2011-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.After;
+import net.sourceforge.stripes.action.Before;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.DontValidate;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.validation.LocalizableError;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import net.sourceforge.stripes.validation.ValidateNestedProperties;
+import net.sourceforge.stripes.validation.ValidationErrors;
+import net.sourceforge.stripes.validation.ValidationMethod;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.config.ClobElement;
+import nl.tailormap.viewer.config.app.Application;
+import nl.tailormap.viewer.config.app.ApplicationLayer;
+import nl.tailormap.viewer.config.app.Level;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.services.AttributeDescriptor;
+import nl.tailormap.viewer.config.services.BoundingBox;
+import nl.tailormap.viewer.config.services.Category;
+import nl.tailormap.viewer.config.services.CoordinateReferenceSystem;
+import nl.tailormap.viewer.config.services.FeatureSource;
+import nl.tailormap.viewer.config.services.GeoService;
+import nl.tailormap.viewer.config.services.Layer;
+import nl.tailormap.viewer.config.services.StyleLibrary;
+import nl.tailormap.viewer.config.services.TileService;
+import nl.tailormap.viewer.config.services.TileSet;
+import nl.tailormap.viewer.config.services.UpdateResult;
+import nl.tailormap.viewer.config.services.WMSExceptionType;
+import nl.tailormap.viewer.config.services.WMSService;
+import nl.tailormap.viewer.helpers.services.GeoserviceFactoryHelper;
+import nl.tailormap.viewer.helpers.services.TilingServiceHelper;
+import nl.tailormap.viewer.helpers.services.WMSServiceHelper;
+import nl.tailormap.viewer.util.SelectedContentCache;
+import nl.tailormap.web.WaitPageStatus;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.geotools.filter.text.cql2.CQL;
+import org.geotools.xml.filter.FilterTransformer;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.opengis.filter.Filter;
+import org.stripesstuff.plugin.waitpage.WaitPage;
+import org.stripesstuff.stripersist.Stripersist;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXParseException;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+
+/**
+ *
+ * @author Jytte Schaeffer
+ */
+@StrictBinding
+@UrlBinding(&quot;/action/geoservice/{service}&quot;)
+@RolesAllowed({Group.ADMIN, Group.REGISTRY_ADMIN})
+<span class="fc" id="L109">public class GeoServiceActionBean extends LocalizableActionBean {</span>
+
+<span class="fc" id="L111">    private static final Log log = LogFactory.getLog(GeoServiceActionBean.class);</span>
+    private static final String JSP = &quot;/WEB-INF/jsp/services/geoservice.jsp&quot;;
+    private static final String JSP_EDIT_SLD = &quot;/WEB-INF/jsp/services/editsld.jsp&quot;;
+
+    private ActionBeanContext context;
+    @Validate(on = {&quot;add&quot;}, required = true)
+    private Category category;
+    @Validate(on = {&quot;edit&quot;}, required = true)
+    private GeoService service;
+    @Validate(on = &quot;add&quot;, required = true)
+    private String url;
+    @Validate(on = &quot;add&quot;, required = true)
+    private String protocol;
+    /**
+     * Whether the service was succesfully deleted. Use in view JSP to update
+     * tree.
+     */
+    private boolean serviceDeleted;
+    @Validate
+    private String name;
+    @Validate
+    private String username;
+    @Validate
+    private String password;
+    @Validate
+    private boolean overrideUrl;
+    @Validate
+    private String serviceName;
+    @Validate
+    private String agsVersion;
+    @Validate
+    private Integer tileSize;
+    @Validate
+    private String tilingProtocol;
+    @Validate
+    private String resolutions;
+    @Validate
+    private String serviceBbox;
+    @Validate
+    private String imageExtension;
+    @Validate
+    private String crs;
+    @Validate
+    private boolean useIntersect;
+    @Validate
+    private boolean useProxy;
+    @Validate
+    private WMSExceptionType exception_type;
+<span class="fc" id="L159">    @Validate</span>
+    private boolean skipDiscoverWFS = true;
+    @Validate
+    private String geofenceHeader;
+    @Validate
+    private String serverType;
+<span class="fc" id="L165">    @Validate</span>
+    private boolean disableTiling = false;
+    @Validate
+    private Integer tilingGutter;
+    
+    private WaitPageStatus status;
+    private JSONObject newService;
+    private JSONObject updatedService;
+    
+    private List&lt;Group&gt; allGroups;
+    
+<span class="fc" id="L176">    @Validate</span>
+    private List&lt;String&gt; groupsRead = new ArrayList&lt;&gt;();
+
+    @Validate
+    @ValidateNestedProperties({
+            @Validate(on=&quot;saveSld&quot;,field=&quot;title&quot;, required=true),
+            @Validate(on=&quot;saveSld&quot;,field=&quot;defaultStyle&quot;),
+            @Validate(on=&quot;saveSld&quot;,field=&quot;externalUrl&quot;),
+            @Validate(on=&quot;saveSld&quot;,field=&quot;sldBody&quot;),
+            @Validate(on=&quot;saveSld&quot;,field=&quot;extraLegendParameters&quot;)
+    })
+    private StyleLibrary sld;
+
+<span class="fc" id="L189">    @Validate</span>
+    private String sldType = &quot;external&quot;;
+
+    @Validate(on=&quot;cqlToFilter&quot;)
+    private String cql;
+
+    private String generatedSld;
+
+    private boolean updatable;
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters and setters&quot;&gt;
+    @Override
+    public ActionBeanContext getContext() {
+<span class="nc" id="L202">        return context;</span>
+    }
+
+    @Override
+    public void setContext(ActionBeanContext context) {
+<span class="fc" id="L207">        this.context = context;</span>
+<span class="fc" id="L208">    }</span>
+
+    public String getServiceName() {
+<span class="nc" id="L211">        return serviceName;</span>
+    }
+
+    public void setServiceName(String serviceName) {
+<span class="nc" id="L215">        this.serviceName = serviceName;</span>
+<span class="nc" id="L216">    }</span>
+
+    public GeoService getService() {
+<span class="fc" id="L219">        return service;</span>
+    }
+
+    public void setService(GeoService service) {
+<span class="nc" id="L223">        this.service = service;</span>
+<span class="nc" id="L224">    }</span>
+
+    public Category getCategory() {
+<span class="nc" id="L227">        return category;</span>
+    }
+
+    public void setCategory(Category category) {
+<span class="fc" id="L231">        this.category = category;</span>
+<span class="fc" id="L232">    }</span>
+
+    public String getName() {
+<span class="nc" id="L235">        return name;</span>
+    }
+
+    public void setName(String name) {
+<span class="fc" id="L239">        this.name = name;</span>
+<span class="fc" id="L240">    }</span>
+
+    public String getPassword() {
+<span class="nc" id="L243">        return password;</span>
+    }
+
+    public void setPassword(String password) {
+<span class="nc" id="L247">        this.password = password;</span>
+<span class="nc" id="L248">    }</span>
+
+    public String getUsername() {
+<span class="nc" id="L251">        return username;</span>
+    }
+
+    public void setUsername(String username) {
+<span class="nc" id="L255">        this.username = username;</span>
+<span class="nc" id="L256">    }</span>
+
+    public String getProtocol() {
+<span class="nc" id="L259">        return protocol;</span>
+    }
+
+    public void setProtocol(String protocol) {
+<span class="fc" id="L263">        this.protocol = protocol;</span>
+<span class="fc" id="L264">    }</span>
+
+    public String getUrl() {
+<span class="nc" id="L267">        return url;</span>
+    }
+
+    public void setUrl(String url) {
+<span class="fc" id="L271">        this.url = url;</span>
+<span class="fc" id="L272">    }</span>
+
+    public WaitPageStatus getStatus() {
+<span class="nc" id="L275">        return status;</span>
+    }
+
+    public void setStatus(WaitPageStatus status) {
+<span class="nc" id="L279">        this.status = status;</span>
+<span class="nc" id="L280">    }</span>
+
+    public boolean isOverrideUrl() {
+<span class="nc" id="L283">        return overrideUrl;</span>
+    }
+
+    public void setOverrideUrl(boolean overrideUrl) {
+<span class="fc" id="L287">        this.overrideUrl = overrideUrl;</span>
+<span class="fc" id="L288">    }</span>
+
+    public String getAgsVersion() {
+<span class="nc" id="L291">        return agsVersion;</span>
+    }
+
+    public void setAgsVersion(String agsVersion) {
+<span class="nc" id="L295">        this.agsVersion = agsVersion;</span>
+<span class="nc" id="L296">    }</span>
+
+    public JSONObject getNewService() {
+<span class="nc" id="L299">        return newService;</span>
+    }
+
+    public void setNewService(JSONObject newService) {
+<span class="nc" id="L303">        this.newService = newService;</span>
+<span class="nc" id="L304">    }</span>
+
+    public JSONObject getUpdatedService() {
+<span class="nc" id="L307">        return updatedService;</span>
+    }
+
+    public void setUpdatedService(JSONObject updatedService) {
+<span class="nc" id="L311">        this.updatedService = updatedService;</span>
+<span class="nc" id="L312">    }</span>
+
+    public boolean isServiceDeleted() {
+<span class="nc" id="L315">        return serviceDeleted;</span>
+    }
+
+    public void setServiceDeleted(boolean serviceDeleted) {
+<span class="nc" id="L319">        this.serviceDeleted = serviceDeleted;</span>
+<span class="nc" id="L320">    }</span>
+
+    public Integer getTileSize() {
+<span class="nc" id="L323">        return tileSize;</span>
+    }
+
+    public void setTileSize(Integer tileSize) {
+<span class="nc" id="L327">        this.tileSize = tileSize;</span>
+<span class="nc" id="L328">    }</span>
+
+    public String getTilingProtocol() {
+<span class="nc" id="L331">        return tilingProtocol;</span>
+    }
+
+    public void setTilingProtocol(String tilingProtocol) {
+<span class="nc" id="L335">        this.tilingProtocol = tilingProtocol;</span>
+<span class="nc" id="L336">    }</span>
+
+    public String getResolutions() {
+<span class="nc" id="L339">        return resolutions;</span>
+    }
+
+    public void setResolutions(String resolutions) {
+<span class="nc" id="L343">        this.resolutions = resolutions;</span>
+<span class="nc" id="L344">    }</span>
+
+    public String getServiceBbox() {
+<span class="nc" id="L347">        return serviceBbox;</span>
+    }
+
+    public void setServiceBbox(String serviceBbox) {
+<span class="nc" id="L351">        this.serviceBbox = serviceBbox;</span>
+<span class="nc" id="L352">    }</span>
+
+    public String getImageExtension() {
+<span class="nc" id="L355">        return imageExtension;</span>
+    }
+
+    public void setImageExtension(String imageExtension) {
+<span class="nc" id="L359">        this.imageExtension = imageExtension;</span>
+<span class="nc" id="L360">    }</span>
+
+    public String getCrs() {
+<span class="nc" id="L363">        return crs;</span>
+    }
+
+    public void setCrs(String crs) {
+<span class="nc" id="L367">        this.crs = crs;</span>
+<span class="nc" id="L368">    }</span>
+
+    public boolean isUpdatable() {
+<span class="nc" id="L371">        return updatable;</span>
+    }
+
+    public void setUpdatable(boolean updatable) {
+<span class="nc" id="L375">        this.updatable = updatable;</span>
+<span class="nc" id="L376">    }</span>
+
+    public StyleLibrary getSld() {
+<span class="nc" id="L379">        return sld;</span>
+    }
+
+    public void setSld(StyleLibrary sld) {
+<span class="nc" id="L383">        this.sld = sld;</span>
+<span class="nc" id="L384">    }</span>
+
+    public String getSldType() {
+<span class="nc" id="L387">        return sldType;</span>
+    }
+
+    public void setSldType(String sldType) {
+<span class="nc" id="L391">        this.sldType = sldType;</span>
+<span class="nc" id="L392">    }</span>
+
+    public String getGeneratedSld() {
+<span class="nc" id="L395">        return generatedSld;</span>
+    }
+
+    public void setGeneratedSld(String generatedSld) {
+<span class="nc" id="L399">        this.generatedSld = generatedSld;</span>
+<span class="nc" id="L400">    }</span>
+
+    public String getCql() {
+<span class="nc" id="L403">        return cql;</span>
+    }
+
+    public void setCql(String cql) {
+<span class="nc" id="L407">        this.cql = cql;</span>
+<span class="nc" id="L408">    }</span>
+
+    public boolean isUseIntersect() {
+<span class="nc" id="L411">        return useIntersect;</span>
+    }
+
+    public void setUseIntersect(boolean useIntersect) {
+<span class="nc" id="L415">        this.useIntersect = useIntersect;</span>
+<span class="nc" id="L416">    }</span>
+
+    public WMSExceptionType getException_type() {
+<span class="nc" id="L419">        return exception_type;</span>
+    }
+
+    public void setException_type(WMSExceptionType exception_type) {
+<span class="nc" id="L423">        this.exception_type = exception_type;</span>
+<span class="nc" id="L424">    }</span>
+
+    public boolean isUseProxy() {
+<span class="nc" id="L427">        return useProxy;</span>
+    }
+
+    public void setUseProxy(boolean useProxy) {
+<span class="nc" id="L431">        this.useProxy = useProxy;</span>
+<span class="nc" id="L432">    }</span>
+
+    public JSONArray getLayersInApplications() {
+<span class="nc" id="L435">        return layersInApplications;</span>
+    }
+
+    public void setLayersInApplications(JSONArray layersInApplications) {
+<span class="nc" id="L439">        this.layersInApplications = layersInApplications;</span>
+<span class="nc" id="L440">    }</span>
+
+    public List&lt;Group&gt; getAllGroups() {
+<span class="nc" id="L443">        return allGroups;</span>
+    }
+
+    public void setAllGroups(List&lt;Group&gt; allGroups) {
+<span class="nc" id="L447">        this.allGroups = allGroups;</span>
+<span class="nc" id="L448">    }</span>
+
+    public List&lt;String&gt; getGroupsRead() {
+<span class="nc" id="L451">        return groupsRead;</span>
+    }
+
+    public void setGroupsRead(List&lt;String&gt; groupsRead) {
+<span class="nc" id="L455">        this.groupsRead = groupsRead;</span>
+<span class="nc" id="L456">    }</span>
+
+    public boolean isSkipDiscoverWFS() {
+<span class="nc" id="L459">        return skipDiscoverWFS;</span>
+    }
+
+    public void setSkipDiscoverWFS(boolean skipDiscoverWFS) {
+<span class="fc" id="L463">        this.skipDiscoverWFS = skipDiscoverWFS;</span>
+<span class="fc" id="L464">    }</span>
+
+    public String getGeofenceHeader() {
+<span class="nc" id="L467">        return geofenceHeader;</span>
+    }
+
+    public void setGeofenceHeader(String geofenceHeader) {
+<span class="nc" id="L471">        this.geofenceHeader = geofenceHeader;</span>
+<span class="nc" id="L472">    }</span>
+
+    public String getServerType() {
+<span class="nc" id="L475">        return serverType;</span>
+    }
+
+    public void setServerType(String serverType) {
+<span class="nc" id="L479">        this.serverType = serverType;</span>
+<span class="nc" id="L480">    }</span>
+
+    public boolean isDisableTiling() {
+<span class="nc" id="L483">        return disableTiling;</span>
+    }
+
+    public void setDisableTiling(boolean disableTiling) {
+<span class="nc" id="L487">        this.disableTiling = disableTiling;</span>
+<span class="nc" id="L488">    }</span>
+
+    public Integer getTilingGutter() {
+<span class="nc" id="L491">        return tilingGutter;</span>
+    }
+
+    public void setTilingGutter(Integer tilingGutter) {
+<span class="nc" id="L495">        this.tilingGutter = tilingGutter;</span>
+<span class="nc" id="L496">    }</span>
+
+//&lt;/editor-fold&gt;
+
+<span class="fc" id="L500">    private JSONArray layersInApplications = new JSONArray();</span>
+  
+    @DefaultHandler
+    public Resolution edit() {
+<span class="nc bnc" id="L504" title="All 2 branches missed.">        if (service != null) {</span>
+<span class="nc" id="L505">            protocol = service.getProtocol();</span>
+<span class="nc" id="L506">            url = service.getUrl();</span>
+<span class="nc bnc" id="L507" title="All 3 branches missed.">            switch (protocol) {</span>
+//                case ArcGISService.PROTOCOL:
+//                    ClobElement assumeVersion = service.getDetails().get(ArcGISService.DETAIL_ASSUME_VERSION);
+//                    agsVersion = assumeVersion == null ? null : assumeVersion.getValue();
+//                    break;
+                case TileService.PROTOCOL:
+<span class="nc" id="L513">                    TileService ser = (TileService) service;</span>
+<span class="nc" id="L514">                    tilingProtocol = ser.getTilingProtocol();</span>
+
+                    //tiling service has 1 layer with that has the settings.
+<span class="nc" id="L517">                    Layer layer = ser.getTilingLayer();</span>
+                    //set the resolutions
+<span class="nc bnc" id="L519" title="All 2 branches missed.">                    if (layer != null) {</span>
+<span class="nc" id="L520">                        TileSet tileSet = layer.getTileset();</span>
+
+<span class="nc bnc" id="L522" title="All 2 branches missed.">                        if (tileSet != null) {</span>
+<span class="nc" id="L523">                            StringBuilder res = new StringBuilder();</span>
+<span class="nc bnc" id="L524" title="All 2 branches missed.">                            for (Double resolution : tileSet.getResolutions()) {</span>
+<span class="nc bnc" id="L525" title="All 2 branches missed.">                                if (res.length() &gt; 0) {</span>
+<span class="nc" id="L526">                                    res.append(&quot;,&quot;);</span>
+                                }
+<span class="nc" id="L528">                                res.append(resolution.toString());</span>
+<span class="nc" id="L529">                            }</span>
+<span class="nc" id="L530">                            resolutions = res.toString();</span>
+
+                            //set the tilesize
+<span class="nc" id="L533">                            tileSize = tileSet.getHeight();</span>
+                        }
+
+                        //set the service Bbox
+<span class="nc bnc" id="L537" title="All 2 branches missed.">                        if (layer.getBoundingBoxes().size() == 1) {</span>
+<span class="nc" id="L538">                            BoundingBox bb = layer.getBoundingBoxes().values().iterator().next();</span>
+<span class="nc" id="L539">                            serviceBbox = &quot;&quot; + bb.getMinx() + &quot;,&quot;</span>
+<span class="nc" id="L540">                                    + bb.getMiny() + &quot;,&quot;</span>
+<span class="nc" id="L541">                                    + bb.getMaxx() + &quot;,&quot;</span>
+<span class="nc" id="L542">                                    + bb.getMaxy();</span>
+<span class="nc" id="L543">                            crs = bb.getCrs().getName();</span>
+                        }
+<span class="nc" id="L545">                        serviceName = layer.getName();</span>
+
+<span class="nc bnc" id="L547" title="All 2 branches missed.">                        if (layer.getDetails().containsKey(&quot;image_extension&quot;)) {</span>
+<span class="nc" id="L548">                            ClobElement ce = layer.getDetails().get(&quot;image_extension&quot;);</span>
+<span class="nc bnc" id="L549" title="All 2 branches missed.">                            imageExtension = ce != null ? ce.getValue() : null;</span>
+                        }
+<span class="nc" id="L551">                    }</span>
+
+                    break;
+                case WMSService.PROTOCOL:
+<span class="nc" id="L555">                    overrideUrl = ((WMSService) service).getOverrideUrl();</span>
+<span class="nc" id="L556">                    exception_type = ((WMSService) service).getException_type();</span>
+                    // default to false
+<span class="nc bnc" id="L558" title="All 4 branches missed.">                    skipDiscoverWFS = ((WMSService) service).getSkipDiscoverWFS() != null &amp;&amp; ((WMSService) service).getSkipDiscoverWFS();</span>
+
+<span class="nc" id="L560">                    serverType = service.getDetails().getOrDefault(&quot;serverType&quot;, new ClobElement(&quot;auto&quot;)).getValue();</span>
+<span class="nc" id="L561">                    disableTiling = &quot;true&quot;.equals(service.getDetails().getOrDefault(&quot;tiling.disable&quot;, new ClobElement(&quot;false&quot;)).getValue());</span>
+<span class="nc" id="L562">                    tilingGutter = Integer.parseInt(service.getDetails().getOrDefault(&quot;tiling.gutter&quot;, new ClobElement(&quot;0&quot;)).getValue());</span>
+                    break;
+            }
+
+<span class="nc bnc" id="L566" title="All 2 branches missed.">            if(service.getDetails().containsKey(GeoService.DETAIL_USE_INTERSECT)){</span>
+<span class="nc" id="L567">                ClobElement ce =service.getDetails().get(GeoService.DETAIL_USE_INTERSECT);</span>
+<span class="nc" id="L568">                useIntersect = Boolean.parseBoolean(ce.getValue());</span>
+            }
+
+<span class="nc bnc" id="L571" title="All 2 branches missed.">            if(service.getDetails().containsKey(GeoService.DETAIL_USE_PROXY)){</span>
+<span class="nc" id="L572">                ClobElement ce =service.getDetails().get(GeoService.DETAIL_USE_PROXY);</span>
+<span class="nc" id="L573">                useProxy = Boolean.parseBoolean(ce.getValue());</span>
+            }            
+<span class="nc" id="L575">            geofenceHeader = service.getGeofenceHeader();</span>
+<span class="nc" id="L576">            name = service.getName();</span>
+<span class="nc" id="L577">            username = service.getUsername();</span>
+<span class="nc" id="L578">            password = service.getPassword();</span>
+<span class="nc" id="L579">            EntityManager em = Stripersist.getEntityManager();</span>
+            // haal alle lagen op
+                // haal van elke laag de applayer op
+                    // haal van elke appLayer het level op
+                        // haal van het level de parents op
+            
+<span class="nc" id="L585">            List&lt;Layer&gt; layers = service.loadLayerTree(em);</span>
+            
+<span class="nc" id="L587">            List&lt;Application&gt; applications = em.createQuery(&quot;from Application&quot;, Application.class).getResultList();</span>
+            
+<span class="nc bnc" id="L589" title="All 2 branches missed.">            for (Layer layer : layers) {</span>
+                //Map&lt;Application, List&lt;Level&gt;&gt; applicationsMap = new HashMap&lt;Application,List&lt;Level&gt;&gt;();
+<span class="nc" id="L591">                JSONArray applicationsArray = new JSONArray();</span>
+<span class="nc" id="L592">                List&lt;ApplicationLayer&gt; appLayers = layer.getApplicationLayers(em);</span>
+<span class="nc bnc" id="L593" title="All 2 branches missed.">                for (ApplicationLayer appLayer : appLayers) {</span>
+<span class="nc bnc" id="L594" title="All 2 branches missed.">                    for (Application application : applications) {</span>
+                        //List&lt;Level&gt; levelsInApplication = new ArrayList&lt;Level&gt;();
+<span class="nc" id="L596">                        JSONArray levelsInApplication = new JSONArray();</span>
+<span class="nc" id="L597">                        JSONObject applicationObject = new JSONObject();</span>
+<span class="nc" id="L598">                        applicationObject.put(&quot;text&quot;, application.getNameWithVersion());</span>
+<span class="nc" id="L599">                        applicationObject.put(&quot;itemid&quot;, &quot;a&quot; + application.getId());</span>
+<span class="nc" id="L600">                        applicationObject.put(&quot;type&quot;, &quot;application&quot;);</span>
+<span class="nc" id="L601">                        applicationObject.put(&quot;children&quot;, levelsInApplication);</span>
+<span class="nc" id="L602">                        applicationsArray.put(applicationObject);</span>
+<span class="nc" id="L603">                        Level l = application.getRoot().getParentInSubtree(appLayer);</span>
+<span class="nc bnc" id="L604" title="All 2 branches missed.">                        if(l != null){</span>
+<span class="nc" id="L605">                            Level cur = l;</span>
+<span class="nc" id="L606">                            JSONObject prev = null;</span>
+<span class="nc bnc" id="L607" title="All 2 branches missed.">                            while(cur.getParent() != null){</span>
+<span class="nc" id="L608">                                JSONObject level = new JSONObject();</span>
+<span class="nc" id="L609">                                level.put(&quot;text&quot;, cur.getName());</span>
+<span class="nc" id="L610">                                level.put(&quot;type&quot;, &quot;level&quot;);</span>
+<span class="nc" id="L611">                                level.put(&quot;itemid&quot;, &quot;v&quot; + cur.getId());</span>
+<span class="nc bnc" id="L612" title="All 2 branches missed.">                                level.put(&quot;leaf&quot;, prev == null);</span>
+<span class="nc bnc" id="L613" title="All 2 branches missed.">                                if(prev != null){</span>
+<span class="nc" id="L614">                                    level.put(&quot;children&quot;, prev);</span>
+                                }
+<span class="nc" id="L616">                                cur = cur.getParent();</span>
+<span class="nc" id="L617">                                prev = level;</span>
+<span class="nc" id="L618">                            }</span>
+<span class="nc" id="L619">                            levelsInApplication.put(prev);</span>
+                            
+                            
+                        }
+<span class="nc" id="L623">                    }</span>
+<span class="nc" id="L624">                }</span>
+<span class="nc bnc" id="L625" title="All 2 branches missed.">                if(applicationsArray.length() &gt; 0){</span>
+<span class="nc" id="L626">                    JSONObject layerObject = new JSONObject();</span>
+<span class="nc" id="L627">                    layerObject.put(&quot;text&quot;, layer.getDisplayName());</span>
+<span class="nc" id="L628">                    layerObject.put(&quot;layername&quot;, layer.getName());</span>
+<span class="nc" id="L629">                    layerObject.put(&quot;itemid&quot;, &quot;l&quot; + layer.getId());</span>
+<span class="nc" id="L630">                    layerObject.put(&quot;type&quot;, &quot;layer&quot;);</span>
+<span class="nc" id="L631">                    layerObject.put(&quot;children&quot;, applicationsArray);</span>
+<span class="nc" id="L632">                    layersInApplications.put(layerObject);</span>
+                }
+<span class="nc" id="L634">            }</span>
+        }
+<span class="nc bnc" id="L636" title="All 2 branches missed.">        if (status != null) {</span>
+<span class="nc" id="L637">            status.setFinished(true);</span>
+<span class="nc" id="L638">            status.setProgress(100);</span>
+
+<span class="nc" id="L640">            List&lt;String&gt; logs = status.dequeueLog();</span>
+<span class="nc bnc" id="L641" title="All 2 branches missed.">            for (String log: logs) {</span>
+<span class="nc" id="L642">                context.getValidationErrors().add(&quot;Errors&quot;,new SimpleError(getBundle().getString(log)));</span>
+<span class="nc" id="L643">            }</span>
+        }
+<span class="nc" id="L645">        return new ForwardResolution(JSP);</span>
+    }
+
+    public Resolution save() {
+<span class="nc bnc" id="L649" title="All 2 branches missed.">        if (name != null) {</span>
+<span class="nc" id="L650">            service.setName(name);</span>
+        }
+<span class="nc bnc" id="L652" title="All 2 branches missed.">        if (url != null) {</span>
+<span class="nc" id="L653">            service.setUrl(url);</span>
+        }
+<span class="nc bnc" id="L655" title="All 2 branches missed.">        if (service instanceof TileService) {</span>
+<span class="nc" id="L656">            TileService ser = (TileService) service;</span>
+<span class="nc bnc" id="L657" title="All 2 branches missed.">            if (tilingProtocol != null) {</span>
+<span class="nc" id="L658">                ((TileService) service).setTilingProtocol(tilingProtocol);</span>
+            }
+<span class="nc" id="L660">            Layer l = ser.getTilingLayer();</span>
+<span class="nc bnc" id="L661" title="All 2 branches missed.">            if (tileSize != null) {</span>
+<span class="nc" id="L662">                l.getTileset().setWidth(tileSize);</span>
+<span class="nc" id="L663">                l.getTileset().setHeight(tileSize);</span>
+            }
+<span class="nc bnc" id="L665" title="All 2 branches missed.">            if (resolutions != null) {</span>
+<span class="nc" id="L666">                l.getTileset().setResolutions(resolutions);</span>
+            }
+<span class="nc bnc" id="L668" title="All 4 branches missed.">            if (crs != null &amp;&amp; serviceBbox != null) {</span>
+<span class="nc" id="L669">                BoundingBox bb = new BoundingBox();</span>
+<span class="nc" id="L670">                bb.setBounds(serviceBbox);</span>
+<span class="nc" id="L671">                bb.setCrs(new CoordinateReferenceSystem(crs));</span>
+<span class="nc" id="L672">                l.getBoundingBoxes().clear();</span>
+<span class="nc" id="L673">                l.getBoundingBoxes().put(bb.getCrs(), bb);</span>
+            }
+<span class="nc bnc" id="L675" title="All 2 branches missed.">            if (StringUtils.isNotBlank(imageExtension)) {</span>
+<span class="nc" id="L676">                l.getDetails().put(&quot;image_extension&quot;, new ClobElement(imageExtension));</span>
+<span class="nc" id="L677">            }else l.getDetails().remove(&quot;image_extension&quot;);</span>
+
+        }
+
+<span class="nc bnc" id="L681" title="All 2 branches missed.">        if (service instanceof WMSService) {</span>
+<span class="nc" id="L682">            ((WMSService)service).setOverrideUrl(overrideUrl);</span>
+<span class="nc" id="L683">            ((WMSService) service).setException_type(exception_type);</span>
+<span class="nc" id="L684">            ((WMSService) service).setSkipDiscoverWFS(skipDiscoverWFS);</span>
+
+<span class="nc" id="L686">            service.getDetails().put(&quot;serverType&quot;, new ClobElement(serverType));</span>
+<span class="nc" id="L687">            service.getDetails().put(&quot;tiling.disable&quot;, new ClobElement(disableTiling + &quot;&quot;));</span>
+<span class="nc bnc" id="L688" title="All 2 branches missed.">            service.getDetails().put(&quot;tiling.gutter&quot;, new ClobElement(tilingGutter == null ? &quot;0&quot; : tilingGutter + &quot;&quot;));</span>
+        }
+<span class="nc" id="L690">        EntityManager em = Stripersist.getEntityManager();</span>
+        // Invalidate the cache of the applications using this service. Options like username/password, useProxy, etc. might have changed, which
+        // affect the selectedContent
+<span class="nc" id="L693">        List&lt;Application&gt; apps = findApplications();</span>
+<span class="nc bnc" id="L694" title="All 2 branches missed.">        for (Application application : apps) {</span>
+<span class="nc" id="L695">            SelectedContentCache.setApplicationCacheDirty(application, true, false, em);</span>
+<span class="nc" id="L696">        }</span>
+<span class="nc" id="L697">        service.getDetails().put(GeoService.DETAIL_USE_INTERSECT, new ClobElement(&quot;&quot;+useIntersect));</span>
+<span class="nc" id="L698">        service.getDetails().put(GeoService.DETAIL_USE_PROXY, new ClobElement(&quot;&quot;+useProxy));</span>
+        
+<span class="nc" id="L700">        service.setGeofenceHeader(geofenceHeader);      </span>
+<span class="nc" id="L701">        service.setUsername(username);</span>
+<span class="nc bnc" id="L702" title="All 2 branches missed.">        if (password != null) {</span>
+<span class="nc" id="L703">            service.setPassword(password);</span>
+        }
+        // When an user updates the service which formerly had a user/pass, but now it doesn't anymore -&gt; remove the password (username already removed in L210
+<span class="nc bnc" id="L706" title="All 4 branches missed.">        if (username == null &amp;&amp; password == null) {</span>
+<span class="nc" id="L707">            service.setPassword(password);</span>
+        }
+
+<span class="nc" id="L710">        service.getReaders().clear();</span>
+        
+<span class="nc" id="L712">        service.getReaders().addAll(groupsRead);</span>
+        
+<span class="nc" id="L714">        em.persist(service);</span>
+<span class="nc" id="L715">        em.getTransaction().commit();</span>
+
+<span class="nc" id="L717">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.srvsaved&quot;)));</span>
+
+<span class="nc" id="L719">        return edit();</span>
+    }
+
+
+    private List&lt;Application&gt; findApplications() {
+<span class="nc" id="L724">        List&lt;Application&gt; apps = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L726">        List&lt;ApplicationLayer&gt; applicationLayers = Stripersist.getEntityManager().createQuery(&quot;from ApplicationLayer where service = :service&quot;, ApplicationLayer.class)</span>
+<span class="nc" id="L727">                .setParameter(&quot;service&quot;, service).getResultList();</span>
+<span class="nc bnc" id="L728" title="All 2 branches missed.">        for (ApplicationLayer appLayer : applicationLayers) {</span>
+            /*
+            * The parent level of the applicationLayer is needed to find out in
+            * which application the Layer is used. This solution is not good
+            * when there are many levels.
+            */
+<span class="nc" id="L734">            List&lt;Application&gt; applications = Stripersist.getEntityManager().createQuery(&quot;from Application&quot;, Application.class).getResultList();</span>
+<span class="nc bnc" id="L735" title="All 2 branches missed.">            for (Application app : applications) {</span>
+<span class="nc bnc" id="L736" title="All 2 branches missed.">                if (app.getRoot().containsLayerInSubtree(appLayer)) {</span>
+<span class="nc" id="L737">                    apps.add(app);</span>
+                }
+<span class="nc" id="L739">            }</span>
+<span class="nc" id="L740">        }</span>
+<span class="nc" id="L741">        return apps;</span>
+    }
+
+    public Resolution delete() {
+        /*
+         * XXX Als een service layers heeft die toegevoegd zijn aan een
+         * applicatie mag de service niet verwijderd worden
+         */
+<span class="nc" id="L749">        List&lt;ApplicationLayer&gt; applicationLayers = Stripersist.getEntityManager().createQuery(&quot;from ApplicationLayer where service = :service&quot;,ApplicationLayer.class).setParameter(&quot;service&quot;, service).getResultList();</span>
+<span class="nc bnc" id="L750" title="All 2 branches missed.">        if (applicationLayers.size() &gt; 0) {</span>
+<span class="nc" id="L751">            serviceDeleted = false;</span>
+
+<span class="nc" id="L753">            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.srvinuse&quot;), applicationLayers.size()));</span>
+
+<span class="nc" id="L755">            return edit();</span>
+        } else {
+<span class="nc" id="L757">            Category c = service.getCategory();</span>
+<span class="nc" id="L758">            c.getServices().remove(service);</span>
+
+<span class="nc" id="L760">            List&lt;FeatureSource&gt; linkedSources = Stripersist.getEntityManager().createQuery(</span>
+<span class="nc" id="L761">                    &quot;from FeatureSource where linkedService = :service&quot;, FeatureSource.class).setParameter(&quot;service&quot;, service).getResultList();</span>
+<span class="nc bnc" id="L762" title="All 2 branches missed.">            for (FeatureSource fs : linkedSources) {</span>
+<span class="nc" id="L763">                fs.setLinkedService(null);</span>
+<span class="nc" id="L764">                getContext().getMessages().add(</span>
+<span class="nc" id="L765">                        new SimpleMessage(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.sepdel&quot;), fs.getName()));</span>
+
+<span class="nc" id="L767">            }</span>
+<span class="nc bnc" id="L768" title="All 2 branches missed.">            if (TileService.PROTOCOL.equals(service.getProtocol())) {</span>
+<span class="nc bnc" id="L769" title="All 4 branches missed.">                if (service.getTopLayer() != null &amp;&amp; service.getTopLayer().getTileset() != null) {</span>
+<span class="nc" id="L770">                    TileSet ts = service.getTopLayer().getTileset();</span>
+<span class="nc" id="L771">                    Stripersist.getEntityManager().remove(ts);</span>
+                }
+            }
+
+<span class="nc" id="L775">            Stripersist.getEntityManager().remove(service);</span>
+<span class="nc" id="L776">            Stripersist.getEntityManager().getTransaction().commit();</span>
+
+<span class="nc" id="L778">            serviceDeleted = true;</span>
+
+<span class="nc" id="L780">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.srvrem&quot;)));</span>
+<span class="nc" id="L781">            return new ForwardResolution(JSP);</span>
+        }
+    }
+
+    @Before
+    public void setUpdatable() {
+<span class="nc" id="L787">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L788">        updatable = GeoserviceFactoryHelper.isUpdatable(service);</span>
+<span class="nc" id="L789">    }</span>
+    
+    @After
+    public void makeLists(){
+<span class="nc" id="L793">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L794">        allGroups = em.createQuery(&quot;from Group&quot;, Group.class).getResultList();</span>
+<span class="nc bnc" id="L795" title="All 4 branches missed.">        if (service != null &amp;&amp; em.contains(service)) {</span>
+<span class="nc" id="L796">            groupsRead = new ArrayList&lt;&gt;(service.getReaders());</span>
+        }
+<span class="nc" id="L798">    }</span>
+
+    public Resolution update() throws Exception {
+<span class="nc bnc" id="L801" title="All 2 branches missed.">        if(!isUpdatable()) {</span>
+<span class="nc" id="L802">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.srvnotupd&quot;),</span>
+<span class="nc" id="L803">                    service.getProtocol()));</span>
+<span class="nc" id="L804">            return new ForwardResolution(JSP);</span>
+        }
+<span class="nc" id="L806">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L807">        UpdateResult result = GeoserviceFactoryHelper.update(em, service);</span>
+
+<span class="nc bnc" id="L809" title="All 2 branches missed.">        if(result.getStatus() == UpdateResult.Status.FAILED) {</span>
+<span class="nc" id="L810">            getContext().getValidationErrors().addGlobalError(new SimpleError(result.getMessage()));</span>
+<span class="nc" id="L811">            return new ForwardResolution(JSP);</span>
+        }
+
+<span class="nc" id="L814">        Map&lt;UpdateResult.Status,List&lt;String&gt;&gt; byStatus = result.getLayerNamesByStatus();</span>
+
+<span class="nc" id="L816">        log.info(String.format(&quot;Update layer stats: unmodified %d, updated %d, new %d, missing %d&quot;,</span>
+<span class="nc" id="L817">                byStatus.get(UpdateResult.Status.UNMODIFIED).size(),</span>
+<span class="nc" id="L818">                byStatus.get(UpdateResult.Status.UPDATED).size(),</span>
+<span class="nc" id="L819">                byStatus.get(UpdateResult.Status.NEW).size(),</span>
+<span class="nc" id="L820">                byStatus.get(UpdateResult.Status.MISSING).size()</span>
+        ));
+<span class="nc" id="L822">        log.info(&quot;Unmodified layers: &quot; + byStatus.get(UpdateResult.Status.UNMODIFIED));</span>
+<span class="nc" id="L823">        log.info(&quot;Updated layers: &quot; + byStatus.get(UpdateResult.Status.UPDATED));</span>
+<span class="nc" id="L824">        log.info(&quot;New layers: &quot; + byStatus.get(UpdateResult.Status.NEW));</span>
+<span class="nc" id="L825">        log.info(&quot;Missing layers: &quot; + byStatus.get(UpdateResult.Status.MISSING));</span>
+
+<span class="nc" id="L827">        List&lt;Application&gt; apps = findApplications();</span>
+<span class="nc bnc" id="L828" title="All 2 branches missed.">        for (Application application : apps) {</span>
+<span class="nc" id="L829">            SelectedContentCache.setApplicationCacheDirty(application, true, false,em);</span>
+<span class="nc" id="L830">        }</span>
+
+<span class="nc" id="L832">        em.getTransaction().commit();</span>
+
+<span class="nc" id="L834">        updatedService = new JSONObject();</span>
+<span class="nc" id="L835">        updatedService.put(&quot;id&quot;, &quot;s&quot; + service.getId());</span>
+<span class="nc" id="L836">        updatedService.put(&quot;name&quot;, service.getName());</span>
+<span class="nc" id="L837">        updatedService.put(&quot;type&quot;, &quot;service&quot;);</span>
+<span class="nc bnc" id="L838" title="All 2 branches missed.">        updatedService.put(&quot;isLeaf&quot;, service.getTopLayer() == null);</span>
+<span class="nc" id="L839">        updatedService.put(&quot;status&quot;, &quot;ok&quot;);//Math.random() &gt; 0.5 ? &quot;ok&quot; : &quot;error&quot;);</span>
+<span class="nc" id="L840">        updatedService.put(&quot;parentid&quot;, &quot;c&quot; + category.getId());</span>
+
+<span class="nc" id="L842">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.srvupd&quot;)));</span>
+
+<span class="nc" id="L844">        return new ForwardResolution(JSP);</span>
+    }
+    @ValidationMethod(on = &quot;add&quot;)
+    public void validateParams(ValidationErrors errors) {
+<span class="nc bnc" id="L848" title="All 2 branches missed.">        if (protocol.equals(TileService.PROTOCOL)) {</span>
+<span class="nc bnc" id="L849" title="All 6 branches missed.">            if (serviceName == null &amp;&amp; (protocol.equals(TileService.PROTOCOL) &amp;&amp; !tilingProtocol.equalsIgnoreCase(TileService.TILING_PROTOCOL_WMTS))) {</span>
+<span class="nc" id="L850">                errors.add(&quot;serviceName&quot;, new LocalizableError(&quot;validation.required.valueNotPresent&quot;));</span>
+            }
+<span class="nc bnc" id="L852" title="All 4 branches missed.">            if (protocol.equals(TileService.PROTOCOL) &amp;&amp; !tilingProtocol.equalsIgnoreCase(TileService.TILING_PROTOCOL_WMTS)) {</span>
+<span class="nc bnc" id="L853" title="All 2 branches missed.">                if (resolutions == null) {</span>
+<span class="nc" id="L854">                    errors.add(&quot;resolutions&quot;, new LocalizableError(&quot;validation.required.valueNotPresent&quot;));</span>
+                }
+<span class="nc bnc" id="L856" title="All 2 branches missed.">                if (serviceBbox == null) {</span>
+<span class="nc" id="L857">                    errors.add(&quot;serviceBbox&quot;, new LocalizableError(&quot;validation.required.valueNotPresent&quot;));</span>
+                }
+<span class="nc bnc" id="L859" title="All 2 branches missed.">                if (crs == null) {</span>
+<span class="nc" id="L860">                    errors.add(&quot;crs&quot;, new LocalizableError(&quot;validation.required.valueNotPresent&quot;));</span>
+                }
+<span class="nc bnc" id="L862" title="All 2 branches missed.">                if (tileSize == null) {</span>
+<span class="nc" id="L863">                    errors.add(&quot;tileSize&quot;, new LocalizableError(&quot;validation.required.valueNotPresent&quot;));</span>
+                }
+            }
+        }
+
+
+<span class="nc" id="L869">    }</span>
+
+    public Resolution addForm() {
+<span class="nc" id="L872">        return new ForwardResolution(JSP);</span>
+    }
+
+    @WaitPage(path = &quot;/WEB-INF/jsp/waitpage.jsp&quot;, delay = 2000, refresh = 1000, ajax = &quot;/WEB-INF/jsp/waitpageajax.jsp&quot;)
+    public Resolution add() throws JSONException {
+
+<span class="nc" id="L878">        EntityManager em = Stripersist.getEntityManager();</span>
+        try {
+<span class="nc" id="L880">            addService(em);</span>
+<span class="nc" id="L881">        } catch (Exception e) {</span>
+<span class="nc" id="L882">            log.error(&quot;Exception loading &quot; + protocol + &quot; service from url &quot; + url, e);</span>
+<span class="nc" id="L883">            String s = e.toString();</span>
+<span class="nc bnc" id="L884" title="All 2 branches missed.">            if (e.getCause() != null) {</span>
+<span class="nc" id="L885">                s += &quot;; cause: &quot; + e.getCause().toString();</span>
+            }
+<span class="nc" id="L887">            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.srvnotloaded&quot;), s));</span>
+<span class="nc" id="L888">            return new ForwardResolution(JSP);</span>
+<span class="nc" id="L889">        }</span>
+
+<span class="nc" id="L891">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.srvloaded&quot;)));</span>
+<span class="nc" id="L892">        return edit();</span>
+    }
+
+    protected void addService(EntityManager em) throws Exception{
+<span class="fc" id="L896">        status = new WaitPageStatus();</span>
+
+<span class="fc" id="L898">        Map&lt;String, Object&gt; params = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L900">        params.put(GeoService.PARAM_USERNAME, username);</span>
+<span class="fc" id="L901">        params.put(GeoService.PARAM_PASSWORD, password);</span>
+<span class="pc bpc" id="L902" title="2 of 3 branches missed.">        switch (protocol) {</span>
+            case WMSService.PROTOCOL:
+<span class="fc" id="L904">                params.put(WMSService.PARAM_OVERRIDE_URL, overrideUrl);</span>
+<span class="fc" id="L905">                params.put(WMSService.PARAM_SKIP_DISCOVER_WFS, skipDiscoverWFS);</span>
+<span class="fc" id="L906">                service = WMSServiceHelper.loadFromUrl(url, params, status, em);</span>
+<span class="fc" id="L907">                ((WMSService) service).setException_type(exception_type);</span>
+<span class="fc" id="L908">                service.getDetails().put(GeoService.DETAIL_USE_PROXY, new ClobElement(&quot;&quot; + useProxy));</span>
+<span class="fc" id="L909">                service.getDetails().put(&quot;hidpi.mode&quot;, new ClobElement(serverType));</span>
+<span class="fc" id="L910">                service.getDetails().put(&quot;tiling.disable&quot;, new ClobElement(disableTiling + &quot;&quot;));</span>
+<span class="pc bpc" id="L911" title="1 of 2 branches missed.">                service.getDetails().put(&quot;tiling.gutter&quot;, new ClobElement(tilingGutter == null ? &quot;0&quot; : tilingGutter + &quot;&quot;));</span>
+<span class="fc" id="L912">                break;</span>
+//            case ArcGISService.PROTOCOL:
+//                params.put(ArcGISService.PARAM_ASSUME_VERSION, agsVersion);
+//                service = ArcGISServiceHelper.loadFromUrl(url, params, status, em);
+//                break;
+            case TileService.PROTOCOL:
+<span class="nc" id="L918">                params.put(TileService.PARAM_SERVICENAME, serviceName);</span>
+<span class="nc" id="L919">                params.put(TileService.PARAM_RESOLUTIONS, resolutions);</span>
+<span class="nc" id="L920">                params.put(TileService.PARAM_SERVICEBBOX, serviceBbox);</span>
+<span class="nc" id="L921">                params.put(TileService.PARAM_CRS, crs);</span>
+<span class="nc" id="L922">                params.put(TileService.PARAM_IMAGEEXTENSION, imageExtension);</span>
+<span class="nc" id="L923">                params.put(TileService.PARAM_TILESIZE, tileSize);</span>
+<span class="nc" id="L924">                params.put(TileService.PARAM_TILINGPROTOCOL, tilingProtocol);</span>
+<span class="nc" id="L925">                service = TilingServiceHelper.loadFromURL(url, params, status, em);</span>
+<span class="nc" id="L926">                break;</span>
+            default:
+<span class="nc" id="L928">                getContext().getValidationErrors().add(&quot;protocol&quot;, new SimpleError(&quot;Ongeldig&quot;));</span>
+                break;
+        }
+
+<span class="pc bpc" id="L932" title="1 of 2 branches missed.">        if(service ==null){</span>
+<span class="nc" id="L933">            throw new IllegalArgumentException(&quot;check URL&quot;);</span>
+        }
+
+<span class="fc bfc" id="L936" title="All 2 branches covered.">        if (name != null) {</span>
+<span class="fc" id="L937">            service.setName(name);</span>
+        }
+<span class="pc bpc" id="L939" title="1 of 2 branches missed.">        if (username != null) {</span>
+<span class="nc" id="L940">            service.setUsername(username);</span>
+        }
+<span class="pc bpc" id="L942" title="1 of 2 branches missed.">        if (password != null) {</span>
+<span class="nc" id="L943">            service.setPassword(password);</span>
+        }
+
+<span class="fc" id="L946">        service.getDetails().put(GeoService.DETAIL_USE_INTERSECT, new ClobElement(&quot;&quot;+useIntersect));</span>
+<span class="fc" id="L947">        service.getReaders().addAll(groupsRead);</span>
+
+<span class="fc" id="L949">        category = em.find(Category.class, category.getId());</span>
+<span class="fc" id="L950">        service.setCategory(category);</span>
+<span class="fc" id="L951">        category.getServices().add(service);</span>
+<span class="fc" id="L952">        status.setCurrentAction(&quot;Service opslaan.&quot;);</span>
+<span class="fc" id="L953">        em.persist(service);</span>
+<span class="fc" id="L954">        em.getTransaction().commit();</span>
+
+<span class="fc" id="L956">        newService = new JSONObject();</span>
+<span class="fc" id="L957">        newService.put(&quot;id&quot;, &quot;s&quot; + service.getId());</span>
+<span class="fc" id="L958">        newService.put(&quot;name&quot;, service.getName());</span>
+<span class="fc" id="L959">        newService.put(&quot;type&quot;, &quot;service&quot;);</span>
+<span class="pc bpc" id="L960" title="1 of 2 branches missed.">        newService.put(&quot;isLeaf&quot;, service.getTopLayer() == null);</span>
+<span class="fc" id="L961">        newService.put(&quot;status&quot;, &quot;ok&quot;);</span>
+<span class="fc" id="L962">        newService.put(&quot;parentid&quot;, &quot;c&quot; + category.getId());</span>
+
+<span class="fc" id="L964">    }</span>
+
+    @DontValidate
+    public Resolution addSld() {
+<span class="nc" id="L968">        return new ForwardResolution(JSP_EDIT_SLD);</span>
+    }
+
+    @Before(on=&quot;editSld&quot;)
+    public void setSldType() {
+<span class="nc bnc" id="L973" title="All 2 branches missed.">        if(sld != null) {</span>
+<span class="nc bnc" id="L974" title="All 2 branches missed.">            sldType = sld.getExternalUrl() != null ? &quot;external&quot; : &quot;body&quot;;</span>
+        }
+<span class="nc" id="L976">    }</span>
+
+    public Resolution editSld() {
+<span class="nc bnc" id="L979" title="All 2 branches missed.">        if(sld != null) {</span>
+<span class="nc" id="L980">            return new ForwardResolution(JSP_EDIT_SLD);</span>
+        } else {
+<span class="nc" id="L982">            return edit();</span>
+        }
+    }
+
+    public Resolution deleteSld() {
+<span class="nc bnc" id="L987" title="All 2 branches missed.">        if(sld != null) {</span>
+<span class="nc" id="L988">            service.getStyleLibraries().remove(sld);</span>
+<span class="nc" id="L989">            Stripersist.getEntityManager().remove(sld);</span>
+<span class="nc" id="L990">            Stripersist.getEntityManager().getTransaction().commit();</span>
+<span class="nc" id="L991">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.sldrem&quot;)));</span>
+        }
+<span class="nc" id="L993">        return edit();</span>
+    }
+
+    @ValidationMethod(on=&quot;saveSld&quot;)
+    public void validateSld() {
+<span class="nc bnc" id="L998" title="All 4 branches missed.">        if(&quot;external&quot;.equals(sldType) &amp;&amp; StringUtils.isBlank(sld.getExternalUrl())) {</span>
+<span class="nc" id="L999">            getContext().getValidationErrors().add(&quot;sld.externalUrl&quot;, new LocalizableError(&quot;validation.required.valueNotPresent&quot;));</span>
+<span class="nc" id="L1000">            sld.setSldBody(null);</span>
+        }
+<span class="nc bnc" id="L1002" title="All 4 branches missed.">        if(&quot;body&quot;.equals(sldType) &amp;&amp; StringUtils.isBlank(sld.getSldBody())) {</span>
+<span class="nc" id="L1003">            getContext().getValidationErrors().add(&quot;sld.sldBody&quot;, new LocalizableError(&quot;validation.required.valueNotPresent&quot;));</span>
+<span class="nc" id="L1004">            sld.setExternalUrl(null);</span>
+        }
+<span class="nc" id="L1006">    }</span>
+
+    private static final String NS_SLD = &quot;http://www.opengis.net/sld&quot;;
+    private static final String NS_OGC = &quot;http://www.opengis.net/ogc&quot;;
+    private static final String NS_GML = &quot;http://www.opengis.net/gml&quot;;
+
+    public Resolution generateSld() throws Exception {
+
+<span class="nc" id="L1014">        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();</span>
+<span class="nc" id="L1015">        dbf.setNamespaceAware(true);</span>
+<span class="nc" id="L1016">        DocumentBuilder db = dbf.newDocumentBuilder();</span>
+<span class="nc" id="L1017">        Document sldDoc = db.newDocument();</span>
+
+<span class="nc" id="L1019">        Element sldEl = sldDoc.createElementNS(NS_SLD, &quot;StyledLayerDescriptor&quot;);</span>
+<span class="nc" id="L1020">        sldDoc.appendChild(sldEl);</span>
+<span class="nc" id="L1021">        sldEl.setAttributeNS(NS_SLD, &quot;version&quot;, &quot;1.0.0&quot;);</span>
+<span class="nc" id="L1022">        sldEl.setAttributeNS(&quot;http://www.w3.org/2001/XMLSchema-instance&quot;, &quot;xsi:schemaLocation&quot;, &quot;http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd&quot;);</span>
+<span class="nc" id="L1023">        sldEl.setAttribute(&quot;xmlns:ogc&quot;, NS_OGC);</span>
+<span class="nc" id="L1024">        sldEl.setAttribute(&quot;xmlns:gml&quot;, NS_GML);</span>
+<span class="nc" id="L1025">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L1026">        service.loadLayerTree(em);</span>
+
+<span class="nc" id="L1028">        Queue&lt;Layer&gt; layerStack = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L1029">        Layer l = service.getTopLayer();</span>
+<span class="nc bnc" id="L1030" title="All 2 branches missed.">        while(l != null) {</span>
+<span class="nc" id="L1031">            layerStack.addAll(service.getLayerChildrenCache(l, em));</span>
+
+<span class="nc bnc" id="L1033" title="All 2 branches missed.">            if(l.getName() != null) {</span>
+<span class="nc" id="L1034">                Element nlEl = sldDoc.createElementNS(NS_SLD, &quot;NamedLayer&quot;);</span>
+<span class="nc" id="L1035">                sldEl.appendChild(nlEl);</span>
+<span class="nc bnc" id="L1036" title="All 2 branches missed.">                String title = l.getTitleAlias() != null ? l.getTitleAlias() : l.getTitle();</span>
+<span class="nc bnc" id="L1037" title="All 2 branches missed.">                if(title != null) {</span>
+<span class="nc" id="L1038">                    nlEl.appendChild(sldDoc.createComment(&quot; Layer '&quot; + title + &quot;' &quot;));</span>
+                }
+<span class="nc" id="L1040">                Element nEl = sldDoc.createElementNS(NS_SLD, &quot;Name&quot;);</span>
+<span class="nc" id="L1041">                nEl.setTextContent(l.getName());</span>
+<span class="nc" id="L1042">                nlEl.appendChild(nEl);</span>
+
+<span class="nc bnc" id="L1044" title="All 2 branches missed.">                if(l.getFeatureType() != null) {</span>
+<span class="nc" id="L1045">                    String protocol = &quot;&quot;;</span>
+<span class="nc bnc" id="L1046" title="All 2 branches missed.">                    if(l.getFeatureType().getFeatureSource() != null) {</span>
+<span class="nc" id="L1047">                        protocol = &quot; (protocol &quot; + l.getFeatureType().getFeatureSource().getProtocol() + &quot;)&quot;;</span>
+                    }
+
+<span class="nc" id="L1050">                    StringBuilder ftComment = new StringBuilder(&quot; This layer has a feature type&quot; + protocol + &quot; you can use in a FeatureTypeConstraint element as follows:\n&quot;);</span>
+<span class="nc" id="L1051">                    ftComment.append(&quot;            &lt;LayerFeatureConstraints&gt;\n&quot;);</span>
+<span class="nc" id="L1052">                    ftComment.append(&quot;                &lt;FeatureTypeConstraint&gt;\n&quot;);</span>
+<span class="nc" id="L1053">                    ftComment.append(&quot;                    &lt;FeatureTypeName&gt;&quot;).append(l.getFeatureType().getTypeName()).append(&quot;&lt;/FeatureTypeName&gt;\n&quot;);</span>
+<span class="nc" id="L1054">                    ftComment.append(&quot;                    Add ogc:Filter or Extent element here. &quot;);</span>
+<span class="nc bnc" id="L1055" title="All 2 branches missed.">                    if(l.getFeatureType().getAttributes().isEmpty()) {</span>
+<span class="nc" id="L1056">                        ftComment.append(&quot; No feature type attributes are known.\n&quot;);</span>
+                    } else {
+<span class="nc" id="L1058">                        ftComment.append(&quot; You can use the following feature type attributes in ogc:PropertyName elements:\n&quot;);</span>
+<span class="nc bnc" id="L1059" title="All 2 branches missed.">                        for(AttributeDescriptor ad: l.getFeatureType().getAttributes()) {</span>
+<span class="nc" id="L1060">                            ftComment.append(&quot;                    &lt;ogc:PropertyName&gt;&quot;).append(ad.getName()).append(&quot;&lt;/ogc:PropertyName&gt;&quot;);</span>
+<span class="nc bnc" id="L1061" title="All 2 branches missed.">                            if(ad.getAlias() != null) {</span>
+<span class="nc" id="L1062">                                ftComment.append(&quot; (&quot;).append(ad.getAlias()).append(&quot;)&quot;);</span>
+                            }
+<span class="nc bnc" id="L1064" title="All 2 branches missed.">                            if(ad.getType() != null) {</span>
+<span class="nc" id="L1065">                                ftComment.append(&quot; (type: &quot;).append(ad.getType()).append(&quot;)&quot;);</span>
+                            }
+<span class="nc" id="L1067">                            ftComment.append(&quot;\n&quot;);</span>
+<span class="nc" id="L1068">                        }</span>
+                    }
+<span class="nc" id="L1070">                    ftComment.append(&quot;                &lt;/FeatureTypeConstraint&gt;\n&quot;);</span>
+<span class="nc" id="L1071">                    ftComment.append(&quot;            &lt;/LayerFeatureConstraints&gt;\n&quot;);</span>
+<span class="nc" id="L1072">                    ftComment.append(&quot;        &quot;);</span>
+<span class="nc" id="L1073">                    nlEl.appendChild(sldDoc.createComment(ftComment.toString()));</span>
+                }
+
+<span class="nc" id="L1076">                nlEl.appendChild(sldDoc.createComment(&quot; Add a UserStyle or NamedStyle element here &quot;));</span>
+<span class="nc" id="L1077">                StringBuilder styleComment = new StringBuilder(&quot; (no server-side named styles are known other than 'default') &quot;);</span>
+<span class="nc" id="L1078">                ClobElement styleDetail = l.getDetails().get(Layer.DETAIL_WMS_STYLES);</span>
+<span class="nc bnc" id="L1079" title="All 2 branches missed.">                if(styleDetail != null) {</span>
+                    try {
+<span class="nc" id="L1081">                        JSONArray styles = new JSONArray(styleDetail.getValue());</span>
+
+<span class="nc bnc" id="L1083" title="All 2 branches missed.">                        if(styles.length() &gt; 0) {</span>
+<span class="nc" id="L1084">                            styleComment = new StringBuilder(&quot; The following NamedStyles are available according to the capabilities: \n&quot;);</span>
+
+<span class="nc bnc" id="L1086" title="All 2 branches missed.">                            for(int i = 0; i &lt; styles.length(); i++) {</span>
+<span class="nc" id="L1087">                                JSONObject jStyle = styles.getJSONObject(i);</span>
+
+<span class="nc" id="L1089">                                styleComment.append(&quot;            &lt;NamedStyle&gt;&lt;Name&gt;&quot;).append(jStyle.getString(&quot;name&quot;)).append(&quot;&lt;/Name&gt;&lt;/NamedStyle&gt;&quot;);</span>
+<span class="nc bnc" id="L1090" title="All 2 branches missed.">                                if(jStyle.has(&quot;title&quot;)) {</span>
+<span class="nc" id="L1091">                                    styleComment.append(&quot; (&quot;).append(jStyle.getString(&quot;title&quot;)).append(&quot;)&quot;);</span>
+                                }
+<span class="nc" id="L1093">                                styleComment.append(&quot;\n&quot;);</span>
+                            }
+                        }
+
+<span class="nc" id="L1097">                    } catch(JSONException e) {</span>
+                        // ...
+<span class="nc" id="L1099">                    }</span>
+<span class="nc" id="L1100">                    styleComment.append(&quot;        &quot;);</span>
+                }
+<span class="nc" id="L1102">                nlEl.appendChild(sldDoc.createComment(styleComment.toString()));</span>
+            }
+
+<span class="nc" id="L1105">            l = layerStack.poll();</span>
+        }
+
+<span class="nc" id="L1108">        TransformerFactory tf = TransformerFactory.newInstance();</span>
+<span class="nc" id="L1109">        Transformer t = tf.newTransformer();</span>
+<span class="nc" id="L1110">        t.setOutputProperty(OutputKeys.INDENT, &quot;yes&quot;);</span>
+<span class="nc" id="L1111">        t.setOutputProperty(&quot;{http://xml.apache.org/xslt}indent-amount&quot;, &quot;4&quot;);</span>
+<span class="nc" id="L1112">        t.setOutputProperty(OutputKeys.ENCODING, &quot;UTF-8&quot;);</span>
+
+<span class="nc" id="L1114">        DOMSource source = new DOMSource(sldDoc);</span>
+<span class="nc" id="L1115">        ByteArrayOutputStream bos =  new ByteArrayOutputStream();</span>
+<span class="nc" id="L1116">        StreamResult result = new StreamResult(bos);</span>
+<span class="nc" id="L1117">        t.transform(source, result);</span>
+<span class="nc" id="L1118">        generatedSld = bos.toString(StandardCharsets.UTF_8);</span>
+
+        // indent doesn't add newline after XML declaration
+<span class="nc" id="L1121">        generatedSld = generatedSld.replaceFirst(&quot;\&quot;\\?&gt;&lt;StyledLayerDescriptor&quot;, &quot;\&quot;?&gt;\n&lt;StyledLayerDescriptor&quot;);</span>
+<span class="nc" id="L1122">        return new ForwardResolution(JSP_EDIT_SLD);</span>
+    }
+
+    @DontValidate
+    public Resolution cqlToFilter() throws JSONException {
+<span class="nc" id="L1127">        JSONObject json = new JSONObject();</span>
+<span class="nc" id="L1128">        json.put(&quot;success&quot;, Boolean.FALSE);</span>
+
+        try {
+<span class="nc" id="L1131">            List&lt;Filter&gt; filters = CQL.toFilterList(cql);</span>
+
+<span class="nc" id="L1133">            FilterTransformer filterTransformer = new FilterTransformer();</span>
+<span class="nc" id="L1134">            filterTransformer.setIndentation(4);</span>
+<span class="nc" id="L1135">            filterTransformer.setOmitXMLDeclaration(true);</span>
+<span class="nc" id="L1136">            filterTransformer.setNamespaceDeclarationEnabled(false);</span>
+<span class="nc" id="L1137">            StringWriter sw = new StringWriter();</span>
+<span class="nc bnc" id="L1138" title="All 2 branches missed.">            for(Filter filter: filters) {</span>
+<span class="nc" id="L1139">                sw.append('\n');</span>
+<span class="nc" id="L1140">                filterTransformer.transform(filter, sw);</span>
+<span class="nc" id="L1141">            }</span>
+
+<span class="nc" id="L1143">            json.put(&quot;filter&quot;, sw.toString());</span>
+
+<span class="nc" id="L1145">            json.put(&quot;success&quot;, Boolean.TRUE);</span>
+<span class="nc" id="L1146">        } catch(Exception e) {</span>
+<span class="nc" id="L1147">            String error = ExceptionUtils.getMessage(e);</span>
+<span class="nc bnc" id="L1148" title="All 2 branches missed.">            if(e.getCause() != null) {</span>
+<span class="nc" id="L1149">                error += &quot;; cause: &quot; + ExceptionUtils.getMessage(e.getCause());</span>
+            }
+<span class="nc" id="L1151">            json.put(&quot;error&quot;, error);</span>
+<span class="nc" id="L1152">        }</span>
+<span class="nc" id="L1153">        return new StreamingResolution(&quot;application/json&quot;, new StringReader(json.toString()));</span>
+    }
+
+    public Resolution validateSldXml() {
+<span class="nc" id="L1157">        Resolution jsp = new ForwardResolution(JSP_EDIT_SLD);</span>
+<span class="nc" id="L1158">        Document sldXmlDoc = null;</span>
+<span class="nc" id="L1159">        String stage = getBundle().getString(&quot;viewer_admin.geoserviceactionbean.noparsexml&quot;);</span>
+        try {
+<span class="nc" id="L1161">            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();</span>
+<span class="nc" id="L1162">            dbf.setNamespaceAware(true);</span>
+<span class="nc" id="L1163">            DocumentBuilder db = dbf.newDocumentBuilder();</span>
+
+<span class="nc" id="L1165">            sldXmlDoc = db.parse(new ByteArrayInputStream(sld.getSldBody().getBytes(StandardCharsets.UTF_8)));</span>
+
+<span class="nc" id="L1167">            stage = getBundle().getString(&quot;viewer_admin.geoserviceactionbean.slderror&quot;);</span>
+
+<span class="nc" id="L1169">            Element root = sldXmlDoc.getDocumentElement();</span>
+<span class="nc bnc" id="L1170" title="All 2 branches missed.">            if(!&quot;StyledLayerDescriptor&quot;.equals(root.getLocalName())) {</span>
+<span class="nc" id="L1171">                throw new Exception(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.wrongroot&quot;));</span>
+            }
+<span class="nc" id="L1173">            String version = root.getAttribute(&quot;version&quot;);</span>
+<span class="nc bnc" id="L1174" title="All 6 branches missed.">            if(version == null || !(&quot;1.0.0&quot;.equals(version) || &quot;1.1.0&quot;.equals(version))) {</span>
+<span class="nc" id="L1175">                throw new Exception(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.invalidsld&quot;));</span>
+            }
+
+<span class="nc" id="L1178">            SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);</span>
+<span class="nc" id="L1179">            Schema s = sf.newSchema(new URL(&quot;http://schemas.opengis.net/sld/&quot; + version + &quot;/StyledLayerDescriptor.xsd&quot;));</span>
+<span class="nc" id="L1180">            s.newValidator().validate(new DOMSource(sldXmlDoc));</span>
+
+<span class="nc" id="L1182">        } catch(Exception e) {</span>
+<span class="nc" id="L1183">            String extra = &quot;&quot;;</span>
+<span class="nc bnc" id="L1184" title="All 2 branches missed.">            if(e instanceof SAXParseException) {</span>
+<span class="nc" id="L1185">                SAXParseException spe = (SAXParseException)e;</span>
+<span class="nc bnc" id="L1186" title="All 2 branches missed.">                if(spe.getLineNumber() != -1) {</span>
+<span class="nc" id="L1187">                    extra = &quot; (line &quot; + spe.getLineNumber();</span>
+<span class="nc bnc" id="L1188" title="All 2 branches missed.">                    if(spe.getColumnNumber() != -1) {</span>
+<span class="nc" id="L1189">                        extra += &quot;, column &quot; + spe.getColumnNumber();</span>
+                    }
+<span class="nc" id="L1191">                    extra += &quot;)&quot;;</span>
+                }
+            }
+<span class="nc" id="L1194">            getContext().getValidationErrors().addGlobalError(new SimpleError(&quot;{2}: {3}{4}&quot;,</span>
+                    stage,
+<span class="nc" id="L1196">                    ExceptionUtils.getMessage(e),</span>
+                    extra
+            ));
+<span class="nc" id="L1199">            return jsp;</span>
+<span class="nc" id="L1200">        }</span>
+
+<span class="nc" id="L1202">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.validsld&quot;)));</span>
+
+<span class="nc" id="L1204">        return jsp;</span>
+    }
+
+    public Resolution saveSld() {
+
+<span class="nc bnc" id="L1209" title="All 2 branches missed.">        if(sld.getId() == null) {</span>
+<span class="nc" id="L1210">            service.getStyleLibraries().add(sld);</span>
+        }
+
+<span class="nc bnc" id="L1213" title="All 2 branches missed.">        if(sld.isDefaultStyle()) {</span>
+<span class="nc bnc" id="L1214" title="All 2 branches missed.">            for(StyleLibrary otherSld: service.getStyleLibraries()) {</span>
+<span class="nc bnc" id="L1215" title="All 4 branches missed.">                if(otherSld.getId() != null &amp;&amp; !otherSld.getId().equals(sld.getId())) {</span>
+<span class="nc" id="L1216">                    otherSld.setDefaultStyle(false);</span>
+                }
+<span class="nc" id="L1218">            }</span>
+        }
+
+        try {
+<span class="nc" id="L1222">            sld.setNamedLayerUserStylesJson(null);</span>
+<span class="nc" id="L1223">            InputSource sldBody = null;</span>
+
+<span class="nc bnc" id="L1225" title="All 2 branches missed.">            if(sld.getExternalUrl() == null) {</span>
+<span class="nc" id="L1226">                sldBody = new InputSource(new StringReader(sld.getSldBody()));</span>
+            } else {
+<span class="nc" id="L1228">                sldBody = new InputSource(new URL(sld.getExternalUrl()).openStream());</span>
+            }
+
+<span class="nc" id="L1231">            sld.setNamedLayerUserStylesJson(StyleLibrary.parseSLDNamedLayerUserStyles(sldBody).toString(4));</span>
+<span class="nc" id="L1232">        } catch(Exception e) {</span>
+<span class="nc" id="L1233">            log.error(&quot;Fout bij bepalen UserStyle namen van NamedLayers&quot;, e);</span>
+<span class="nc" id="L1234">            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.nostyles&quot;), e.getClass().getName(), e.getLocalizedMessage()));</span>
+<span class="nc" id="L1235">        }</span>
+
+<span class="nc" id="L1237">        Stripersist.getEntityManager().getTransaction().commit();</span>
+<span class="nc" id="L1238">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.geoserviceactionbean.sldsaved&quot;)));</span>
+<span class="nc" id="L1239">        return edit();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

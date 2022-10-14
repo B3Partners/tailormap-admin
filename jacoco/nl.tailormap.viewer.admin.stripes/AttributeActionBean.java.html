@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AttributeActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">AttributeActionBean.java</span></div><h1>AttributeActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.Before;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.controller.LifecycleStage;
+import net.sourceforge.stripes.validation.Validate;
+import net.sourceforge.stripes.validation.ValidateNestedProperties;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.services.AttributeDescriptor;
+import nl.tailormap.viewer.config.services.FeatureSource;
+import nl.tailormap.viewer.config.services.SimpleFeatureType;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+/**
+ *
+ * @author Jytte Schaeffer
+ */
+@UrlBinding(&quot;/action/attribute/{$event}&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN,Group.REGISTRY_ADMIN})
+<span class="nc" id="L63">public class AttributeActionBean extends LocalizableActionBean {</span>
+    private ActionBeanContext context;
+    private static final String JSP = &quot;/WEB-INF/jsp/services/attribute.jsp&quot;;
+    private static final String EDITJSP = &quot;/WEB-INF/jsp/services/editattribute.jsp&quot;;
+    
+    @Validate
+    private int page;
+    @Validate
+    private int start;
+    @Validate
+    private int limit;
+    @Validate
+    private String sort;
+    @Validate
+    private String dir;
+    @Validate
+    private JSONArray filter;
+    
+    @Validate
+    private Long featureSourceId;
+    @Validate
+    private Long simpleFeatureTypeId;
+    
+    private List&lt;FeatureSource&gt; featureSources;
+    
+    @Validate
+    @ValidateNestedProperties({
+                @Validate(field=&quot;alias&quot;, maxlength=255, label=&quot;Alias&quot;)
+    })
+    private AttributeDescriptor attribute;
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+    public ActionBeanContext getContext() {
+<span class="nc" id="L96">        return context;</span>
+    }
+    
+    public void setContext(ActionBeanContext context) {
+<span class="nc" id="L100">        this.context = context;</span>
+<span class="nc" id="L101">    }</span>
+
+    public AttributeDescriptor getAttribute() {
+<span class="nc" id="L104">        return attribute;</span>
+    }
+
+    public void setAttribute(AttributeDescriptor attribute) {
+<span class="nc" id="L108">        this.attribute = attribute;</span>
+<span class="nc" id="L109">    }</span>
+
+    public List&lt;FeatureSource&gt; getFeatureSources() {
+<span class="nc" id="L112">        return featureSources;</span>
+    }
+
+    public void setFeatureSources(List&lt;FeatureSource&gt; featureSources) {
+<span class="nc" id="L116">        this.featureSources = featureSources;</span>
+<span class="nc" id="L117">    }</span>
+
+    public Long getSimpleFeatureTypeId() {
+<span class="nc" id="L120">        return simpleFeatureTypeId;</span>
+    }
+
+    public void setSimpleFeatureTypeId(Long simpleFeatureTypeId) {
+<span class="nc" id="L124">        this.simpleFeatureTypeId = simpleFeatureTypeId;</span>
+<span class="nc" id="L125">    }</span>
+    
+    public Long getFeatureSourceId() {
+<span class="nc" id="L128">        return featureSourceId;</span>
+    }
+
+    public void setFeatureSourceId(Long featureSourceId) {
+<span class="nc" id="L132">        this.featureSourceId = featureSourceId;</span>
+<span class="nc" id="L133">    }</span>
+    
+    public String getDir() {
+<span class="nc" id="L136">        return dir;</span>
+    }
+    
+    public void setDir(String dir) {
+<span class="nc" id="L140">        this.dir = dir;</span>
+<span class="nc" id="L141">    }</span>
+    
+    public JSONArray getFilter() {
+<span class="nc" id="L144">        return filter;</span>
+    }
+    
+    public void setFilter(JSONArray filter) {
+<span class="nc" id="L148">        this.filter = filter;</span>
+<span class="nc" id="L149">    }</span>
+    
+    public int getLimit() {
+<span class="nc" id="L152">        return limit;</span>
+    }
+    
+    public void setLimit(int limit) {
+<span class="nc" id="L156">        this.limit = limit;</span>
+<span class="nc" id="L157">    }</span>
+    
+    public int getPage() {
+<span class="nc" id="L160">        return page;</span>
+    }
+    
+    public void setPage(int page) {
+<span class="nc" id="L164">        this.page = page;</span>
+<span class="nc" id="L165">    }</span>
+    
+    public String getSort() {
+<span class="nc" id="L168">        return sort;</span>
+    }
+    
+    public void setSort(String sort) {
+<span class="nc" id="L172">        this.sort = sort;</span>
+<span class="nc" id="L173">    }</span>
+    
+    public int getStart() {
+<span class="nc" id="L176">        return start;</span>
+    }
+    
+    public void setStart(int start) {
+<span class="nc" id="L180">        this.start = start;</span>
+<span class="nc" id="L181">    }</span>
+    //&lt;/editor-fold&gt;
+    
+    @DefaultHandler
+    public Resolution view() {
+<span class="nc" id="L186">        return new ForwardResolution(JSP);</span>
+    }
+    
+    public Resolution edit() {
+<span class="nc" id="L190">        return new ForwardResolution(EDITJSP);</span>
+    }
+    
+    public Resolution cancel() {
+<span class="nc" id="L194">        return new ForwardResolution(EDITJSP);</span>
+    }
+    
+    public Resolution save() {
+<span class="nc" id="L198">        Stripersist.getEntityManager().persist(attribute);</span>
+<span class="nc" id="L199">        Stripersist.getEntityManager().getTransaction().commit();</span>
+        
+<span class="nc" id="L201">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.attributeactionbean.attsaved&quot;)));</span>
+<span class="nc" id="L202">        return new ForwardResolution(EDITJSP);</span>
+    }
+    
+    @Before(stages=LifecycleStage.BindingAndValidation)
+    public void load() {
+<span class="nc" id="L207">        featureSources = Stripersist.getEntityManager().createQuery(&quot;from FeatureSource&quot;, FeatureSource.class).getResultList();</span>
+<span class="nc" id="L208">    }</span>
+    
+    public Resolution getFeatureTypes() throws JSONException {
+<span class="nc" id="L211">        final JSONArray simpleFeatureTypes = new JSONArray();</span>
+        
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        if(featureSourceId != null){</span>
+<span class="nc" id="L214">            FeatureSource fc = Stripersist.getEntityManager().find(FeatureSource.class, featureSourceId);</span>
+            
+<span class="nc" id="L216">            List&lt;SimpleFeatureType&gt; sftList = fc.getFeatureTypes();</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">            for (SimpleFeatureType sft : sftList) {</span>
+<span class="nc" id="L218">                JSONObject j = new JSONObject();</span>
+<span class="nc" id="L219">                j.put(&quot;id&quot;, sft.getId());</span>
+<span class="nc" id="L220">                String name = sft.getTypeName();</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                if (!StringUtils.isBlank(sft.getDescription())) {</span>
+<span class="nc" id="L222">                    name += &quot; (&quot; + sft.getDescription() + &quot;)&quot;;</span>
+                }
+<span class="nc" id="L224">                j.put(&quot;name&quot;, name);</span>
+<span class="nc" id="L225">                simpleFeatureTypes.put(j);</span>
+<span class="nc" id="L226">            }</span>
+        }
+        
+<span class="nc" id="L229">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+
+            @Override
+            public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L233">                response.getWriter().print(simpleFeatureTypes);</span>
+<span class="nc" id="L234">            }</span>
+        };
+    }
+    
+    public Resolution getGridData() throws JSONException { 
+<span class="nc" id="L239">        JSONArray jsonData = new JSONArray();</span>
+                
+<span class="nc" id="L241">        List&lt;SimpleFeatureType&gt; featureTypes= new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L242" title="All 4 branches missed.">        if(simpleFeatureTypeId != null &amp;&amp; simpleFeatureTypeId != -1){</span>
+<span class="nc" id="L243">            SimpleFeatureType sft = Stripersist.getEntityManager().find(SimpleFeatureType.class, simpleFeatureTypeId);</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">            if (sft!=null){</span>
+<span class="nc" id="L245">                featureTypes.add(sft);</span>
+            }
+<span class="nc bnc" id="L247" title="All 4 branches missed.">        }else if(featureSourceId != null &amp;&amp; featureSourceId != -1){</span>
+<span class="nc" id="L248">            FeatureSource fc = Stripersist.getEntityManager().find(FeatureSource.class, featureSourceId);</span>
+<span class="nc" id="L249">            featureTypes = fc.getFeatureTypes();</span>
+        }
+        
+<span class="nc" id="L252">        String filterAlias = &quot;&quot;;</span>
+<span class="nc" id="L253">        String filterAttribuut = &quot;&quot;;</span>
+<span class="nc" id="L254">        String filterType = &quot;&quot;;</span>
+        /* 
+         * FILTERING: filter is delivered by frontend as JSON array [{property, value}]
+         * for demo purposes the value is now returned, ofcourse here should the DB
+         * query be built to filter the right records
+         */
+<span class="nc bnc" id="L260" title="All 2 branches missed.">        if(this.getFilter() != null) {</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">            for(int k = 0; k &lt; this.getFilter().length(); k++) {</span>
+<span class="nc" id="L262">                JSONObject j = this.getFilter().getJSONObject(k);</span>
+<span class="nc" id="L263">                String property = j.getString(&quot;property&quot;);</span>
+<span class="nc" id="L264">                String value = j.getString(&quot;value&quot;);</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                if(property.equals(&quot;alias&quot;)) {</span>
+<span class="nc" id="L266">                    filterAlias = value;</span>
+                }
+<span class="nc bnc" id="L268" title="All 2 branches missed.">                if(property.equals(&quot;attribute&quot;)) {</span>
+<span class="nc" id="L269">                    filterAttribuut = value;</span>
+                }
+<span class="nc bnc" id="L271" title="All 2 branches missed.">                if(property.equals(&quot;type&quot;)) {</span>
+<span class="nc" id="L272">                    filterType = value;</span>
+                }
+            }
+        }
+        
+<span class="nc" id="L277">        Session sess = (Session)Stripersist.getEntityManager().getDelegate();</span>
+<span class="nc" id="L278">        Criteria c = sess.createCriteria(AttributeDescriptor.class);</span>
+        
+        /* Sorting is delivered by the frontend
+         * as two variables: sort which holds the column name and dir which
+         * holds the direction (ASC, DESC).
+         */
+<span class="nc bnc" id="L284" title="All 4 branches missed.">        if(sort != null &amp;&amp; dir != null){</span>
+            Order order;
+<span class="nc bnc" id="L286" title="All 2 branches missed.">            if(sort.equals(&quot;attribute&quot;)){</span>
+<span class="nc" id="L287">                sort = &quot;name&quot;;</span>
+            }
+<span class="nc bnc" id="L289" title="All 2 branches missed.">            if(dir.equals(&quot;ASC&quot;)){</span>
+<span class="nc" id="L290">               order = Order.asc(sort);</span>
+            }else{
+<span class="nc" id="L292">                order = Order.desc(sort);</span>
+            }
+<span class="nc" id="L294">            order.ignoreCase();</span>
+<span class="nc" id="L295">            c.addOrder(order); </span>
+        }
+        
+<span class="nc bnc" id="L298" title="All 4 branches missed.">        if(filterAlias != null &amp;&amp; filterAlias.length() &gt; 0){</span>
+<span class="nc" id="L299">            Criterion aliasCrit = Restrictions.ilike(&quot;alias&quot;, filterAlias, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L300">            c.add(aliasCrit);</span>
+        }
+<span class="nc bnc" id="L302" title="All 4 branches missed.">        if(filterAttribuut != null &amp;&amp; filterAttribuut.length() &gt; 0){</span>
+<span class="nc" id="L303">            Criterion attribuutCrit = Restrictions.ilike(&quot;name&quot;, filterAttribuut, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L304">            c.add(attribuutCrit);</span>
+        }
+<span class="nc bnc" id="L306" title="All 4 branches missed.">        if(filterType != null &amp;&amp; filterType.length() &gt; 0){</span>
+<span class="nc" id="L307">            Criterion typeCrit = Restrictions.ilike(&quot;type&quot;, filterType, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L308">            c.add(typeCrit);</span>
+        }
+        
+<span class="nc bnc" id="L311" title="All 4 branches missed.">        if(featureTypes != null &amp;&amp; featureTypes.size() &gt; 0){</span>
+            /* Criteria for the all attribute descriptor ids of the feature types 
+             * in featureTypes
+             */
+<span class="nc" id="L315">            DetachedCriteria c2 = DetachedCriteria.forClass(SimpleFeatureType.class);</span>
+<span class="nc" id="L316">            Collection&lt;Long&gt; ftIds = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">            for(SimpleFeatureType sft: featureTypes) {</span>
+<span class="nc" id="L318">                ftIds.add(sft.getId());</span>
+<span class="nc" id="L319">            }</span>
+<span class="nc" id="L320">            c2.add(Restrictions.in(&quot;id&quot;, ftIds));</span>
+<span class="nc" id="L321">            c2.createAlias(&quot;attributes&quot;, &quot;attr&quot;);</span>
+<span class="nc" id="L322">            c2.setProjection(Projections.property(&quot;attr.id&quot;));</span>
+
+<span class="nc" id="L324">            c.add(org.hibernate.criterion.Property.forName(&quot;id&quot;).in(c2));</span>
+        }
+<span class="nc" id="L326">        int rowCount = c.list().size();</span>
+        
+<span class="nc bnc" id="L328" title="All 2 branches missed.">        if(limit &gt; 0){</span>
+<span class="nc" id="L329">            c.setMaxResults(limit);</span>
+        }
+<span class="nc" id="L331">        c.setFirstResult(start);</span>
+        
+<span class="nc" id="L333">        List attributes = c.list();</span>
+
+<span class="nc bnc" id="L335" title="All 2 branches missed.">        for (Object o : attributes) {</span>
+<span class="nc" id="L336">            AttributeDescriptor attr = (AttributeDescriptor) o;</span>
+
+<span class="nc" id="L338">            JSONObject j = this.getGridRow(attr.getId().intValue(), attr.getAlias(), attr.getName(), attr.getType());</span>
+<span class="nc" id="L339">            jsonData.put(j);</span>
+<span class="nc" id="L340">        }</span>
+        
+<span class="nc" id="L342">        final JSONObject grid = new JSONObject();</span>
+<span class="nc" id="L343">        grid.put(&quot;totalCount&quot;, rowCount);</span>
+<span class="nc" id="L344">        grid.put(&quot;gridrows&quot;, jsonData);</span>
+    
+<span class="nc" id="L346">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+           @Override
+           public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L349">               response.getWriter().print(grid);</span>
+<span class="nc" id="L350">           }</span>
+        };
+    }
+    
+    private JSONObject getGridRow(int i, String alias, String attribute, String type) throws JSONException {       
+<span class="nc" id="L355">        JSONObject j = new JSONObject();</span>
+<span class="nc" id="L356">        j.put(&quot;id&quot;, i);</span>
+<span class="nc" id="L357">        j.put(&quot;alias&quot;, alias);</span>
+<span class="nc" id="L358">        j.put(&quot;attribute&quot;, attribute);</span>
+<span class="nc" id="L359">        j.put(&quot;type&quot;, type);</span>
+<span class="nc" id="L360">        return j;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

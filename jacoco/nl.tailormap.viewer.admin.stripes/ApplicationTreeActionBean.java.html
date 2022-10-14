@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationTreeActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">ApplicationTreeActionBean.java</span></div><h1>ApplicationTreeActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import nl.tailormap.viewer.config.app.ApplicationLayer;
+import nl.tailormap.viewer.config.app.Level;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.services.Category;
+import nl.tailormap.viewer.config.services.Document;
+import nl.tailormap.viewer.config.services.GeoService;
+import nl.tailormap.viewer.config.services.Layer;
+import nl.tailormap.viewer.util.SelectedContentCache;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ *
+ * @author Jytte Schaeffer
+ */
+
+@UrlBinding(&quot;/action/applicationtree&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN,Group.APPLICATION_ADMIN}) 
+<span class="fc" id="L55">public class ApplicationTreeActionBean extends ApplicationActionBean {</span>
+    private static final String JSP = &quot;/WEB-INF/jsp/application/applicationTree.jsp&quot;;
+    
+    @Validate(on=&quot;addLevel&quot;, required=true)
+    private String parentId;
+    
+    @Validate
+    private String nodeId;
+    
+    @Validate
+    private String levelId;
+    
+    @Validate(on=&quot;moveLevel&quot;,required=true)
+    private String targetLevelId;
+
+    @Validate(on=&quot;addLevel&quot;,required=true)
+    private String name;
+
+    @Validate(on=&quot;loadRegistryPath&quot;,required=true)
+    private String layerId;
+
+    private Level rootLevel;
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+    public Level getRootLevel() {
+<span class="nc" id="L80">        return rootLevel;</span>
+    }
+
+    public void setRootLevel(Level rootLevel) {
+<span class="nc" id="L84">        this.rootLevel = rootLevel;</span>
+<span class="nc" id="L85">    }</span>
+
+    
+    public String getName() {
+<span class="nc" id="L89">        return name;</span>
+    }
+    
+    public void setName(String name) {
+<span class="nc" id="L93">        this.name = name;</span>
+<span class="nc" id="L94">    }</span>
+    
+    public String getNodeId() {
+<span class="nc" id="L97">        return nodeId;</span>
+    }
+    
+    public void setNodeId(String nodeId) {
+<span class="nc" id="L101">        this.nodeId = nodeId;</span>
+<span class="nc" id="L102">    }</span>
+    
+    public String getLevelId() {
+<span class="nc" id="L105">        return levelId;</span>
+    }
+    
+    public void setLevelId(String levelId) {
+<span class="nc" id="L109">        this.levelId = levelId;</span>
+<span class="nc" id="L110">    }</span>
+    
+    public String getParentId() {
+<span class="nc" id="L113">        return parentId;</span>
+    }
+    
+    public void setParentId(String parentId) {
+<span class="nc" id="L117">        this.parentId = parentId;</span>
+<span class="nc" id="L118">    }</span>
+
+    public String getTargetLevelId() {
+<span class="nc" id="L121">        return targetLevelId;</span>
+    }
+
+    public void setTargetLevelId(String targetLevelId) {
+<span class="nc" id="L125">        this.targetLevelId = targetLevelId;</span>
+<span class="nc" id="L126">    }</span>
+
+    public String setLayerId() {
+<span class="nc" id="L129">        return layerId;</span>
+    }
+
+    public void setLayerId(String layerId) {
+<span class="nc" id="L133">        this.layerId = layerId;</span>
+<span class="nc" id="L134">    }</span>
+    
+    //&lt;/editor-fold&gt;
+    
+    @DefaultHandler
+    public Resolution view() {
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        if(application == null){</span>
+<span class="nc" id="L141">            getContext().getMessages().add(new SimpleError(&quot;Er moet eerst een bestaande applicatie geactiveerd of een nieuwe applicatie gemaakt worden.&quot;));</span>
+<span class="nc" id="L142">            return new ForwardResolution(&quot;/WEB-INF/jsp/application/chooseApplication.jsp&quot;);</span>
+        }else{
+<span class="nc" id="L144">            rootLevel = application.getRoot();</span>
+        }
+        
+<span class="nc" id="L147">        return new ForwardResolution(JSP);</span>
+    }
+    
+    public Resolution tree() throws JSONException {
+
+<span class="nc" id="L152">        EntityManager em = Stripersist.getEntityManager();</span>
+        
+<span class="nc" id="L154">        final JSONArray children = new JSONArray();</span>
+        
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        if(!nodeId.equals(&quot;n&quot;)){</span>
+        
+<span class="nc" id="L158">            String type = nodeId.substring(0, 1);</span>
+<span class="nc" id="L159">            int id = Integer.parseInt(nodeId.substring(1));</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">            if(type.equals(&quot;n&quot;)) {</span>
+<span class="nc" id="L161">                Level l = em.find(Level.class, (long) id);</span>
+<span class="nc" id="L162">                List&lt;Level&gt; levels = l.getChildren();</span>
+<span class="nc" id="L163">                Collections.sort(levels);</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">                for(Level sub: levels) {</span>
+<span class="nc" id="L165">                    JSONObject j = new JSONObject();</span>
+<span class="nc" id="L166">                    j.put(&quot;id&quot;, &quot;n&quot; + sub.getId());</span>
+<span class="nc" id="L167">                    j.put(&quot;name&quot;, sub.getName());</span>
+<span class="nc" id="L168">                    j.put(&quot;type&quot;, &quot;level&quot;);</span>
+<span class="nc bnc" id="L169" title="All 4 branches missed.">                    j.put(&quot;isLeaf&quot;, sub.getChildren().isEmpty() &amp;&amp; sub.getLayers().isEmpty());</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">                    if(sub.getParent() != null) {</span>
+<span class="nc" id="L171">                        j.put(&quot;parentid&quot;, sub.getParent().getId());</span>
+                    }
+<span class="nc" id="L173">                    children.put(j);</span>
+<span class="nc" id="L174">                }</span>
+
+<span class="nc bnc" id="L176" title="All 2 branches missed.">                for(ApplicationLayer layer: l.getLayers()) {</span>
+                    
+                    // XXX code duplication with loadSelectedLayers()
+                    
+<span class="nc" id="L180">                    JSONObject j = new JSONObject();</span>
+<span class="nc" id="L181">                    j.put(&quot;id&quot;, &quot;s&quot; + layer.getId()); // XXX WTF? other id prefix than in loadSelectedLayers()</span>
+<span class="nc" id="L182">                    j.put(&quot;type&quot;, &quot;layer&quot;);</span>
+<span class="nc" id="L183">                    j.put(&quot;isLeaf&quot;, true);</span>
+<span class="nc" id="L184">                    j.put(&quot;parentid&quot;, nodeId);</span>
+<span class="nc" id="L185">                    j.put(&quot;name&quot;, layer.getDisplayName(em));</span>
+<span class="nc" id="L186">                    children.put(j);</span>
+<span class="nc" id="L187">                }</span>
+            } 
+        }
+        
+<span class="nc" id="L191">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+           @Override
+           public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L194">               response.getWriter().print(children);</span>
+<span class="nc" id="L195">           }</span>
+        };
+    }
+    
+    public Resolution loadSelectedLayers() throws JSONException {
+
+<span class="nc" id="L201">        EntityManager em = Stripersist.getEntityManager();</span>
+        
+<span class="nc" id="L203">        final JSONArray children = new JSONArray();</span>
+        
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if(!levelId.equals(&quot;&quot;)){</span>
+<span class="nc" id="L206">            int id = Integer.parseInt(levelId);</span>
+<span class="nc" id="L207">            Level l = em.find(Level.class, (long) id);</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">            for(ApplicationLayer appl: l.getLayers()) {</span>
+<span class="nc" id="L209">                JSONObject j = new JSONObject();                </span>
+<span class="nc" id="L210">                j.put(&quot;id&quot;, &quot;al&quot; + appl.getId());</span>
+<span class="nc" id="L211">                j.put(&quot;type&quot;, &quot;layer&quot;);</span>
+<span class="nc" id="L212">                j.put(&quot;isLeaf&quot;, true);</span>
+<span class="nc" id="L213">                j.put(&quot;name&quot;, appl.getDisplayName(em));</span>
+<span class="nc" id="L214">                children.put(j);</span>
+
+<span class="nc" id="L216">                Layer serviceLayer = appl.getService().getLayer(appl.getLayerName(), em);</span>
+<span class="nc bnc" id="L217" title="All 4 branches missed.">                j.put(&quot;status&quot;, serviceLayer != null &amp;&amp; appl.getService().isMonitoringStatusok() ? &quot;ok&quot; : &quot;error&quot;);</span>
+<span class="nc" id="L218">            }</span>
+        }
+        
+<span class="nc" id="L221">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+           @Override
+           public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L224">               response.getWriter().print(children);</span>
+<span class="nc" id="L225">           }</span>
+        };
+    }
+
+    public Resolution loadRegistryPath() throws JSONException {
+<span class="nc" id="L230">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L231">        String layerType = layerId.substring(0, 1);</span>
+<span class="nc" id="L232">        String appLayerType = layerId.substring(0, 2);</span>
+
+<span class="nc" id="L234">        JSONArray path = new JSONArray();</span>
+<span class="nc bnc" id="L235" title="All 4 branches missed.">        if(appLayerType.equals(&quot;al&quot;) || layerType.equals(&quot;l&quot;)) {</span>
+<span class="nc" id="L236">            Layer foundLayer = null;</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">            if(appLayerType.equals(&quot;al&quot;)) {</span>
+<span class="nc" id="L238">                int id = Integer.parseInt(layerId.substring(2));</span>
+<span class="nc" id="L239">                ApplicationLayer appl = em.find(ApplicationLayer.class, (long)id);</span>
+<span class="nc" id="L240">                GeoService gs = appl.getService();</span>
+<span class="nc" id="L241">                List&lt;Layer&gt; layers = gs.loadLayerTree(em);</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">                for (Layer l : layers) {</span>
+<span class="nc bnc" id="L243" title="All 4 branches missed.">                    if(l.getName() != null &amp;&amp; l.getName().equals(appl.getLayerName())) {</span>
+<span class="nc" id="L244">                        foundLayer = l;</span>
+<span class="nc" id="L245">                        break;</span>
+                    }
+<span class="nc" id="L247">                }</span>
+<span class="nc" id="L248">            } else {</span>
+<span class="nc" id="L249">                int id = Integer.parseInt(layerId.substring(1));</span>
+<span class="nc" id="L250">                foundLayer = em.find(Layer.class, (long)id);</span>
+            }
+<span class="nc bnc" id="L252" title="All 2 branches missed.">            if(foundLayer != null) {</span>
+<span class="nc" id="L253">                Layer parent = foundLayer.getParent();</span>
+<span class="nc" id="L254">                path.put(&quot;l&quot; + foundLayer.getId());</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">                while(parent != null) {</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">                    if(!parent.isVirtual()) {</span>
+<span class="nc" id="L257">                        path.put(&quot;l&quot; + parent.getId());</span>
+                    }
+<span class="nc" id="L259">                    parent = parent.getParent();</span>
+                }
+<span class="nc" id="L261">                path.put(&quot;s&quot; + foundLayer.getService().getId());</span>
+<span class="nc" id="L262">                Category c = foundLayer.getService().getCategory();</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">                while(c != null) {</span>
+<span class="nc" id="L264">                    path.put(&quot;c&quot; + c.getId());</span>
+<span class="nc" id="L265">                    c = c.getParent();</span>
+                }
+            }
+        }
+
+<span class="nc" id="L270">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+            @Override
+            public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L273">                response.getWriter().print(path);</span>
+<span class="nc" id="L274">            }</span>
+        };
+    }
+    
+    public Resolution loadDocumentTree() throws JSONException {
+<span class="nc" id="L279">        EntityManager em = Stripersist.getEntityManager();</span>
+        
+<span class="nc" id="L281">        final JSONArray children = new JSONArray();</span>
+        
+<span class="nc" id="L283">        List&lt;Document&gt; documents = em.createQuery(&quot;from Document&quot;, Document.class).getResultList();</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">        for (Document doc : documents) {</span>
+<span class="nc" id="L285">            JSONObject j = new JSONObject();</span>
+<span class="nc" id="L286">            j.put(&quot;id&quot;, &quot;d&quot; + doc.getId());</span>
+<span class="nc" id="L287">            j.put(&quot;name&quot;, doc.getName());</span>
+<span class="nc" id="L288">            j.put(&quot;type&quot;, &quot;document&quot;);</span>
+<span class="nc" id="L289">            j.put(&quot;isLeaf&quot;, true);</span>
+<span class="nc" id="L290">            j.put(&quot;parentid&quot;, nodeId);</span>
+<span class="nc" id="L291">            children.put(j);</span>
+<span class="nc" id="L292">        }</span>
+        
+<span class="nc" id="L294">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+            @Override
+            public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L297">                response.getWriter().print(children);</span>
+<span class="nc" id="L298">            }</span>
+        }; 
+    }
+            
+    public Resolution loadSelectedDocuments() throws JSONException {
+<span class="nc" id="L303">        EntityManager em = Stripersist.getEntityManager();</span>
+
+<span class="nc" id="L305">        final JSONArray children = new JSONArray();</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">        if(!levelId.equals(&quot;&quot;)){</span>
+<span class="nc" id="L307">            int id = Integer.parseInt(levelId);</span>
+<span class="nc" id="L308">            Level l = em.find(Level.class, (long) id);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">            for(Document doc: l.getDocuments()) {</span>
+<span class="nc" id="L310">                JSONObject j = new JSONObject();</span>
+<span class="nc" id="L311">                j.put(&quot;id&quot;, &quot;d&quot; + doc.getId());</span>
+<span class="nc" id="L312">                j.put(&quot;name&quot;, doc.getName());</span>
+<span class="nc" id="L313">                j.put(&quot;type&quot;, &quot;document&quot;);</span>
+<span class="nc" id="L314">                j.put(&quot;isLeaf&quot;, true);</span>
+<span class="nc" id="L315">                children.put(j);</span>
+<span class="nc" id="L316">            }</span>
+        }
+
+<span class="nc" id="L319">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+            @Override
+            public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L322">                response.getWriter().print(children);</span>
+<span class="nc" id="L323">            }</span>
+        }; 
+    }
+    
+    public Resolution addLevel() throws JSONException {
+<span class="nc" id="L328">        EntityManager em = Stripersist.getEntityManager();</span>
+
+        // Demangle id
+        long parentIdLong;
+<span class="nc bnc" id="L332" title="All 2 branches missed.">        if(!parentId.contains(&quot;n&quot;)){</span>
+<span class="nc" id="L333">            parentIdLong = Long.parseLong(parentId);</span>
+        }else{
+<span class="nc" id="L335">            parentIdLong = Long.parseLong(parentId.substring(1));</span>
+        }
+
+<span class="nc" id="L338">        Level parent = em.find(Level.class, parentIdLong);</span>
+        
+<span class="nc bnc" id="L340" title="All 4 branches missed.">        if(!parent.isBackground() &amp;&amp; parent.getParent() != null){</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">            if(parent.getParent().isBackground()){</span>
+                /*
+                 * Checks if the new level is not a sub sub level of background. 
+                 * A background can only have sub levels with layers.
+                 */
+<span class="nc" id="L346">                return null;</span>
+            }
+        }
+        
+<span class="nc" id="L350">        Level l = new Level();</span>
+<span class="nc" id="L351">        l.setName(name);</span>
+<span class="nc" id="L352">        l.setParent(parent);</span>
+<span class="nc" id="L353">        parent.getChildren().add(l);</span>
+
+<span class="nc" id="L355">        em.persist(l);</span>
+<span class="nc" id="L356">        em.persist(parent);</span>
+<span class="nc" id="L357">        SelectedContentCache.setApplicationCacheDirty(application, true,false,em);</span>
+<span class="nc" id="L358">        application.authorizationsModified();</span>
+<span class="nc" id="L359">        em.getTransaction().commit();</span>
+
+<span class="nc" id="L361">        final JSONObject j = new JSONObject();</span>
+<span class="nc" id="L362">        j.put(&quot;id&quot;, &quot;n&quot; + l.getId());</span>
+<span class="nc" id="L363">        j.put(&quot;name&quot;, l.getName());</span>
+<span class="nc" id="L364">        j.put(&quot;type&quot;, &quot;level&quot;);</span>
+<span class="nc" id="L365">        j.put(&quot;isLeaf&quot;, true);</span>
+<span class="nc" id="L366">        j.put(&quot;parentid&quot;, parentId);</span>
+        
+<span class="nc" id="L368">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+           @Override
+           public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L371">               response.getWriter().print(j);</span>
+<span class="nc" id="L372">           }</span>
+        };
+    }
+    
+    public Resolution moveLevel() {
+<span class="nc" id="L377">        final JSONObject j = new JSONObject();</span>
+<span class="nc" id="L378">        j.put(&quot;success&quot;, false);</span>
+        try{
+<span class="nc" id="L380">            EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L381">            moveLevel(levelId, targetLevelId, em);</span>
+<span class="nc" id="L382">            SelectedContentCache.setApplicationCacheDirty(application, true, false, em);</span>
+<span class="nc" id="L383">            application.authorizationsModified();</span>
+<span class="nc" id="L384">            em.getTransaction().commit(); </span>
+<span class="nc" id="L385">           j.put(&quot;success&quot;, true);</span>
+<span class="nc" id="L386">        }catch(Exception e){</span>
+<span class="nc" id="L387">            j.put(&quot;message&quot;, e.getLocalizedMessage());</span>
+            
+<span class="nc" id="L389">        }</span>
+<span class="nc" id="L390">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+            @Override
+            public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L393">                response.getWriter().print(j);</span>
+<span class="nc" id="L394">            }</span>
+        };
+    }
+    
+    protected void moveLevel(String levelToMove, String targetLevel, EntityManager em){
+<span class="pc bpc" id="L399" title="2 of 4 branches missed.">        if(levelToMove == null || targetLevel == null){</span>
+<span class="nc" id="L400">            throw new IllegalArgumentException(&quot;level to move, or target level is null.&quot;);</span>
+        }
+<span class="pc bpc" id="L402" title="1 of 2 branches missed.">        if(levelToMove.contains(&quot;n&quot;)){</span>
+<span class="fc" id="L403">            levelToMove = levelToMove.substring(1);</span>
+        }
+<span class="pc bpc" id="L405" title="1 of 2 branches missed.">        if(targetLevel.contains(&quot;n&quot;)){</span>
+<span class="fc" id="L406">            targetLevel = targetLevel.substring(1);</span>
+        }
+        
+<span class="fc" id="L409">        Level l = em.find(Level.class, Long.parseLong(levelToMove));</span>
+<span class="fc" id="L410">        Level target = em.find(Level.class, Long.parseLong(targetLevel));</span>
+        
+<span class="fc" id="L412">        Level oldParent = l.getParent();</span>
+<span class="pc bpc" id="L413" title="3 of 6 branches missed.">        if(l == null || target == null || oldParent == null){</span>
+<span class="nc" id="L414">            throw new IllegalArgumentException(&quot;Passed ids yield no levels, or level doesn't have a parent (do not try to move the application level. No. Don't.)&quot;);</span>
+        }
+<span class="fc" id="L416">        removeLevelFromChildren(l, target, em);</span>
+<span class="fc bfc" id="L417" title="All 2 branches covered.">        if (!oldParent.getId().equals(target.getId())) {</span>
+<span class="fc" id="L418">            target.getChildren().add(l);</span>
+<span class="fc" id="L419">            l.setParent(target);</span>
+<span class="fc" id="L420">            List&lt;Level&gt; newChilds = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L421" title="All 2 branches covered.">            for (Level level : oldParent.getChildren()) {</span>
+<span class="pc bpc" id="L422" title="1 of 2 branches missed.">                if (!level.getId().equals(l.getId())) {</span>
+<span class="fc" id="L423">                    newChilds.add(level);</span>
+                }
+<span class="fc" id="L425">            }</span>
+<span class="fc" id="L426">            oldParent.setChildren(newChilds);</span>
+<span class="fc" id="L427">            em.persist(l);</span>
+<span class="fc" id="L428">            em.persist(target);</span>
+<span class="fc" id="L429">            em.persist(oldParent);</span>
+        }
+<span class="fc" id="L431">    }</span>
+    
+    private void removeLevelFromChildren(Level level, Level newParent, EntityManager em){
+<span class="fc" id="L434">        List&lt;Level&gt; parentList = em.createQuery(&quot;select l FROM Level l join l.children c where c = :level&quot;, Level.class).setParameter(&quot;level&quot;, level).getResultList();</span>
+<span class="fc bfc" id="L435" title="All 2 branches covered.">        for (Level l : parentList) {</span>
+<span class="fc bfc" id="L436" title="All 2 branches covered.">            if(!l.getId().equals(newParent.getId())){</span>
+<span class="fc" id="L437">                l.getChildren().remove(level);</span>
+<span class="fc" id="L438">                em.persist(l);</span>
+            }
+<span class="fc" id="L440">        }</span>
+<span class="fc" id="L441">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

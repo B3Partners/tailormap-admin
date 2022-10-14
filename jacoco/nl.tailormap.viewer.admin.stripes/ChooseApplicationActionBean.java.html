@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChooseApplicationActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">ChooseApplicationActionBean.java</span></div><h1>ChooseApplicationActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2016 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.After;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.RedirectResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.controller.LifecycleStage;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import nl.tailormap.viewer.config.app.Application;
+import nl.tailormap.viewer.config.app.ConfiguredComponent;
+import nl.tailormap.viewer.config.metadata.Metadata;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.helpers.app.ApplicationHelper;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.servlet.http.HttpServletResponse;
+import java.io.StringReader;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+/**
+ *
+ * @author Jytte Schaeffer
+ */
+@UrlBinding(&quot;/action/chooseapplication/{$event}&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN, Group.APPLICATION_ADMIN})
+<span class="fc" id="L69">public class ChooseApplicationActionBean extends ApplicationActionBean {</span>
+
+<span class="fc" id="L71">    private static final Log log = LogFactory.getLog(ChooseApplicationActionBean.class);</span>
+    private static final String JSP = &quot;/WEB-INF/jsp/application/chooseApplication.jsp&quot;;
+    private static final String EDITJSP = &quot;/WEB-INF/jsp/application/chooseApplicationEdit.jsp&quot;;
+    private static final String VIEWER_URL_PARAM = &quot;viewer.url&quot;;
+    @Validate
+    private int page;
+    @Validate
+    private int start;
+    @Validate
+    private int limit;
+    @Validate
+    private String sort;
+    @Validate
+    private String dir;
+    @Validate
+    private JSONArray filter;
+    @Validate
+    private String name;
+    @Validate
+    private String version;
+    @Validate
+    private Application applicationWorkversion;
+    @Validate
+    private Application applicationToDelete;
+
+    private List&lt;Application&gt; apps;
+
+    private String defaultAppId;
+
+    @Validate
+    private Application defaultApplication;
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+    public String getDir() {
+<span class="nc" id="L105">        return dir;</span>
+    }
+
+    public void setDir(String dir) {
+<span class="nc" id="L109">        this.dir = dir;</span>
+<span class="nc" id="L110">    }</span>
+
+    public JSONArray getFilter() {
+<span class="nc" id="L113">        return filter;</span>
+    }
+
+    public void setFilter(JSONArray filter) {
+<span class="nc" id="L117">        this.filter = filter;</span>
+<span class="nc" id="L118">    }</span>
+
+    public int getLimit() {
+<span class="nc" id="L121">        return limit;</span>
+    }
+
+    public void setLimit(int limit) {
+<span class="nc" id="L125">        this.limit = limit;</span>
+<span class="nc" id="L126">    }</span>
+
+    public int getPage() {
+<span class="nc" id="L129">        return page;</span>
+    }
+
+    public void setPage(int page) {
+<span class="nc" id="L133">        this.page = page;</span>
+<span class="nc" id="L134">    }</span>
+
+    public String getSort() {
+<span class="nc" id="L137">        return sort;</span>
+    }
+
+    public void setSort(String sort) {
+<span class="nc" id="L141">        this.sort = sort;</span>
+<span class="nc" id="L142">    }</span>
+
+    public int getStart() {
+<span class="nc" id="L145">        return start;</span>
+    }
+
+    public void setStart(int start) {
+<span class="nc" id="L149">        this.start = start;</span>
+<span class="nc" id="L150">    }</span>
+
+    public Application getApplicationToDelete() {
+<span class="nc" id="L153">        return applicationToDelete;</span>
+    }
+
+    public void setApplicationToDelete(Application applicationToDelete) {
+<span class="fc" id="L157">        this.applicationToDelete = applicationToDelete;</span>
+<span class="fc" id="L158">    }</span>
+
+    public String getName() {
+<span class="nc" id="L161">        return name;</span>
+    }
+
+    public void setName(String name) {
+<span class="nc" id="L165">        this.name = name;</span>
+<span class="nc" id="L166">    }</span>
+
+    public String getVersion() {
+<span class="nc" id="L169">        return version;</span>
+    }
+
+    public void setVersion(String version) {
+<span class="nc" id="L173">        this.version = version;</span>
+<span class="nc" id="L174">    }</span>
+
+    public Application getApplicationWorkversion() {
+<span class="nc" id="L177">        return applicationWorkversion;</span>
+    }
+
+    public void setApplicationWorkversion(Application applicationWorkversion) {
+<span class="nc" id="L181">        this.applicationWorkversion = applicationWorkversion;</span>
+<span class="nc" id="L182">    }</span>
+
+    public List&lt;Application&gt; getApps() {
+<span class="nc" id="L185">        return apps;</span>
+    }
+
+    public void setApps(List&lt;Application&gt; apps) {
+<span class="nc" id="L189">        this.apps = apps;</span>
+<span class="nc" id="L190">    }</span>
+
+    public String getDefaultAppId() {
+<span class="nc" id="L193">        return defaultAppId;</span>
+    }
+
+    public void setDefaultAppId(String defaultAppId) {
+<span class="nc" id="L197">        this.defaultAppId = defaultAppId;</span>
+<span class="nc" id="L198">    }</span>
+
+    public Application getDefaultApplication() {
+<span class="nc" id="L201">        return defaultApplication;</span>
+    }
+
+    public void setDefaultApplication(Application defaultApplication) {
+<span class="nc" id="L205">        this.defaultApplication = defaultApplication;</span>
+<span class="nc" id="L206">    }</span>
+    //&lt;/editor-fold&gt;
+
+    @DefaultHandler
+    public Resolution view() {
+<span class="nc" id="L211">        return new ForwardResolution(JSP);</span>
+    }
+
+    public Resolution viewEdit() {
+<span class="nc" id="L215">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    public Resolution deleteApplication() {
+<span class="nc" id="L219">        EntityManager em = Stripersist.getEntityManager();</span>
+        try {
+<span class="nc" id="L221">            deleteApplication(em);</span>
+<span class="nc" id="L222">        } catch (Exception e) {</span>
+<span class="nc" id="L223">            log.error(String.format(&quot;Error deleting application #%d named %s%s&quot;,</span>
+<span class="nc" id="L224">                    applicationToDelete.getId(),</span>
+<span class="nc" id="L225">                    applicationToDelete.getName(),</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">                    applicationToDelete.getVersion() == null ? &quot;&quot; : &quot;v&quot; + applicationToDelete.getVersion() + &quot; &quot;),</span>
+                    e);
+<span class="nc" id="L228">            StringBuilder ex = new StringBuilder(e.toString());</span>
+<span class="nc" id="L229">            Throwable cause = e.getCause();</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">            while (cause != null) {</span>
+<span class="nc" id="L231">                ex.append(&quot;;\n&lt;br&gt;&quot;).append(cause);</span>
+<span class="nc" id="L232">                cause = cause.getCause();</span>
+            }
+<span class="nc" id="L234">            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString(&quot;viewer_admin.chooseapplicationactionbean.errorremapp&quot;), ex.toString()));</span>
+<span class="nc" id="L235">        }</span>
+<span class="nc" id="L236">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    protected void deleteApplication(EntityManager em) {
+<span class="pc bpc" id="L240" title="1 of 2 branches missed.">        if (applicationToDelete.isMashup()) {</span>
+<span class="nc" id="L241">            applicationToDelete.setRoot(null);</span>
+<span class="nc" id="L242">            Set&lt;ConfiguredComponent&gt; comps = applicationToDelete.getComponents();</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">            for (ConfiguredComponent comp : comps) {</span>
+<span class="nc" id="L244">                List&lt;ConfiguredComponent&gt; linked = comp.getLinkedComponents();</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                for (ConfiguredComponent cc : linked) {</span>
+<span class="nc" id="L246">                    cc.setMotherComponent(null);</span>
+<span class="nc" id="L247">                    em.persist(cc);</span>
+<span class="nc" id="L248">                }</span>
+<span class="nc" id="L249">            }</span>
+<span class="nc" id="L250">            em.remove(applicationToDelete);</span>
+<span class="nc" id="L251">            em.getTransaction().commit();</span>
+
+<span class="nc" id="L253">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.chooseapplicationactionbean.murem&quot;)));</span>
+<span class="pc bpc" id="L254" title="1 of 2 branches missed.">        } else if (applicationToDelete.getVersion() == null) {</span>
+<span class="nc" id="L255">            Date nowDate = new Date(System.currentTimeMillis());</span>
+<span class="nc" id="L256">            SimpleDateFormat sdf = (SimpleDateFormat) SimpleDateFormat.getDateInstance();</span>
+<span class="nc" id="L257">            sdf.applyPattern(&quot;HH-mm_dd-MM-yyyy&quot;);</span>
+<span class="nc" id="L258">            String now = sdf.format(nowDate);</span>
+<span class="nc" id="L259">            String uniqueVersion = ApplicationSettingsActionBean.findUniqueVersion(applicationToDelete.getName(), &quot;B_&quot; + now, em);</span>
+<span class="nc" id="L260">            applicationToDelete.setVersion(uniqueVersion);</span>
+<span class="nc" id="L261">            em.getTransaction().commit();</span>
+<span class="nc" id="L262">        } else {</span>
+<span class="fc" id="L263">            List&lt;Application&gt; mashups = ApplicationHelper.getMashups(applicationToDelete, em);</span>
+<span class="pc bpc" id="L264" title="1 of 2 branches missed.">            if (!mashups.isEmpty()) {</span>
+<span class="nc" id="L265">                List&lt;String&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">                for (Application mashup : mashups) {</span>
+<span class="nc" id="L267">                    list.add(mashup.getNameWithVersion());</span>
+<span class="nc" id="L268">                }</span>
+<span class="nc" id="L269">                String mashupList = StringUtils.join(list, &quot;, &quot;);</span>
+<span class="nc" id="L270">                getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString(&quot;viewer_admin.chooseapplicationactionbean.noremapp&quot;), mashupList));</span>
+<span class="nc" id="L271">            } else {</span>
+
+<span class="fc" id="L273">                em.remove(applicationToDelete);</span>
+<span class="fc" id="L274">                em.getTransaction().commit();</span>
+
+<span class="fc" id="L276">                getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.chooseapplicationactionbean.remapp&quot;)));</span>
+            }
+        }
+<span class="pc bpc" id="L279" title="1 of 2 branches missed.">        if (applicationToDelete.equals(application)) {</span>
+<span class="nc" id="L280">            setApplication(null);</span>
+        }
+<span class="fc" id="L282">    }</span>
+
+    public Resolution getGridData() throws JSONException {
+<span class="nc" id="L285">        JSONArray jsonData = new JSONArray();</span>
+<span class="nc" id="L286">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L287">        String filterName = &quot;&quot;;</span>
+<span class="nc" id="L288">        String filterPublished = &quot;&quot;;</span>
+<span class="nc" id="L289">        String filterOwner = &quot;&quot;;</span>
+        /*
+         * FILTERING: filter is delivered by frontend as JSON array [{property,
+         * value}] for demo purposes the value is now returned, ofcourse here
+         * should the DB query be built to filter the right records
+         */
+<span class="nc bnc" id="L295" title="All 2 branches missed.">        if (this.getFilter() != null) {</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">            for (int k = 0; k &lt; this.getFilter().length(); k++) {</span>
+<span class="nc" id="L297">                JSONObject j = this.getFilter().getJSONObject(k);</span>
+<span class="nc" id="L298">                String property = j.getString(&quot;property&quot;);</span>
+<span class="nc" id="L299">                String value = j.getString(&quot;value&quot;);</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">                if (property.equals(&quot;name&quot;)) {</span>
+<span class="nc" id="L301">                    filterName = value;</span>
+                }
+<span class="nc bnc" id="L303" title="All 2 branches missed.">                if (property.equals(&quot;published&quot;)) {</span>
+<span class="nc" id="L304">                    filterPublished = value;</span>
+                }
+<span class="nc bnc" id="L306" title="All 2 branches missed.">                if (property.equals(&quot;owner&quot;)) {</span>
+<span class="nc" id="L307">                    filterOwner = value;</span>
+                }
+            }
+        }
+
+<span class="nc" id="L312">        Session sess = (Session) em.getDelegate();</span>
+<span class="nc" id="L313">        Criteria c = sess.createCriteria(Application.class);</span>
+
+        /*
+         * Sorting is delivered by the frontend as two variables: sort which
+         * holds the column name and dir which holds the direction (ASC, DESC).
+         */
+<span class="nc bnc" id="L319" title="All 4 branches missed.">        if (sort != null &amp;&amp; dir != null) {</span>
+            Order order;
+<span class="nc bnc" id="L321" title="All 2 branches missed.">            if (sort.equals(&quot;published&quot;)) {</span>
+<span class="nc" id="L322">                sort = &quot;version&quot;;</span>
+            }
+<span class="nc bnc" id="L324" title="All 2 branches missed.">            if (dir.equals(&quot;ASC&quot;)) {</span>
+<span class="nc" id="L325">                order = Order.asc(sort);</span>
+            } else {
+<span class="nc" id="L327">                order = Order.desc(sort);</span>
+            }
+<span class="nc" id="L329">            order.ignoreCase();</span>
+<span class="nc" id="L330">            c.addOrder(order);</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">            if(!sort.equals(&quot;version&quot;)){</span>
+<span class="nc" id="L332">                c.addOrder(Order.desc(&quot;version&quot;));</span>
+            }
+        }
+
+<span class="nc bnc" id="L336" title="All 4 branches missed.">        if (filterName != null &amp;&amp; filterName.length() &gt; 0) {</span>
+<span class="nc" id="L337">            Criterion nameCrit = Restrictions.ilike(&quot;name&quot;, filterName, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L338">            c.add(nameCrit);</span>
+        }
+<span class="nc bnc" id="L340" title="All 4 branches missed.">        if (filterPublished != null &amp;&amp; filterPublished.length() &gt; 0) {</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">            if (filterPublished.equalsIgnoreCase(&quot;nee&quot;)) {</span>
+<span class="nc" id="L342">                Criterion publishedCrit = Restrictions.isNotNull(&quot;version&quot;);</span>
+<span class="nc" id="L343">                c.add(publishedCrit);</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">            } else if (filterPublished.equalsIgnoreCase(&quot;ja&quot;)) {</span>
+<span class="nc" id="L345">                Criterion publishedCrit = Restrictions.isNull(&quot;version&quot;);</span>
+<span class="nc" id="L346">                c.add(publishedCrit);</span>
+            }
+        }
+<span class="nc bnc" id="L349" title="All 4 branches missed.">        if (filterOwner != null &amp;&amp; filterOwner.length() &gt; 0) {</span>
+<span class="nc" id="L350">            Criterion ownerCrit = Restrictions.ilike(&quot;owner.username&quot;, filterOwner, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L351">            c.add(ownerCrit);</span>
+        }
+
+<span class="nc" id="L354">        int rowCount = c.list().size();</span>
+
+<span class="nc" id="L356">        c.setMaxResults(limit);</span>
+<span class="nc" id="L357">        c.setFirstResult(start);</span>
+
+<span class="nc" id="L359">        List applications = c.list();</span>
+<span class="nc" id="L360">        String baseUrl = getContext().getServletContext().getInitParameter(VIEWER_URL_PARAM);</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">        for (Object o : applications) {</span>
+<span class="nc" id="L362">            Application app = (Application) o;</span>
+<span class="nc" id="L363">            String appName = app.getName();</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">            if (app.getVersion() != null) {</span>
+<span class="nc" id="L365">                appName += &quot; v&quot; + app.getVersion();</span>
+            }
+<span class="nc" id="L367">            String ownername = &quot;&quot;;</span>
+<span class="nc bnc" id="L368" title="All 2 branches missed.">            if (app.getOwner() != null) {</span>
+<span class="nc" id="L369">                ownername = app.getOwner().getUsername();</span>
+            }
+<span class="nc" id="L371">            String published = getBundle().getString(&quot;viewer_admin.general.no&quot;);</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">            if (app.getVersion() == null) {</span>
+<span class="nc" id="L373">                published = getBundle().getString(&quot;viewer_admin.general.yes&quot;);</span>
+            }
+<span class="nc" id="L375">            JSONObject j = new JSONObject();</span>
+<span class="nc" id="L376">            j.put(&quot;id&quot;, app.getId().intValue());</span>
+<span class="nc" id="L377">            j.put(&quot;name&quot;, appName);</span>
+<span class="nc" id="L378">            j.put(&quot;published&quot;, published);</span>
+<span class="nc" id="L379">            j.put(&quot;owner&quot;, ownername);</span>
+<span class="nc" id="L380">            j.put(&quot;baseName&quot;, app.getName());</span>
+<span class="nc" id="L381">            j.put(&quot;version&quot;, app.getVersion());</span>
+<span class="nc" id="L382">            j.put(&quot;baseUrl&quot;, baseUrl);</span>
+<span class="nc" id="L383">            boolean isMashup = app.isMashup(sess);</span>
+<span class="nc bnc" id="L384" title="All 2 branches missed.">            if (isMashup) {</span>
+<span class="nc" id="L385">                List&lt;Application&gt; linkedApps = em.createQuery(</span>
+                                &quot;from Application where root = :level and id &lt;&gt; :oldId&quot;, Application.class)
+<span class="nc" id="L387">                        .setParameter(&quot;level&quot;, app.getRoot())</span>
+<span class="nc" id="L388">                        .setParameter(&quot;oldId&quot;, app.getId())</span>
+<span class="nc" id="L389">                        .getResultList();</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">                for (Application linkedApp : linkedApps) {</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">                    if (!linkedApp.isMashup(sess)) {</span>
+<span class="nc" id="L392">                        j.put(&quot;motherapplication&quot;, linkedApp.getNameWithVersion());</span>
+<span class="nc" id="L393">                        break;</span>
+                    }
+<span class="nc" id="L395">                }</span>
+            }
+<span class="nc bnc" id="L397" title="All 2 branches missed.">            j.put(&quot;mashup&quot;, (isMashup ?</span>
+<span class="nc" id="L398">                    getBundle().getString(&quot;viewer_admin.general.yes&quot;) :</span>
+<span class="nc" id="L399">                    getBundle().getString(&quot;viewer_admin.general.no&quot;)));</span>
+<span class="nc" id="L400">            jsonData.put(j);</span>
+<span class="nc" id="L401">        }</span>
+
+<span class="nc" id="L403">        final JSONObject grid = new JSONObject();</span>
+<span class="nc" id="L404">        grid.put(&quot;totalCount&quot;, rowCount);</span>
+<span class="nc" id="L405">        grid.put(&quot;gridrows&quot;, jsonData);</span>
+
+<span class="nc" id="L407">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+
+            @Override
+            public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L411">                response.getWriter().print(grid);</span>
+<span class="nc" id="L412">            }</span>
+        };
+    }
+
+    public Resolution makeWorkVersion() {
+<span class="nc" id="L417">        EntityManager em = Stripersist.getEntityManager();</span>
+        try {
+<span class="nc" id="L419">            Object o = em.createQuery(&quot;select 1 from Application where name = :name AND version = :version&quot;).setMaxResults(1).setParameter(&quot;name&quot;, name).setParameter(&quot;version&quot;, version).getSingleResult();</span>
+
+<span class="nc" id="L421">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.chooseapplicationactionbean.nocopy&quot;), name, version));</span>
+<span class="nc" id="L422">            return new RedirectResolution(this.getClass());</span>
+<span class="nc" id="L423">        } catch (NoResultException nre) {</span>
+        }
+
+        try {
+
+<span class="nc" id="L428">            Application copy = createWorkversion(applicationWorkversion, em, version);</span>
+<span class="nc" id="L429">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.chooseapplicationactionbean.wvcreate&quot;)));</span>
+<span class="nc" id="L430">            setApplication(copy);</span>
+
+<span class="nc" id="L432">            return new RedirectResolution(ApplicationSettingsActionBean.class);</span>
+<span class="nc" id="L433">        } catch (Exception e) {</span>
+<span class="nc" id="L434">            log.error(String.format(&quot;Error copying application #%d named %s %swith new name %s&quot;,</span>
+<span class="nc" id="L435">                    applicationWorkversion.getId(),</span>
+<span class="nc" id="L436">                    applicationWorkversion.getName(),</span>
+<span class="nc bnc" id="L437" title="All 2 branches missed.">                    applicationWorkversion.getVersion() == null ? &quot;&quot; : &quot;v&quot; + applicationWorkversion.getVersion() + &quot; &quot;,</span>
+                    name), e);
+<span class="nc" id="L439">            StringBuilder ex = new StringBuilder(e.toString());</span>
+<span class="nc" id="L440">            Throwable cause = e.getCause();</span>
+<span class="nc bnc" id="L441" title="All 2 branches missed.">            while (cause != null) {</span>
+<span class="nc" id="L442">                ex.append(&quot;;\n&lt;br&gt;&quot;).append(cause);</span>
+<span class="nc" id="L443">                cause = cause.getCause();</span>
+            }
+<span class="nc" id="L445">            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString(&quot;viewer_admin.chooseapplicationactionbean.wverror&quot;), ex.toString()));</span>
+<span class="nc" id="L446">            return new ForwardResolution(JSP);</span>
+        }
+    }
+
+    Application createWorkversion(Application base, EntityManager em, String version) throws Exception {
+<span class="fc bfc" id="L451" title="All 2 branches covered.">        if (base.isMashup()) {</span>
+<span class="fc" id="L452">            Application mashup = ApplicationHelper.createMashup(base, version, em, true);</span>
+<span class="fc" id="L453">            String appName = mashup.getName();</span>
+<span class="fc" id="L454">            appName = appName.substring(0, appName.lastIndexOf(&quot;_&quot; + version));</span>
+<span class="fc" id="L455">            mashup.setName(appName);</span>
+<span class="fc" id="L456">            mashup.setVersion(version);</span>
+<span class="fc" id="L457">            em.persist(mashup);</span>
+<span class="fc" id="L458">            em.getTransaction().commit();</span>
+<span class="fc" id="L459">            return mashup;</span>
+        } else {
+<span class="fc" id="L461">            return ApplicationHelper.createWorkVersion(base, em,version, context);</span>
+        }
+    }
+
+    public Resolution saveDefaultApplication() throws JSONException {
+<span class="nc" id="L466">        JSONObject json = new JSONObject();</span>
+
+<span class="nc" id="L468">        json.put(&quot;success&quot;, Boolean.FALSE);</span>
+        try {
+<span class="nc" id="L470">            EntityManager em = Stripersist.getEntityManager();</span>
+            Metadata md;
+            try {
+<span class="nc" id="L473">                md = em.createQuery(&quot;from Metadata where configKey = :key&quot;, Metadata.class).setParameter(&quot;key&quot;, Metadata.DEFAULT_APPLICATION).getSingleResult();</span>
+<span class="nc" id="L474">            } catch (NoResultException e) {</span>
+<span class="nc" id="L475">                md = new Metadata();</span>
+<span class="nc" id="L476">                md.setConfigKey(Metadata.DEFAULT_APPLICATION);</span>
+<span class="nc" id="L477">            }</span>
+<span class="nc bnc" id="L478" title="All 2 branches missed.">            if (defaultApplication != null) {</span>
+<span class="nc" id="L479">                md.setConfigValue(defaultApplication.getId().toString());</span>
+            } else {
+<span class="nc" id="L481">                md.setConfigValue(null);</span>
+            }
+<span class="nc" id="L483">            defaultAppId = md.getConfigValue();</span>
+<span class="nc" id="L484">            em.persist(md);</span>
+<span class="nc" id="L485">            em.getTransaction().commit();</span>
+<span class="nc" id="L486">            json.put(&quot;success&quot;, Boolean.TRUE);</span>
+<span class="nc" id="L487">        } catch (Exception ex) {</span>
+<span class="nc" id="L488">            log.error(&quot;Error during setting the default application: &quot;, ex);</span>
+<span class="nc" id="L489">        }</span>
+<span class="nc" id="L490">        return new StreamingResolution(&quot;application/json&quot;, new StringReader(json.toString()));</span>
+    }
+
+    @After(stages = {LifecycleStage.BindingAndValidation})
+    public void createLists() {
+<span class="nc" id="L495">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L496">        apps = em.createQuery(&quot;from Application&quot;, Application.class).getResultList();</span>
+        try {
+<span class="nc" id="L498">            Metadata md = em.createQuery(&quot;from Metadata where configKey = :key&quot;, Metadata.class).setParameter(&quot;key&quot;, Metadata.DEFAULT_APPLICATION).getSingleResult();</span>
+<span class="nc" id="L499">            defaultAppId = md.getConfigValue();</span>
+<span class="nc" id="L500">        } catch (NoResultException e) {</span>
+<span class="nc" id="L501">        }</span>
+
+<span class="nc" id="L503">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">UserActionBean.java</span></div><h1>UserActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.Before;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.DontBind;
+import net.sourceforge.stripes.action.DontValidate;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.HandlesEvent;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.controller.LifecycleStage;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import net.sourceforge.stripes.validation.ValidationErrors;
+import net.sourceforge.stripes.validation.ValidationMethod;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.admin.jaas.TailormapLoginModule;
+import nl.tailormap.viewer.config.app.Application;
+import nl.tailormap.viewer.config.app.ApplicationLayer;
+import nl.tailormap.viewer.config.app.ConfiguredComponent;
+import nl.tailormap.viewer.config.app.Level;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.security.User;
+import nl.tailormap.viewer.config.services.GeoService;
+import nl.tailormap.viewer.config.services.Layer;
+import nl.tailormap.viewer.helpers.AuthorizationsHelper;
+import nl.tailormap.viewer.helpers.AuthorizationsHelper.ApplicationCache;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.servlet.http.HttpServletResponse;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * @author Jytte Schaeffer
+ */
+<span class="nc" id="L76">@StrictBinding</span>
+@UrlBinding(&quot;/action/user/{$event}&quot;)
+@RolesAllowed({Group.ADMIN, Group.USER_ADMIN})
+<span class="nc" id="L79">public class UserActionBean extends LocalizableActionBean {</span>
+
+  private static final String JSP = &quot;/WEB-INF/jsp/security/user.jsp&quot;;
+  private static final String EDITJSP = &quot;/WEB-INF/jsp/security/edituser.jsp&quot;;
+  @Validate Application application;
+  List&lt;Application&gt; applications;
+<span class="nc" id="L85">  Set&lt;Layer&gt; authorizedLayers = Collections.emptySet();</span>
+<span class="nc" id="L86">  Set&lt;Layer&gt; authorizedEditableLayers = Collections.emptySet();</span>
+  ApplicationCache applicationCache;
+<span class="nc" id="L88">  Set&lt;Level&gt; authorizedLevels = Collections.emptySet();</span>
+<span class="nc" id="L89">  Set&lt;ApplicationLayer&gt; authorizedAppLayers = Collections.emptySet();</span>
+<span class="nc" id="L90">  Set&lt;ApplicationLayer&gt; authorizedEditableAppLayers = Collections.emptySet();</span>
+<span class="nc" id="L91">  Set&lt;ConfiguredComponent&gt; authorizedComponents = Collections.emptySet();</span>
+  private ActionBeanContext context;
+  @Validate private int page;
+  @Validate private int start;
+  @Validate private int limit;
+  @Validate private String sort;
+  @Validate private String dir;
+  @Validate private JSONArray filter;
+  @Validate private User user;
+  @Validate private String username;
+  @Validate private String password;
+  private List&lt;Group&gt; allGroups;
+<span class="nc" id="L103">  @Validate private List&lt;String&gt; groups = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L104">  @Validate private List&lt;String&gt; ips = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L105">  private JSONArray ipJSON = new JSONArray();</span>
+<span class="nc" id="L106">  @Validate private Map&lt;String, String&gt; details = new HashMap&lt;&gt;();</span>
+
+  // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+  public ActionBeanContext getContext() {
+<span class="nc" id="L110">    return context;</span>
+  }
+
+  public void setContext(ActionBeanContext context) {
+<span class="nc" id="L114">    this.context = context;</span>
+<span class="nc" id="L115">  }</span>
+
+  public User getUser() {
+<span class="nc" id="L118">    return user;</span>
+  }
+
+  public void setUser(User user) {
+<span class="nc" id="L122">    this.user = user;</span>
+<span class="nc" id="L123">  }</span>
+
+  public String getUsername() {
+<span class="nc" id="L126">    return username;</span>
+  }
+
+  public void setUsername(String username) {
+<span class="nc" id="L130">    this.username = username;</span>
+<span class="nc" id="L131">  }</span>
+
+  public List&lt;Group&gt; getAllGroups() {
+<span class="nc" id="L134">    return allGroups;</span>
+  }
+
+  public void setAllGroups(List&lt;Group&gt; allGroups) {
+<span class="nc" id="L138">    this.allGroups = allGroups;</span>
+<span class="nc" id="L139">  }</span>
+
+  public List&lt;String&gt; getGroups() {
+<span class="nc" id="L142">    return groups;</span>
+  }
+
+  public void setGroups(List&lt;String&gt; groups) {
+<span class="nc" id="L146">    this.groups = groups;</span>
+<span class="nc" id="L147">  }</span>
+
+  public String getDir() {
+<span class="nc" id="L150">    return dir;</span>
+  }
+
+  public void setDir(String dir) {
+<span class="nc" id="L154">    this.dir = dir;</span>
+<span class="nc" id="L155">  }</span>
+
+  public JSONArray getFilter() {
+<span class="nc" id="L158">    return filter;</span>
+  }
+
+  public void setFilter(JSONArray filter) {
+<span class="nc" id="L162">    this.filter = filter;</span>
+<span class="nc" id="L163">  }</span>
+
+  public int getLimit() {
+<span class="nc" id="L166">    return limit;</span>
+  }
+
+  public void setLimit(int limit) {
+<span class="nc" id="L170">    this.limit = limit;</span>
+<span class="nc" id="L171">  }</span>
+
+  public int getPage() {
+<span class="nc" id="L174">    return page;</span>
+  }
+
+  public void setPage(int page) {
+<span class="nc" id="L178">    this.page = page;</span>
+<span class="nc" id="L179">  }</span>
+
+  public String getSort() {
+<span class="nc" id="L182">    return sort;</span>
+  }
+
+  public void setSort(String sort) {
+<span class="nc" id="L186">    this.sort = sort;</span>
+<span class="nc" id="L187">  }</span>
+
+  public int getStart() {
+<span class="nc" id="L190">    return start;</span>
+  }
+  // &lt;/editor-fold&gt;
+
+  public void setStart(int start) {
+<span class="nc" id="L195">    this.start = start;</span>
+<span class="nc" id="L196">  }</span>
+
+  public String getPassword() {
+<span class="nc" id="L199">    return password;</span>
+  }
+
+  public void setPassword(String password) {
+<span class="nc" id="L203">    this.password = password;</span>
+<span class="nc" id="L204">  }</span>
+
+  public Map&lt;String, String&gt; getDetails() {
+<span class="nc" id="L207">    return details;</span>
+  }
+
+  public void setDetails(Map&lt;String, String&gt; details) {
+<span class="nc" id="L211">    this.details = details;</span>
+<span class="nc" id="L212">  }</span>
+
+  public List&lt;String&gt; getIps() {
+<span class="nc" id="L215">    return ips;</span>
+  }
+
+  public void setIps(List&lt;String&gt; ips) {
+<span class="nc" id="L219">    this.ips = ips;</span>
+<span class="nc" id="L220">  }</span>
+
+  public JSONArray getIpJSON() {
+<span class="nc" id="L223">    return ipJSON;</span>
+  }
+
+  public void setIpJSON(JSONArray ipJSON) {
+<span class="nc" id="L227">    this.ipJSON = ipJSON;</span>
+<span class="nc" id="L228">  }</span>
+
+  @DefaultHandler
+  @HandlesEvent(&quot;default&quot;)
+  @DontValidate
+  public Resolution defaultResolution() {
+<span class="nc" id="L234">    return new ForwardResolution(JSP);</span>
+  }
+
+  @Before(stages = LifecycleStage.BindingAndValidation)
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public void load() {
+<span class="nc" id="L240">    allGroups =</span>
+<span class="nc" id="L241">        Stripersist.getEntityManager().createQuery(&quot;from Group order by name&quot;).getResultList();</span>
+<span class="nc" id="L242">  }</span>
+
+  @DontValidate
+  public Resolution edit() {
+
+<span class="nc bnc" id="L247" title="All 2 branches missed.">    if (user != null) {</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">      for (Group g : user.getGroups()) {</span>
+<span class="nc" id="L249">        groups.add(g.getName());</span>
+<span class="nc" id="L250">      }</span>
+<span class="nc" id="L251">      details = user.getDetails();</span>
+<span class="nc" id="L252">      username = user.getUsername();</span>
+
+<span class="nc bnc" id="L254" title="All 2 branches missed.">      for (String ip : user.getIps()) {</span>
+<span class="nc" id="L255">        ipJSON.put(ip);</span>
+<span class="nc" id="L256">      }</span>
+    }
+
+<span class="nc" id="L259">    return new ForwardResolution(EDITJSP);</span>
+  }
+
+  @DontBind
+  public Resolution cancel() {
+<span class="nc" id="L264">    return new ForwardResolution(EDITJSP);</span>
+  }
+
+  @ValidationMethod(on = &quot;save&quot;)
+  public void validate(ValidationErrors errors) throws Exception {
+    // If user already persistent username cannot be changed
+<span class="nc bnc" id="L270" title="All 2 branches missed.">    if (user == null) {</span>
+
+<span class="nc bnc" id="L272" title="All 2 branches missed.">      if (username == null) {</span>
+<span class="nc" id="L273">        errors.add(</span>
+            &quot;username&quot;,
+<span class="nc" id="L275">            new SimpleError(getBundle().getString(&quot;viewer_admin.useractionbean.nameobl&quot;)));</span>
+<span class="nc" id="L276">        return;</span>
+      }
+
+      try {
+        Object o =
+<span class="nc" id="L281">            Stripersist.getEntityManager()</span>
+<span class="nc" id="L282">                .createQuery(&quot;select 1 from User where username = :username&quot;)</span>
+<span class="nc" id="L283">                .setMaxResults(1)</span>
+<span class="nc" id="L284">                .setParameter(&quot;username&quot;, username)</span>
+<span class="nc" id="L285">                .getSingleResult();</span>
+
+<span class="nc" id="L287">        errors.add(</span>
+            &quot;username&quot;,
+<span class="nc" id="L289">            new SimpleError(getBundle().getString(&quot;viewer_admin.useractionbean.namedup&quot;)));</span>
+<span class="nc" id="L290">        return;</span>
+
+<span class="nc" id="L292">      } catch (NoResultException nre) {</span>
+        // username is unique
+      }
+    }
+
+<span class="nc bnc" id="L297" title="All 2 branches missed.">    if (user == null) {</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">      if (password == null) {</span>
+<span class="nc" id="L299">        errors.add(</span>
+            &quot;password&quot;,
+<span class="nc" id="L301">            new SimpleError(getBundle().getString(&quot;viewer_admin.useractionbean.pwobl&quot;)));</span>
+<span class="nc" id="L302">        return;</span>
+      }
+    }
+
+<span class="nc bnc" id="L306" title="All 2 branches missed.">    if (password != null) {</span>
+<span class="nc" id="L307">      int passwordLength =</span>
+<span class="nc" id="L308">          NumberUtils.toInt(</span>
+<span class="nc" id="L309">              this.getContext().getServletContext().getInitParameter(&quot;password.length&quot;), 0);</span>
+<span class="nc" id="L310">      passwordLength = Math.max(passwordLength, User.MIN_PASSWORD_LENGTH);</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">      if (password.length() &lt; passwordLength) {</span>
+<span class="nc" id="L312">        errors.add(</span>
+            &quot;password&quot;,
+            new SimpleError(
+<span class="nc" id="L315">                MessageFormat.format(</span>
+<span class="nc" id="L316">                    getBundle().getString(&quot;viewer_admin.useractionbean.pwshort&quot;), passwordLength)));</span>
+      }
+    }
+<span class="nc" id="L319">  }</span>
+
+  public Resolution save() throws Exception {
+
+<span class="nc bnc" id="L323" title="All 2 branches missed.">    if (user == null) {</span>
+<span class="nc" id="L324">      user = new User();</span>
+<span class="nc" id="L325">      user.setUsername(username);</span>
+<span class="nc" id="L326">      user.setPassword(TailormapLoginModule.getPasswordEncoder().encode(password));</span>
+    } else {
+<span class="nc bnc" id="L328" title="All 2 branches missed.">      if (password != null) {</span>
+<span class="nc" id="L329">        user.setPassword(TailormapLoginModule.getPasswordEncoder().encode(password));</span>
+      }
+    }
+
+<span class="nc" id="L333">    user.getDetails().clear();</span>
+<span class="nc" id="L334">    user.getDetails().putAll(details);</span>
+
+<span class="nc" id="L336">    user.getGroups().clear();</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">    for (String groupName : groups) {</span>
+<span class="nc" id="L338">      user.getGroups().add(Stripersist.getEntityManager().find(Group.class, groupName));</span>
+<span class="nc" id="L339">    }</span>
+
+<span class="nc" id="L341">    user.getIps().clear();</span>
+<span class="nc" id="L342">    user.getIps().addAll(ips);</span>
+
+<span class="nc" id="L344">    Stripersist.getEntityManager().persist(user);</span>
+<span class="nc" id="L345">    Stripersist.getEntityManager().getTransaction().commit();</span>
+
+<span class="nc" id="L347">    getContext()</span>
+<span class="nc" id="L348">        .getMessages()</span>
+<span class="nc" id="L349">        .add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.useractionbean.usaved&quot;)));</span>
+<span class="nc" id="L350">    return new ForwardResolution(EDITJSP);</span>
+  }
+
+  @DontValidate
+  public Resolution delete() {
+<span class="nc" id="L355">    boolean inUse = false;</span>
+<span class="nc" id="L356">    String currentUser = context.getRequest().getUserPrincipal().getName();</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">    if (currentUser.equals(user.getUsername())) {</span>
+<span class="nc" id="L358">      inUse = true;</span>
+<span class="nc" id="L359">      getContext()</span>
+<span class="nc" id="L360">          .getMessages()</span>
+<span class="nc" id="L361">          .add(new SimpleError(getBundle().getString(&quot;viewer_admin.useractionbean.unorem&quot;)));</span>
+    }
+    List&lt;Application&gt; applications =
+<span class="nc" id="L364">        Stripersist.getEntityManager()</span>
+<span class="nc" id="L365">            .createQuery(&quot;from Application where owner = :owner&quot;, Application.class)</span>
+<span class="nc" id="L366">            .setParameter(&quot;owner&quot;, user)</span>
+<span class="nc" id="L367">            .getResultList();</span>
+<span class="nc bnc" id="L368" title="All 4 branches missed.">    if (applications != null &amp;&amp; applications.size() &gt; 0) {</span>
+<span class="nc" id="L369">      inUse = true;</span>
+<span class="nc" id="L370">      getContext()</span>
+<span class="nc" id="L371">          .getMessages()</span>
+<span class="nc" id="L372">          .add(new SimpleError(getBundle().getString(&quot;viewer_admin.useractionbean.uinuse&quot;)));</span>
+    }
+
+<span class="nc bnc" id="L375" title="All 2 branches missed.">    if (!inUse) {</span>
+<span class="nc" id="L376">      Stripersist.getEntityManager().remove(user);</span>
+<span class="nc" id="L377">      Stripersist.getEntityManager().getTransaction().commit();</span>
+<span class="nc" id="L378">      getContext()</span>
+<span class="nc" id="L379">          .getMessages()</span>
+<span class="nc" id="L380">          .add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.useractionbean.urem&quot;)));</span>
+    }
+
+<span class="nc" id="L383">    return new ForwardResolution(EDITJSP);</span>
+  }
+
+  @DontValidate
+  public Resolution getGridData() throws JSONException {
+<span class="nc" id="L388">    JSONArray jsonData = new JSONArray();</span>
+
+<span class="nc" id="L390">    String filterName = &quot;&quot;;</span>
+<span class="nc" id="L391">    String filterOrganization = &quot;&quot;;</span>
+<span class="nc" id="L392">    String filterPosition = &quot;&quot;;</span>
+    // String filterDescription = &quot;&quot;;
+    /*
+     * FILTERING: filter is delivered by frontend as JSON array [{property,
+     * value}] for demo purposes the value is now returned, ofcourse here
+     * should the DB query be built to filter the right records
+     */
+<span class="nc bnc" id="L399" title="All 2 branches missed.">    if (this.getFilter() != null) {</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">      for (int k = 0; k &lt; this.getFilter().length(); k++) {</span>
+<span class="nc" id="L401">        JSONObject j = this.getFilter().getJSONObject(k);</span>
+<span class="nc" id="L402">        String property = j.getString(&quot;property&quot;);</span>
+<span class="nc" id="L403">        String value = j.getString(&quot;value&quot;);</span>
+<span class="nc bnc" id="L404" title="All 2 branches missed.">        if (property.equals(&quot;username&quot;)) {</span>
+<span class="nc" id="L405">          filterName = value;</span>
+        }
+<span class="nc bnc" id="L407" title="All 2 branches missed.">        if (property.equals(&quot;organization&quot;)) {</span>
+<span class="nc" id="L408">          filterOrganization = value;</span>
+        }
+<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (property.equals(&quot;position&quot;)) {</span>
+<span class="nc" id="L411">          filterPosition = value;</span>
+        }
+      }
+    }
+
+<span class="nc" id="L416">    Session sess = (Session) Stripersist.getEntityManager().getDelegate();</span>
+<span class="nc" id="L417">    Criteria c = sess.createCriteria(User.class);</span>
+
+    /*
+     * Sorting is delivered by the frontend as two variables: sort which
+     * holds the column name and dir which holds the direction (ASC, DESC).
+     */
+<span class="nc bnc" id="L423" title="All 6 branches missed.">    if (sort != null &amp;&amp; dir != null &amp;&amp; sort.equals(&quot;username&quot;)) {</span>
+      Order order;
+<span class="nc bnc" id="L425" title="All 2 branches missed.">      if (dir.equals(&quot;ASC&quot;)) {</span>
+<span class="nc" id="L426">        order = Order.asc(sort);</span>
+      } else {
+<span class="nc" id="L428">        order = Order.desc(sort);</span>
+      }
+<span class="nc" id="L430">      order.ignoreCase();</span>
+<span class="nc" id="L431">      c.addOrder(order);</span>
+    }
+
+<span class="nc bnc" id="L434" title="All 4 branches missed.">    if (filterName != null &amp;&amp; filterName.length() &gt; 0) {</span>
+<span class="nc" id="L435">      Criterion nameCrit = Restrictions.ilike(&quot;username&quot;, filterName, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L436">      c.add(nameCrit);</span>
+    }
+<span class="nc" id="L438">    List&lt;String&gt; usersToSelect = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L439" title="All 4 branches missed.">    if (filterOrganization != null &amp;&amp; filterOrganization.length() &gt; 0) {</span>
+<span class="nc" id="L440">      Criteria detailsCrit = sess.createCriteria(User.class);</span>
+<span class="nc" id="L441">      List&lt;User&gt; users = detailsCrit.list();</span>
+<span class="nc bnc" id="L442" title="All 2 branches missed.">      for (User us : users) {</span>
+<span class="nc" id="L443">        Map&lt;String, String&gt; map = us.getDetails();</span>
+<span class="nc bnc" id="L444" title="All 2 branches missed.">        if (map.containsKey(&quot;organization&quot;)) {</span>
+<span class="nc" id="L445">          String org = map.get(&quot;organization&quot;).toLowerCase();</span>
+<span class="nc bnc" id="L446" title="All 2 branches missed.">          if (org.contains(filterOrganization.toLowerCase())) {</span>
+<span class="nc" id="L447">            usersToSelect.add(us.getUsername());</span>
+          }
+        }
+<span class="nc" id="L450">      }</span>
+<span class="nc" id="L451">      c.add(Restrictions.in(&quot;username&quot;, usersToSelect));</span>
+    }
+
+<span class="nc bnc" id="L454" title="All 4 branches missed.">    if (filterPosition != null &amp;&amp; filterPosition.length() &gt; 0) {</span>
+<span class="nc" id="L455">      Criteria posCrit = sess.createCriteria(User.class);</span>
+<span class="nc" id="L456">      List&lt;User&gt; users = posCrit.list();</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">      for (User us : users) {</span>
+<span class="nc" id="L458">        Map&lt;String, String&gt; map = us.getDetails();</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">        if (map.containsKey(&quot;position&quot;)) {</span>
+<span class="nc" id="L460">          String org = map.get(&quot;position&quot;).toLowerCase();</span>
+<span class="nc bnc" id="L461" title="All 2 branches missed.">          assert filterOrganization != null;</span>
+<span class="nc bnc" id="L462" title="All 2 branches missed.">          if (org.contains(filterOrganization.toLowerCase())) {</span>
+<span class="nc" id="L463">            usersToSelect.add(us.getUsername());</span>
+          }
+        }
+<span class="nc" id="L466">      }</span>
+<span class="nc" id="L467">      c.add(Restrictions.in(&quot;username&quot;, usersToSelect));</span>
+    }
+
+<span class="nc" id="L470">    int rowCount = c.list().size();</span>
+
+<span class="nc" id="L472">    c.setMaxResults(limit);</span>
+<span class="nc" id="L473">    c.setFirstResult(start);</span>
+
+<span class="nc" id="L475">    List&lt;User&gt; users = c.list();</span>
+<span class="nc bnc" id="L476" title="All 2 branches missed.">    for (User us : users) {</span>
+<span class="nc" id="L477">      JSONObject j = this.getGridRow(us.getUsername(), us.getDetails());</span>
+<span class="nc" id="L478">      jsonData.put(j);</span>
+<span class="nc" id="L479">    }</span>
+
+<span class="nc" id="L481">    final JSONObject grid = new JSONObject();</span>
+<span class="nc" id="L482">    grid.put(&quot;totalCount&quot;, rowCount);</span>
+<span class="nc" id="L483">    grid.put(&quot;gridrows&quot;, jsonData);</span>
+
+<span class="nc" id="L485">    return new StreamingResolution(&quot;application/json&quot;) {</span>
+
+      @Override
+      public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L489">        response.getWriter().print(grid);</span>
+<span class="nc" id="L490">      }</span>
+    };
+  }
+
+  private JSONObject getGridRow(String username, Map&lt;String, String&gt; details) throws JSONException {
+<span class="nc" id="L495">    JSONObject j = new JSONObject();</span>
+<span class="nc" id="L496">    j.put(&quot;id&quot;, username);</span>
+<span class="nc" id="L497">    j.put(&quot;username&quot;, username);</span>
+<span class="nc" id="L498">    j.put(&quot;organization&quot;, details.get(&quot;organization&quot;));</span>
+<span class="nc" id="L499">    j.put(&quot;position&quot;, details.get(&quot;position&quot;));</span>
+<span class="nc" id="L500">    return j;</span>
+  }
+
+  // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters and setters for authorization collections&quot;&gt;
+  public Application getApplication() {
+<span class="nc" id="L505">    return application;</span>
+  }
+
+  public void setApplication(Application application) {
+<span class="nc" id="L509">    this.application = application;</span>
+<span class="nc" id="L510">  }</span>
+
+  public List&lt;Application&gt; getApplications() {
+<span class="nc" id="L513">    return applications;</span>
+  }
+
+  public Set&lt;ApplicationLayer&gt; getAuthorizedAppLayers() {
+<span class="nc" id="L517">    return authorizedAppLayers;</span>
+  }
+
+  public Set&lt;ApplicationLayer&gt; getAuthorizedEditableAppLayers() {
+<span class="nc" id="L521">    return authorizedEditableAppLayers;</span>
+  }
+
+  public Set&lt;Layer&gt; getAuthorizedEditableLayers() {
+<span class="nc" id="L525">    return authorizedEditableLayers;</span>
+  }
+
+  public Set&lt;Layer&gt; getAuthorizedLayers() {
+<span class="nc" id="L529">    return authorizedLayers;</span>
+  }
+
+  public Set&lt;Level&gt; getAuthorizedLevels() {
+<span class="nc" id="L533">    return authorizedLevels;</span>
+  }
+
+  public ApplicationCache getApplicationCache() {
+<span class="nc" id="L537">    return applicationCache;</span>
+  }
+
+  public Set&lt;ConfiguredComponent&gt; getAuthorizedComponents() {
+<span class="nc" id="L541">    return authorizedComponents;</span>
+  }
+
+  public void setAuthorizedComponents(Set&lt;ConfiguredComponent&gt; authorizedComponents) {
+<span class="nc" id="L545">    this.authorizedComponents = authorizedComponents;</span>
+<span class="nc" id="L546">  }</span>
+  // &lt;/editor-fold&gt;
+
+  public Resolution authorizations() {
+<span class="nc" id="L550">    EntityManager em = Stripersist.getEntityManager();</span>
+
+<span class="nc" id="L552">    List&lt;GeoService&gt; services = em.createQuery(&quot;from GeoService&quot;, GeoService.class).getResultList();</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">    for (GeoService service : services) {</span>
+<span class="nc" id="L554">      AuthorizationsHelper.getLayerAuthorizations(service.getTopLayer(), em);</span>
+<span class="nc" id="L555">    }</span>
+
+<span class="nc" id="L557">    Set&lt;String&gt; roles = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L558" title="All 2 branches missed.">    if (user != null) {</span>
+<span class="nc bnc" id="L559" title="All 2 branches missed.">      for (Group g : user.getGroups()) {</span>
+<span class="nc bnc" id="L560" title="All 2 branches missed.">        if (g != null) {</span>
+<span class="nc" id="L561">          roles.add(g.getName());</span>
+        }
+<span class="nc" id="L563">      }</span>
+    }
+
+<span class="nc bnc" id="L566" title="All 2 branches missed.">    if (!roles.isEmpty()) {</span>
+
+<span class="nc" id="L568">      authorizedLayers = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L569">      authorizedEditableLayers = new HashSet&lt;&gt;();</span>
+
+      for (Map.Entry&lt;Long, AuthorizationsHelper.GeoServiceCache&gt; e :
+<span class="nc bnc" id="L572" title="All 2 branches missed.">          AuthorizationsHelper.serviceCache.entrySet()) {</span>
+
+        for (Map.Entry&lt;Long, AuthorizationsHelper.ReadWrite&gt; e2 :
+<span class="nc bnc" id="L575" title="All 2 branches missed.">            e.getValue().getProtectedLayers().entrySet()) {</span>
+<span class="nc" id="L576">          Layer l = Stripersist.getEntityManager().find(Layer.class, e2.getKey());</span>
+<span class="nc" id="L577">          Set&lt;String&gt; readers = e2.getValue().getReaders();</span>
+<span class="nc" id="L578">          Set&lt;String&gt; writers = e2.getValue().getWriters();</span>
+
+<span class="nc bnc" id="L580" title="All 2 branches missed.">          if (readers.equals(AuthorizationsHelper.EVERYBODY)</span>
+<span class="nc bnc" id="L581" title="All 2 branches missed.">              || !Collections.disjoint(readers, roles)) {</span>
+<span class="nc" id="L582">            authorizedLayers.add(l);</span>
+          }
+<span class="nc bnc" id="L584" title="All 2 branches missed.">          if (writers.equals(AuthorizationsHelper.EVERYBODY)</span>
+<span class="nc bnc" id="L585" title="All 2 branches missed.">              || !Collections.disjoint(writers, roles)) {</span>
+<span class="nc" id="L586">            authorizedEditableLayers.add(l);</span>
+          }
+<span class="nc" id="L588">        }</span>
+<span class="nc" id="L589">      }</span>
+    }
+
+<span class="nc" id="L592">    applications =</span>
+<span class="nc" id="L593">        em.createQuery(&quot;from Application order by name, version&quot;, Application.class)</span>
+<span class="nc" id="L594">            .getResultList();</span>
+<span class="nc bnc" id="L595" title="All 2 branches missed.">    if (application != null) {</span>
+
+<span class="nc" id="L597">      applicationCache = AuthorizationsHelper.getApplicationCache(application, em);</span>
+
+<span class="nc bnc" id="L599" title="All 2 branches missed.">      if (!roles.isEmpty()) {</span>
+<span class="nc" id="L600">        authorizedLevels = new HashSet&lt;&gt;();</span>
+
+        for (Map.Entry&lt;Long, AuthorizationsHelper.Read&gt; e :
+<span class="nc bnc" id="L603" title="All 2 branches missed.">            applicationCache.getProtectedLevels().entrySet()) {</span>
+<span class="nc" id="L604">          Level l = Stripersist.getEntityManager().find(Level.class, e.getKey());</span>
+<span class="nc" id="L605">          Set&lt;String&gt; readers = e.getValue().getReaders();</span>
+<span class="nc bnc" id="L606" title="All 2 branches missed.">          if (readers.equals(AuthorizationsHelper.EVERYBODY)</span>
+<span class="nc bnc" id="L607" title="All 2 branches missed.">              || !Collections.disjoint(readers, roles)) {</span>
+<span class="nc" id="L608">            authorizedLevels.add(l);</span>
+          }
+<span class="nc" id="L610">        }</span>
+<span class="nc" id="L611">        authorizedAppLayers = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L612">        authorizedEditableAppLayers = new HashSet&lt;&gt;();</span>
+
+        for (Map.Entry&lt;Long, AuthorizationsHelper.ReadWrite&gt; e :
+<span class="nc bnc" id="L615" title="All 2 branches missed.">            applicationCache.getProtectedAppLayers().entrySet()) {</span>
+          ApplicationLayer al =
+<span class="nc" id="L617">              Stripersist.getEntityManager().find(ApplicationLayer.class, e.getKey());</span>
+
+<span class="nc" id="L619">          Set&lt;String&gt; readers = e.getValue().getReaders();</span>
+<span class="nc" id="L620">          Set&lt;String&gt; writers = e.getValue().getWriters();</span>
+
+<span class="nc bnc" id="L622" title="All 2 branches missed.">          if (readers.equals(AuthorizationsHelper.EVERYBODY)</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">              || !Collections.disjoint(readers, roles)) {</span>
+<span class="nc" id="L624">            authorizedAppLayers.add(al);</span>
+          }
+<span class="nc bnc" id="L626" title="All 2 branches missed.">          if (writers.equals(AuthorizationsHelper.EVERYBODY)</span>
+<span class="nc bnc" id="L627" title="All 2 branches missed.">              || !Collections.disjoint(writers, roles)) {</span>
+<span class="nc" id="L628">            authorizedEditableAppLayers.add(al);</span>
+          }
+<span class="nc" id="L630">        }</span>
+
+<span class="nc" id="L632">        authorizedComponents = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L633" title="All 2 branches missed.">        for (ConfiguredComponent cc : application.getComponents()) {</span>
+<span class="nc bnc" id="L634" title="All 2 branches missed.">          if (cc.getReaders().equals(AuthorizationsHelper.EVERYBODY)</span>
+<span class="nc bnc" id="L635" title="All 2 branches missed.">              || !Collections.disjoint(cc.getReaders(), roles)) {</span>
+<span class="nc" id="L636">            authorizedComponents.add(cc);</span>
+          }
+<span class="nc" id="L638">        }</span>
+      }
+    }
+
+<span class="nc" id="L642">    return new ForwardResolution(&quot;/WEB-INF/jsp/security/authorizations.jsp&quot;);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

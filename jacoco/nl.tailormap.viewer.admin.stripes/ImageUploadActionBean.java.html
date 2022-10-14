@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImageUploadActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">ImageUploadActionBean.java</span></div><h1>ImageUploadActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.FileBean;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.util.HtmlUtil;
+import net.sourceforge.stripes.validation.Validate;
+import nl.tailormap.viewer.config.app.Resource;
+import nl.tailormap.viewer.config.security.Group;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.Date;
+import java.util.List;
+
+/**
+ *
+ * @author Matthijs Laan
+ */
+@UrlBinding(&quot;/action/imageupload&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN,Group.APPLICATION_ADMIN}) 
+<span class="nc" id="L49">public class ImageUploadActionBean extends ApplicationActionBean {</span>
+<span class="nc" id="L50">    private static final Log log = LogFactory.getLog(ImageUploadActionBean.class);</span>
+    
+    private static final String IMAGE_ACTIONBEAN_URL = &quot;/action/image/&quot;;
+    
+    private static final String VIEWER_URL_PARAM = &quot;viewer.url&quot;;
+    
+    @Validate
+    private FileBean upload;
+    
+    @Validate
+    private String action;
+    
+    @Validate
+    private Integer page;
+    @Validate
+    private Integer start;
+    @Validate
+    private Integer limit;
+    
+    @Validate
+    private String image;
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters and setters&quot;&gt;
+    public FileBean getUpload() {
+<span class="nc" id="L74">        return upload;</span>
+    }
+    
+    public void setUpload(FileBean upload) {
+<span class="nc" id="L78">        this.upload = upload;</span>
+<span class="nc" id="L79">    }</span>
+    
+    public String getAction() {
+<span class="nc" id="L82">        return action;</span>
+    }
+    
+    public void setAction(String action) {
+<span class="nc" id="L86">        this.action = action;</span>
+<span class="nc" id="L87">    }</span>
+    
+    public Integer getLimit() {
+<span class="nc" id="L90">        return limit;</span>
+    }
+    
+    public void setLimit(Integer limit) {
+<span class="nc" id="L94">        this.limit = limit;</span>
+<span class="nc" id="L95">    }</span>
+    
+    public Integer getPage() {
+<span class="nc" id="L98">        return page;</span>
+    }
+    
+    public void setPage(Integer page) {
+<span class="nc" id="L102">        this.page = page;</span>
+<span class="nc" id="L103">    }</span>
+    
+    public Integer getStart() {
+<span class="nc" id="L106">        return start;</span>
+    }
+    
+    public void setStart(Integer start) {
+<span class="nc" id="L110">        this.start = start;</span>
+<span class="nc" id="L111">    }</span>
+
+    public String getImage() {
+<span class="nc" id="L114">        return image;</span>
+    }
+
+    public void setImage(String image) {
+<span class="nc" id="L118">        this.image = image;</span>
+<span class="nc" id="L119">    }</span>
+    //&lt;/editor-fold&gt;
+    
+    private String url(Resource r) {
+<span class="nc" id="L123">        return getContext().getServletContext().getInitParameter(VIEWER_URL_PARAM) + IMAGE_ACTIONBEAN_URL + r.getName();</span>
+    }
+
+    @DefaultHandler
+    public Resolution upload() throws JSONException {
+        
+<span class="nc" id="L129">        JSONObject j = new JSONObject();</span>
+        
+<span class="nc" id="L131">        j.put(&quot;success&quot;, false);</span>
+<span class="nc" id="L132">        j.put(&quot;message&quot;, &quot;Fout&quot;);</span>
+        
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if(upload == null) {</span>
+<span class="nc" id="L135">            j.put(&quot;errors&quot;, getBundle().getString(&quot;viewer_admin.imageuploadactionbean.noupload&quot;));</span>
+        } else {
+            
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            if(Stripersist.getEntityManager().find(Resource.class, upload.getFileName()) != null) {</span>
+<span class="nc" id="L139">                j.put(&quot;errors&quot;, getBundle().getString(&quot;viewer_admin.imageuploadactionbean.namedup&quot;));</span>
+            } else {
+                try {
+<span class="nc" id="L142">                    Resource r = new Resource();</span>
+
+<span class="nc" id="L144">                    r.setName(upload.getFileName());</span>
+<span class="nc" id="L145">                    r.setContentType(upload.getContentType());</span>
+<span class="nc" id="L146">                    r.setDataContent(upload.getInputStream(), upload.getSize());</span>
+<span class="nc" id="L147">                    r.setSize(upload.getSize());</span>
+<span class="nc" id="L148">                    r.setModified(new Date());</span>
+
+<span class="nc" id="L150">                    Stripersist.getEntityManager().persist(r);</span>
+<span class="nc" id="L151">                    Stripersist.getEntityManager().getTransaction().commit();</span>
+
+<span class="nc" id="L153">                    j.put(&quot;message&quot;,  MessageFormat.format(getBundle().getString(&quot;viewer_admin.imageuploadactionbean.imguploaded&quot;), r.getName()));</span>
+<span class="nc" id="L154">                    JSONObject data = new JSONObject();</span>
+<span class="nc" id="L155">                    data.put(&quot;src&quot;, url(r));</span>
+<span class="nc" id="L156">                    j.put(&quot;data&quot;, data);</span>
+<span class="nc" id="L157">                    j.put(&quot;total&quot;, 1);</span>
+<span class="nc" id="L158">                    j.put(&quot;success&quot;, true);</span>
+<span class="nc" id="L159">                } catch(Exception e) {</span>
+<span class="nc" id="L160">                    j.put(&quot;errors&quot;, e.toString());</span>
+                } finally {
+                    try { 
+<span class="nc" id="L163">                        upload.delete();</span>
+<span class="nc" id="L164">                    } catch(IOException e) {</span>
+<span class="nc" id="L165">                        log.error(&quot;Error deleting upload&quot;, e);</span>
+<span class="nc" id="L166">                    }</span>
+                }
+            }
+        }
+        
+        // text/html and HTML encode because of http://docs.sencha.com/ext-js/4-1/#!/api/Ext.data.Connection
+        // requirements (WTF???)
+<span class="nc" id="L173">        return new StreamingResolution(&quot;text/html&quot;, HtmlUtil.encode(j.toString(4)));</span>
+    }
+    
+    public Resolution manage() throws JSONException {
+        
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if(&quot;imagesList&quot;.equals(action)) {</span>
+<span class="nc" id="L179">            return imagesList();</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        } else if(&quot;delete&quot;.equals(action)) {</span>
+<span class="nc" id="L181">            return delete();</span>
+        } else {
+<span class="nc" id="L183">            JSONObject j = new JSONObject();</span>
+<span class="nc" id="L184">            j.put(&quot;success&quot;, false);</span>
+<span class="nc" id="L185">            j.put(&quot;message&quot;, &quot;Fout&quot;);</span>
+<span class="nc" id="L186">            j.put(&quot;errors&quot;,  MessageFormat.format(getBundle().getString(&quot;viewer_admin.imageuploadactionbean.unkaction&quot;), action));</span>
+                    
+<span class="nc" id="L188">            return new StreamingResolution(&quot;application/json&quot;, j.toString(4));</span>
+        }
+    }
+            
+    public Resolution imagesList() throws JSONException {
+<span class="nc" id="L193">        JSONObject j = new JSONObject();</span>
+        try {
+<span class="nc" id="L195">            JSONArray data = new JSONArray();</span>
+<span class="nc" id="L196">            j.put(&quot;data&quot;, data);</span>
+
+<span class="nc" id="L198">            j.put(&quot;total&quot;, Stripersist.getEntityManager().createQuery(&quot;select count(*) from Resource&quot;).getSingleResult());</span>
+
+<span class="nc" id="L200">            List&lt;Resource&gt; resources = Stripersist.getEntityManager().createQuery(</span>
+                    &quot;from Resource order by name&quot;, Resource.class)
+<span class="nc" id="L202">                    .setFirstResult(start)</span>
+<span class="nc" id="L203">                    .setMaxResults(limit)</span>
+<span class="nc" id="L204">                    .getResultList();</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">            for(Resource r: resources) {</span>
+<span class="nc" id="L206">                JSONObject file = new JSONObject();</span>
+<span class="nc" id="L207">                file.put(&quot;src&quot;, url(r));</span>
+<span class="nc" id="L208">                file.put(&quot;name&quot;, r.getName());</span>
+<span class="nc" id="L209">                file.put(&quot;fullname&quot;, r.getName());</span>
+<span class="nc" id="L210">                data.put(file);</span>
+<span class="nc" id="L211">            }</span>
+<span class="nc" id="L212">            j.put(&quot;success&quot;, true);</span>
+<span class="nc" id="L213">            j.put(&quot;message&quot;, &quot;Success&quot;);</span>
+<span class="nc" id="L214">        } catch(Exception e) {</span>
+<span class="nc" id="L215">            j.put(&quot;success&quot;, false);</span>
+<span class="nc" id="L216">            j.put(&quot;message&quot;, &quot;Fout&quot;);</span>
+<span class="nc" id="L217">            j.put(&quot;errors&quot;, e.toString());</span>
+<span class="nc" id="L218">        }</span>
+
+<span class="nc" id="L220">        return new StreamingResolution(&quot;application/json&quot;, j.toString(4));</span>
+    }
+    
+    public Resolution delete() throws JSONException {
+<span class="nc" id="L224">        JSONObject j = new JSONObject();</span>
+<span class="nc" id="L225">        j.put(&quot;success&quot;, false);</span>
+<span class="nc" id="L226">        j.put(&quot;message&quot;, &quot;Fout&quot;);</span>
+        try {
+<span class="nc" id="L228">            Resource r = Stripersist.getEntityManager().find(Resource.class, image);</span>
+            
+<span class="nc bnc" id="L230" title="All 2 branches missed.">            if(r == null) {</span>
+<span class="nc" id="L231">                j.put(&quot;errors&quot;,  MessageFormat.format(getBundle().getString(&quot;viewer_admin.imageuploadactionbean.notfound&quot;), image ));</span>
+            } else {
+<span class="nc" id="L233">                Stripersist.getEntityManager().remove(r);</span>
+<span class="nc" id="L234">                Stripersist.getEntityManager().getTransaction().commit();</span>
+            }
+<span class="nc" id="L236">            j.put(&quot;success&quot;, true);</span>
+<span class="nc" id="L237">            j.put(&quot;message&quot;, &quot;Verwijderd&quot;);</span>
+<span class="nc" id="L238">        } catch(Exception e) {</span>
+<span class="nc" id="L239">            j.put(&quot;errors&quot;, e.toString());</span>
+<span class="nc" id="L240">        }</span>
+<span class="nc" id="L241">        return new StreamingResolution(&quot;application/json&quot;, j.toString(4));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

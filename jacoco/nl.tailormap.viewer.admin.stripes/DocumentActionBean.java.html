@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DocumentActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">DocumentActionBean.java</span></div><h1>DocumentActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2011-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.DontBind;
+import net.sourceforge.stripes.action.DontValidate;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.HandlesEvent;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import net.sourceforge.stripes.validation.ValidateNestedProperties;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.config.app.Application;
+import nl.tailormap.viewer.config.app.Level;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.services.Document;
+import nl.tailormap.viewer.helpers.app.LevelHelper;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletResponse;
+import java.text.MessageFormat;
+import java.util.List;
+
+/**
+ *
+ * @author Jytte Schaeffer
+ */
+@StrictBinding
+@UrlBinding(&quot;/action/document/{$event}/{service}&quot;)
+@RolesAllowed({Group.ADMIN,Group.REGISTRY_ADMIN})
+<span class="nc" id="L63">public class DocumentActionBean extends LocalizableActionBean {</span>
+    private static final String JSP = &quot;/WEB-INF/jsp/services/document.jsp&quot;;
+    private static final String EDITJSP = &quot;/WEB-INF/jsp/services/editdocument.jsp&quot;;
+    
+    private ActionBeanContext context;
+    
+    @Validate
+    private int page;
+    @Validate
+    private int start;
+    @Validate
+    private int limit;
+    @Validate
+    private String sort;
+    @Validate
+    private String dir;
+    @Validate
+    private JSONArray filter;
+
+    @Validate
+    @ValidateNestedProperties({
+                @Validate(field=&quot;name&quot;, required=true, maxlength=255, label=&quot;Naam&quot;),
+                @Validate(field=&quot;category&quot;, maxlength=255, label=&quot;Category&quot;),
+                @Validate(field=&quot;url&quot;, required=true, maxlength=255, label=&quot;URL&quot;)
+    })
+    private Document document;
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+    public ActionBeanContext getContext() {
+<span class="nc" id="L92">        return context;</span>
+    }
+    
+    public void setContext(ActionBeanContext context) {
+<span class="nc" id="L96">        this.context = context;</span>
+<span class="nc" id="L97">    }</span>
+
+    public String getDir() {
+<span class="nc" id="L100">        return dir;</span>
+    }
+
+    public void setDir(String dir) {
+<span class="nc" id="L104">        this.dir = dir;</span>
+<span class="nc" id="L105">    }</span>
+
+    public Document getDocument() {
+<span class="nc" id="L108">        return document;</span>
+    }
+
+    public void setDocument(Document document) {
+<span class="nc" id="L112">        this.document = document;</span>
+<span class="nc" id="L113">    }</span>
+
+    public JSONArray getFilter() {
+<span class="nc" id="L116">        return filter;</span>
+    }
+
+    public void setFilter(JSONArray filter) {
+<span class="nc" id="L120">        this.filter = filter;</span>
+<span class="nc" id="L121">    }</span>
+
+    public int getLimit() {
+<span class="nc" id="L124">        return limit;</span>
+    }
+
+    public void setLimit(int limit) {
+<span class="nc" id="L128">        this.limit = limit;</span>
+<span class="nc" id="L129">    }</span>
+
+    public int getPage() {
+<span class="nc" id="L132">        return page;</span>
+    }
+
+    public void setPage(int page) {
+<span class="nc" id="L136">        this.page = page;</span>
+<span class="nc" id="L137">    }</span>
+
+    public String getSort() {
+<span class="nc" id="L140">        return sort;</span>
+    }
+
+    public void setSort(String sort) {
+<span class="nc" id="L144">        this.sort = sort;</span>
+<span class="nc" id="L145">    }</span>
+
+    public int getStart() {
+<span class="nc" id="L148">        return start;</span>
+    }
+
+    public void setStart(int start) {
+<span class="nc" id="L152">        this.start = start;</span>
+<span class="nc" id="L153">    }</span>
+    //&lt;/editor-fold&gt;
+        
+    @DefaultHandler
+    @HandlesEvent(&quot;default&quot;)
+    @DontValidate
+    public Resolution defaultResolution() {
+<span class="nc" id="L160">        return new ForwardResolution(JSP);</span>
+    }
+
+    @DontValidate
+    public Resolution edit() {
+<span class="nc" id="L165">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    @DontBind
+    public Resolution cancel() {        
+<span class="nc" id="L170">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    @DontValidate
+    public Resolution delete() {
+<span class="nc" id="L175">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if(documentInUse()){</span>
+<span class="nc" id="L177">            StringBuilder message= new StringBuilder(&quot;&lt;ul&gt; &quot;);</span>
+<span class="nc" id="L178">            List&lt;Level&gt; levels = em.createQuery(</span>
+                &quot;from Level l where :doc member of l.documents&quot;, Level.class)
+<span class="nc" id="L180">                .setParameter(&quot;doc&quot;, document)</span>
+<span class="nc" id="L181">                .getResultList();</span>
+        
+<span class="nc bnc" id="L183" title="All 2 branches missed.">            for (Level level: levels){</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">                for(Application app: LevelHelper.findApplications(level, em)) {</span>
+<span class="nc" id="L185">                    message.append(&quot;&lt;li&gt;&quot;).append(MessageFormat.format(getBundle().getString(&quot;viewer_admin.documentactionbean.inuseapp&quot;), level.getPath(), app.getNameWithVersion())).append(&quot;&lt;/li&gt;&quot;);</span>
+<span class="nc" id="L186">                }</span>
+<span class="nc" id="L187">            }</span>
+<span class="nc" id="L188">            message.append(&quot;&lt;/ul&gt;&quot;);</span>
+<span class="nc" id="L189">            getContext().getValidationErrors().add(&quot;document&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.documentactionbean.inuse&quot;), message.toString()));</span>
+<span class="nc" id="L190">            return new ForwardResolution(EDITJSP);</span>
+        }        
+<span class="nc" id="L192">        em.remove(document);</span>
+<span class="nc" id="L193">        em.getTransaction().commit();</span>
+        
+<span class="nc" id="L195">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.documentactionbean.docrem&quot;)));</span>
+        
+<span class="nc" id="L197">        return new ForwardResolution(EDITJSP);</span>
+    }
+    /**
+     * Checks if the document is in use
+     * @return true/false
+     */
+    private boolean documentInUse(){
+<span class="nc" id="L204">        return !Stripersist.getEntityManager().createQuery(&quot;select 1 from Level l where :doc member of l.documents&quot;)</span>
+<span class="nc" id="L205">                .setParameter(&quot;doc&quot;, document)</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">                .getResultList().isEmpty();</span>
+    }
+    
+    public Resolution save() {   
+<span class="nc" id="L210">        Stripersist.getEntityManager().persist(document);</span>
+<span class="nc" id="L211">        Stripersist.getEntityManager().getTransaction().commit();</span>
+        
+<span class="nc" id="L213">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.documentactionbean.docsaved&quot;)));</span>
+        
+<span class="nc" id="L215">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    @DontValidate
+    public Resolution getGridData() throws JSONException { 
+<span class="nc" id="L220">        JSONArray jsonData = new JSONArray();</span>
+        
+<span class="nc" id="L222">        String filterName = &quot;&quot;;</span>
+<span class="nc" id="L223">        String filterUrl = &quot;&quot;;</span>
+<span class="nc" id="L224">        String filterCategory = &quot;&quot;;</span>
+        /* 
+         * FILTERING: filter is delivered by frontend as JSON array [{property, value}]
+         * for demo purposes the value is now returned, ofcourse here should the DB
+         * query be built to filter the right records
+         */
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        if(this.getFilter() != null) {</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">            for(int k = 0; k &lt; this.getFilter().length(); k++) {</span>
+<span class="nc" id="L232">                JSONObject j = this.getFilter().getJSONObject(k);</span>
+<span class="nc" id="L233">                String property = j.getString(&quot;property&quot;);</span>
+<span class="nc" id="L234">                String value = j.getString(&quot;value&quot;);</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">                if(property.equals(&quot;name&quot;)) {</span>
+<span class="nc" id="L236">                    filterName = value;</span>
+                }
+<span class="nc bnc" id="L238" title="All 2 branches missed.">                if(property.equals(&quot;url&quot;)) {</span>
+<span class="nc" id="L239">                    filterUrl = value;</span>
+                }
+<span class="nc bnc" id="L241" title="All 2 branches missed.">                if(property.equals(&quot;category&quot;)) {</span>
+<span class="nc" id="L242">                    filterCategory = value;</span>
+                }
+            }
+        }
+        
+<span class="nc" id="L247">        Session sess = (Session)Stripersist.getEntityManager().getDelegate();</span>
+<span class="nc" id="L248">        Criteria c = sess.createCriteria(Document.class);</span>
+        
+        /* Sorting is delivered by the frontend
+         * as two variables: sort which holds the column name and dir which
+         * holds the direction (ASC, DESC).
+         */
+<span class="nc bnc" id="L254" title="All 4 branches missed.">        if(sort != null &amp;&amp; dir != null){</span>
+            Order order;
+<span class="nc bnc" id="L256" title="All 2 branches missed.">            if(dir.equals(&quot;ASC&quot;)){</span>
+<span class="nc" id="L257">               order = Order.asc(sort);</span>
+            }else{
+<span class="nc" id="L259">                order = Order.desc(sort);</span>
+            }
+<span class="nc" id="L261">            order.ignoreCase();</span>
+<span class="nc" id="L262">            c.addOrder(order);</span>
+        }
+        
+<span class="nc bnc" id="L265" title="All 4 branches missed.">        if(filterName != null &amp;&amp; filterName.length() &gt; 0){</span>
+<span class="nc" id="L266">            Criterion nameCrit = Restrictions.ilike(&quot;name&quot;, filterName, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L267">            c.add(nameCrit);</span>
+        }
+<span class="nc bnc" id="L269" title="All 4 branches missed.">        if(filterUrl != null &amp;&amp; filterUrl.length() &gt; 0){</span>
+<span class="nc" id="L270">            Criterion urlCrit = Restrictions.ilike(&quot;url&quot;, filterUrl, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L271">            c.add(urlCrit);</span>
+        }
+<span class="nc bnc" id="L273" title="All 4 branches missed.">        if(filterCategory != null &amp;&amp; filterCategory.length() &gt; 0){</span>
+<span class="nc" id="L274">            Criterion rubriekCrit = Restrictions.ilike(&quot;category&quot;, filterCategory, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L275">            c.add(rubriekCrit);</span>
+        }
+        
+<span class="nc" id="L278">        int rowCount = c.list().size();</span>
+        
+<span class="nc" id="L280">        c.setMaxResults(limit);</span>
+<span class="nc" id="L281">        c.setFirstResult(start);</span>
+        
+<span class="nc" id="L283">        List documenten = c.list();</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">        for (Object o : documenten) {</span>
+<span class="nc" id="L285">            Document doc = (Document) o;</span>
+<span class="nc" id="L286">            JSONObject j = this.getGridRow(doc.getId().intValue(), doc.getName(), doc.getUrl(), doc.getCategory());</span>
+<span class="nc" id="L287">            jsonData.put(j);</span>
+<span class="nc" id="L288">        }</span>
+        
+<span class="nc" id="L290">        final JSONObject grid = new JSONObject();</span>
+<span class="nc" id="L291">        grid.put(&quot;totalCount&quot;, rowCount);</span>
+<span class="nc" id="L292">        grid.put(&quot;gridrows&quot;, jsonData);</span>
+    
+<span class="nc" id="L294">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+           @Override
+           public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L297">               response.getWriter().print(grid);</span>
+<span class="nc" id="L298">           }</span>
+        };
+    }
+    
+    private JSONObject getGridRow(int i, String name, String url, String category) throws JSONException {       
+<span class="nc" id="L303">        JSONObject j = new JSONObject();</span>
+<span class="nc" id="L304">        j.put(&quot;id&quot;, i);</span>
+<span class="nc" id="L305">        j.put(&quot;name&quot;, name);</span>
+<span class="nc" id="L306">        j.put(&quot;url&quot;, url);</span>
+<span class="nc" id="L307">        j.put(&quot;category&quot;, category);</span>
+<span class="nc" id="L308">        return j;</span>
+    }    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
