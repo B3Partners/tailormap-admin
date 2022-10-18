@@ -78,7 +78,7 @@
     <project.build.outputTimestamp>2022-10-14T09:42:01Z</project.build.outputTimestamp>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <spring-security.version>5.7.3</spring-security.version>
+    <spring-security.version>5.7.4</spring-security.version>
     <tailormap.version>5.9.23</tailormap.version>
     <!-- should be kept in sync with tailormap version -->
     <geotools.version>27.1</geotools.version>
