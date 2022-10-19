@@ -108,7 +108,7 @@
     <dependency-check-maven.version>7.3.0</dependency-check-maven.version>
     <!--    <pmd.version>6.40.0</pmd.version>-->
     <!--    <errorProne.version>2.10.0</errorProne.version>-->
-    <errorProneFlags />
+    <errorProneFlags></errorProneFlags>
     <compiler.lint>deprecation,unchecked</compiler.lint>
     <fmt.action>format</fmt.action>
     <pom.fmt.action>sort</pom.fmt.action>
@@ -855,6 +855,12 @@
                   <TM_VERSION>${project.version}</TM_VERSION>
                 </args>
                 <noCache>true</noCache>
+                <buildx>
+                  <platforms>
+                    <platform>linux/amd64</platform>
+                    <platform>linux/arm64</platform>
+                  </platforms>
+                </buildx>
               </build>
             </image>
           </images>
@@ -1057,6 +1063,18 @@
       <activation>
         <os>
           <family>windows</family>
+        </os>
+      </activation>
+      <properties>
+        <docker.skip>true</docker.skip>
+      </properties>
+    </profile>
+    <profile>
+      <id>openbsd</id>
+      <activation>
+        <os>
+          <name>openbsd</name>
+          <family>unix</family>
         </os>
       </activation>
       <properties>

@@ -12,27 +12,24 @@ ENV TM_DATA_DIR=/opt/tailormap_data
 ENV CATALINA_OPTS="-DPG_PORT=$PG_PORT -DPG_HOST=$PG_HOST -DDB_NAME=$DB_NAME -DDB_USER=$DB_USER -DDB_PASS=$DB_PASS -DURL_SCHEME=$URL_SCHEME -DMAIL_FROM=$MAIL_FROM -DMAIL_HOST=$MAIL_HOST -DTM_DATA_DIR=$TM_DATA_DIR"
 ENV CATALINA_OUT=/dev/null
 
-ARG TM_VERSION="10.0-SNAPSHOT"
+ARG TM_VERSION="10.0.0-SNAPSHOT"
 ARG TZ="Europe/Amsterdam"
 ARG DEBIAN_FRONTEND="noninteractive"
 
 # copy webapps + jdni libs + config to tomcat directories
-# note we need ${project.basedir}/${project.build.directory} because we need an absolute path
-COPY ${project.build.directory}/admin.war /usr/local/tomcat/webapps/
-COPY ${project.build.directory}/tomcat-lib/*.jar /usr/local/tomcat/lib/
-COPY ${project.basedir}/src/main/docker/tomcat_conf/ /usr/local/tomcat/conf/
+COPY ./target/admin.war /usr/local/tomcat/webapps/admin.war
+COPY ./target/tomcat-lib/*.jar /usr/local/tomcat/lib/
+COPY ./src/main/docker/tomcat_conf/ /usr/local/tomcat/conf/
 
-RUN set -eux;mkdir -p $TM_DATA_DIR/ \
-    && TMPDIR=`mktemp -d` \
+RUN set -eux;ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
+    && mkdir -p $TM_DATA_DIR/ \
     && chmod -R 777 $TM_DATA_DIR/ \
     # cleanup localization and example apps
     && rm /usr/local/tomcat/lib/tomcat-i18n-*.jar \
     && rm -rf /usr/local/tomcat/webapps.dist/ \
-    && rm -rf $TMPDIR \
-    && apt update && apt upgrade -y && apt autoremove -y && apt autoclean && apt clean && rm -rf /tmp/* && rm -rf /var/tmp/* \
-    && rm -rf /var/lib/apt/lists/* \
-    && chown -R www-data:www-data /usr/local/tomcat/webapps \
-    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+    && chown -R www-data:www-data /usr/local/tomcat/webapps
+# currently fails on arm64 with "debconf: delaying package configuration, since apt-utils is not installed" exit code: 100
+#    && apt update && apt upgrade -y && apt autoremove -y && apt autoclean && apt clean && rm -rf /tmp/* && rm -rf /var/tmp/* && rm -rf /var/lib/apt/lists/* \
 
 USER www-data:www-data
 
