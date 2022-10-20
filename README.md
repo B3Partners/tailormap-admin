@@ -26,7 +26,7 @@ running Tailormap Admin
   ```shell
   mvn clean install
   ```
-  Note that on Windows and MacOS building the docker image is disabled by default, 
+  Note that on Windows, OpenBSD and MacOS building the docker image is disabled by default, 
   add the option `-Ddocker.skip=false` if you want to build the docker image
 - start a container using:
   ```shell
