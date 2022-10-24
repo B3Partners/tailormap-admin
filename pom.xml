@@ -97,7 +97,7 @@
     <jackson2.databind.version>2.14.0-rc2</jackson2.databind.version>
     <test.junit-jupiter.version>5.9.1</test.junit-jupiter.version>
     <maven.surefire.version>3.0.0-M7</maven.surefire.version>
-    <cargo-maven3-plugin.version>1.10.2</cargo-maven3-plugin.version>
+    <cargo-maven3-plugin.version>1.10.3</cargo-maven3-plugin.version>
     <tomcat.localDatasource>false</tomcat.localDatasource>
     <tomcat.version>9.0.68</tomcat.version>
     <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
