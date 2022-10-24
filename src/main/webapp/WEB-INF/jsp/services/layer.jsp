@@ -100,37 +100,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </select>
                         </td>
                     </tr>
-<%--                    <tr>--%>
-<%--                        <td style="width:300px"><fmt:message key="viewer_admin.layer.18" />:</td>--%>
-<%--                        <td>--%>
-<%--                            <stripes:checkbox name="details['filterable']"/>--%>
-<%--                        </td>--%>
-<%--                    </tr>--%>
-<%--                    <tr>--%>
-<%--                        <td valign="top">--%>
-<%--                            <h1><fmt:message key="viewer_admin.layer.19" />:</h1>                           --%>
-<%--                            <table summary="Groepen">--%>
-<%--                                <thead>--%>
-<%--                                    <tr>--%>
-<%--                                        <th scope="col" title="<fmt:message key="viewer_admin.layer.20" />"><fmt:message key="viewer_admin.layer.21" /></th>--%>
-<%--                                        <th scope="col" title="<fmt:message key="viewer_admin.layer.22" />"><fmt:message key="viewer_admin.layer.23" /></th>--%>
-<%--                                        <th scope="col" title="<fmt:message key="viewer_admin.layer.24" />"><fmt:message key="viewer_admin.layer.25" /></th>--%>
-<%--                                        <th scope="col" style="text-align:left"><fmt:message key="viewer_admin.layer.26" /></th>--%>
-<%--                                    </tr>--%>
-<%--                                </thead>--%>
-<%--                                <tbody>--%>
-<%--                                    <c:forEach var="group" items="${actionBean.allGroups}">     --%>
-<%--                                        <tr>--%>
-<%--                                            <td><stripes:checkbox name="groupsRead" value="${group.name}"/></td>--%>
-<%--                                            <td><stripes:checkbox name="groupsWrite" value="${group.name}"/></td>--%>
-<%--                                            <td><stripes:checkbox name="groupsPreventGeomEdit" value="${group.name}"/></td>--%>
-<%--                                            <th scope="row" style="text-align:left">${group.name}</th>--%>
-<%--                                        </tr>--%>
-<%--                                    </c:forEach>--%>
-<%--                                </tbody>--%>
-<%--                            </table>--%>
-<%--                        </td>--%>
-<%--                    </tr>--%>
+                    <tr>
+                        <td style="width:300px"><fmt:message key="viewer_admin.layer.18" />:</td>
+                        <td>
+                            <stripes:checkbox name="details['filterable']"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td valign="top">
+                            <h1><fmt:message key="viewer_admin.layer.19" />:</h1>
+                            <table summary="Groepen">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" title="<fmt:message key="viewer_admin.layer.20" />"><fmt:message key="viewer_admin.layer.21" /></th>
+                                        <th scope="col" title="<fmt:message key="viewer_admin.layer.22" />"><fmt:message key="viewer_admin.layer.23" /></th>
+                                        <th scope="col" title="<fmt:message key="viewer_admin.layer.24" />"><fmt:message key="viewer_admin.layer.25" /></th>
+                                        <th scope="col" style="text-align:left"><fmt:message key="viewer_admin.layer.26" /></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:forEach var="group" items="${actionBean.allGroups}">
+                                        <tr>
+                                            <td><stripes:checkbox name="groupsRead" value="${group.name}"/></td>
+                                            <td><stripes:checkbox name="groupsWrite" value="${group.name}"/></td>
+                                            <td><stripes:checkbox name="groupsPreventGeomEdit" value="${group.name}"/></td>
+                                            <th scope="row" style="text-align:left">${group.name}</th>
+                                        </tr>
+                                    </c:forEach>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
                     <tr>
                         <td colspan="2">
                             <c:choose>
