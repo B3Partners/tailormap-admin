@@ -3,7 +3,7 @@ on:
   # use pull request so this workflow dos not fail when triggered by dependabot PR's
   pull_request:
   schedule:
-    - cron: "17 23 * * 0"
+    - cron: '17 23 * * MON'
   workflow_dispatch:
 
 jobs:
