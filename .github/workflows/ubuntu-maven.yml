@@ -104,7 +104,9 @@ jobs:
           REPO_B3P_TOKEN: ${{ secrets.REPO_B3P_TOKEN }}
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: mvn -Pqa-skip --settings .github/maven-settings.xml deploy
+        run: |
+          docker run --privileged --rm tonistiigi/binfmt --install arm64
+          mvn -Pqa-skip --settings .github/maven-settings.xml deploy
 
       - name: Cleanup Maven cache
         if: ${{ always() }}
