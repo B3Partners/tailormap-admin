@@ -27,9 +27,10 @@ RUN set -eux;ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/t
     # cleanup localization and example apps
     && rm /usr/local/tomcat/lib/tomcat-i18n-*.jar \
     && rm -rf /usr/local/tomcat/webapps.dist/ \
-    && chown -R www-data:www-data /usr/local/tomcat/webapps
-# currently fails on arm64 with "debconf: delaying package configuration, since apt-utils is not installed" exit code: 100
-#    && apt update && apt upgrade -y && apt autoremove -y && apt autoclean && apt clean && rm -rf /tmp/* && rm -rf /var/tmp/* && rm -rf /var/lib/apt/lists/* \
+    && chown -R www-data:www-data /usr/local/tomcat/webapps \
+    # currently fails on arm64 with "debconf: delaying package configuration, since apt-utils is not installed" exit code: 100 \
+    # you can solve that by running "docker run --privileged --rm tonistiigi/binfmt --install all"
+    && apt update && apt upgrade -y && apt autoremove -y && apt autoclean && apt clean && rm -rf /tmp/* && rm -rf /var/tmp/* && rm -rf /var/lib/apt/lists/*
 
 USER www-data:www-data
 
