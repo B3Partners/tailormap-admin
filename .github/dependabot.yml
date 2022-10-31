@@ -1,10 +1,10 @@
 version: 2
 updates:
   - package-ecosystem: maven
-    directory: "/"
+    directory: '/'
     schedule:
       interval: daily
-      time: "03:00"
+      time: '03:00'
       timezone: Europe/Amsterdam
     open-pull-requests-limit: 25
     reviewers:
@@ -17,30 +17,30 @@ updates:
     ignore:
       - dependency-name: org.apache.tomcat:*
         versions:
-          - ">= 10"
+          - '>= 10'
       - dependency-name: org.apache.tomcat.embed:*
         versions:
-          - ">= 10"
+          - '>= 10'
 
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: saturday
-      timezone: Europe/Amsterdam
+      interval: weekly
+      day: monday
+      timezone: 'Europe/Amsterdam'
     labels:
       - build infrastructure
     assignees:
       - mprins
 
 
-  - package-ecosystem: "docker"
-    directory: "/src/main/docker/"
+  - package-ecosystem: docker
+    directory: '/src/main/docker/'
     schedule:
       interval: weekly
       timezone: Europe/Amsterdam
-      day: "saturday"
+      day: monday
     open-pull-requests-limit: 25
     reviewers:
       - mprins
@@ -50,6 +50,6 @@ updates:
       - build infrastructure
     ignore:
       # stay on Tomcat 9 for now
-      - dependency-name: "tomcat"
+      - dependency-name: 'tomcat'
         versions:
-          - ">= 10"
+          - '>= 10'
