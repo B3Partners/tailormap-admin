@@ -79,7 +79,8 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <spring-security.version>5.7.5</spring-security.version>
-    <tailormap.version>5.9.24</tailormap.version>
+    <tailormap-gbimaps.version>5.9.24</tailormap-gbimaps.version>
+    <tailormap-persistence.version>10.1-SNAPSHOT</tailormap-persistence.version>
     <geotools.version>28-RC</geotools.version>
     <jts.version>1.19.0</jts.version>
     <apache.poi.version>5.2.3</apache.poi.version>
@@ -120,11 +121,6 @@
   </properties>
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>com.google.javascript</groupId>
-        <artifactId>closure-compiler</artifactId>
-        <version>v20221102</version>
-      </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
@@ -275,7 +271,7 @@
       <dependency>
         <groupId>org.tailormap-gbimaps</groupId>
         <artifactId>tailormap-gbimaps</artifactId>
-        <version>${tailormap.version}</version>
+        <version>${tailormap-gbimaps.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -290,7 +286,7 @@
     <dependency>
       <groupId>nl.b3p.tailormap</groupId>
       <artifactId>tailormap-persistence</artifactId>
-      <version>10.1-SNAPSHOT</version>
+      <version>${tailormap-persistence.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -368,6 +364,11 @@
           <groupId>javax.servlet.jsp</groupId>
           <artifactId>jsp-api</artifactId>
         </exclusion>
+        <exclusion>
+          <!-- 1.2.5 sleept xalan mee, maar dat willen we niet -->
+          <groupId>xalan</groupId>
+          <artifactId>xalan</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -377,6 +378,10 @@
         <exclusion>
           <groupId>org.tailormap-gbimaps</groupId>
           <artifactId>viewer-config-persistence</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.javascript</groupId>
+          <artifactId>closure-compiler</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -405,6 +410,10 @@
         <exclusion>
           <groupId>org.geotools</groupId>
           <artifactId>gt-epsg-wkt</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>xalan</groupId>
+          <artifactId>xalan</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -485,7 +494,7 @@
     <dependency>
       <groupId>nl.b3p.tailormap</groupId>
       <artifactId>tailormap-persistence</artifactId>
-      <version>10.0</version>
+      <version>${tailormap-persistence.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
@@ -494,6 +503,12 @@
       <artifactId>viewer-helpers</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>xalan</groupId>
+          <artifactId>xalan</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>

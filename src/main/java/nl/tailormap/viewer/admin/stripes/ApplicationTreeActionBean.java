@@ -354,7 +354,7 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
 
         em.persist(l);
         em.persist(parent);
-        SelectedContentCache.setApplicationCacheDirty(application, true,false,em);
+//        SelectedContentCache.setApplicationCacheDirty(application, true,false,em);
         application.authorizationsModified();
         em.getTransaction().commit();
 
@@ -379,7 +379,7 @@ public class ApplicationTreeActionBean extends ApplicationActionBean {
         try{
             EntityManager em = Stripersist.getEntityManager();
             moveLevel(levelId, targetLevelId, em);
-            SelectedContentCache.setApplicationCacheDirty(application, true, false, em);
+//            SelectedContentCache.setApplicationCacheDirty(application, true, false, em);
             application.authorizationsModified();
             em.getTransaction().commit(); 
            j.put("success", true);

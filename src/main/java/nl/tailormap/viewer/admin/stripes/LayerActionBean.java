@@ -301,9 +301,9 @@ public class LayerActionBean extends LocalizableActionBean {
         em.persist(layer);
         layer.getService().authorizationsModified();
         List<Application> apps = findApplications(layer);
-        for (Application application : apps) {
-            SelectedContentCache.setApplicationCacheDirty(application, true, false, em);
-        }
+//        for (Application application : apps) {
+//            SelectedContentCache.setApplicationCacheDirty(application, true, false, em);
+//        }
         em.getTransaction().commit();
         getContext().getMessages().add(new SimpleMessage(getBundle().getString("viewer_admin.layeractionbean.layersaved")));
 

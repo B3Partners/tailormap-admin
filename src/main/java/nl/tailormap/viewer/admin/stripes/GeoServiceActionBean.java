@@ -691,9 +691,9 @@ public class GeoServiceActionBean extends LocalizableActionBean {
         // Invalidate the cache of the applications using this service. Options like username/password, useProxy, etc. might have changed, which
         // affect the selectedContent
         List<Application> apps = findApplications();
-        for (Application application : apps) {
-            SelectedContentCache.setApplicationCacheDirty(application, true, false, em);
-        }
+//        for (Application application : apps) {
+//            SelectedContentCache.setApplicationCacheDirty(application, true, false, em);
+//        }
         service.getDetails().put(GeoService.DETAIL_USE_INTERSECT, new ClobElement(""+useIntersect));
         service.getDetails().put(GeoService.DETAIL_USE_PROXY, new ClobElement(""+useProxy));
         
@@ -825,9 +825,9 @@ public class GeoServiceActionBean extends LocalizableActionBean {
         log.info("Missing layers: " + byStatus.get(UpdateResult.Status.MISSING));
 
         List<Application> apps = findApplications();
-        for (Application application : apps) {
-            SelectedContentCache.setApplicationCacheDirty(application, true, false,em);
-        }
+//        for (Application application : apps) {
+//            SelectedContentCache.setApplicationCacheDirty(application, true, false,em);
+//        }
 
         em.getTransaction().commit();
 
