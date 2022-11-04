@@ -139,7 +139,7 @@ public class ApplicationStartMapActionBean extends ApplicationActionBean {
         }
         
         walkAppTreeForSave(rootlevel,em,false);
-        SelectedContentCache.setApplicationCacheDirty(application, true,false,true,em);
+//        SelectedContentCache.setApplicationCacheDirty(application, true,false,true,em);
         em.getTransaction().commit();
     }
     

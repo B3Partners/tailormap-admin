@@ -108,7 +108,7 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
         }
         
         application.authorizationsModified();        
-        SelectedContentCache.setApplicationCacheDirty(application, true, false,em);
+//        SelectedContentCache.setApplicationCacheDirty(application, true, false,em);
         em.getTransaction().commit();
         
         return new ForwardResolution(JSP);
@@ -148,7 +148,7 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
             try {
                 EntityManager em = Stripersist.getEntityManager();
                 em.persist(level);
-                SelectedContentCache.setApplicationCacheDirty(application, true, false, em);
+//                SelectedContentCache.setApplicationCacheDirty(application, true, false, em);
                 em.getTransaction().commit();
                 json.put("name", level.getName());
                 json.put("success", Boolean.TRUE);
@@ -212,7 +212,7 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
                 
                 em.remove(level);
                 application.authorizationsModified();
-                SelectedContentCache.setApplicationCacheDirty(application, true, false, em);
+//                SelectedContentCache.setApplicationCacheDirty(application, true, false, em);
                 em.getTransaction().commit();
 
             } catch(Exception e) {
@@ -268,7 +268,7 @@ public class ApplicationTreeLevelActionBean extends ApplicationActionBean {
         for (Application app : mashups) {
 
             app.authorizationsModified();
-            SelectedContentCache.setApplicationCacheDirty(app, true, false, em);
+//            SelectedContentCache.setApplicationCacheDirty(app, true, false, em);
         }
         em.getTransaction().commit();
         

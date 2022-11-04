@@ -474,7 +474,7 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
         // When the selected application is a mashup, don't use the copy routine, but make another mashup of it. This prevents some detached entity exceptions.
         if(application.isMashup()){
             copy = ApplicationHelper.createMashup(application, name, em, false);
-            SelectedContentCache.setApplicationCacheDirty(copy, Boolean.TRUE, true, em);
+//            SelectedContentCache.setApplicationCacheDirty(copy, Boolean.TRUE, true, em);
         }else{
             bindAppProperties();
 
@@ -485,7 +485,7 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
             em.persist(copy);
             em.persist(copy);
             em.flush();
-            SelectedContentCache.setApplicationCacheDirty(copy, Boolean.TRUE, false, em);
+//            SelectedContentCache.setApplicationCacheDirty(copy, Boolean.TRUE, false, em);
         }
         em.getTransaction().commit();
 
@@ -532,7 +532,7 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
             if(mashupMustPointToPublishedVersion){
                 for (Application mashup: ApplicationHelper.getMashups(oldPublished, em)) {
                     mashup.setRoot(application.getRoot());//nog iets doen met veranderde layerids uit cofniguratie
-                    SelectedContentCache.setApplicationCacheDirty(mashup,true, false,em);
+//                    SelectedContentCache.setApplicationCacheDirty(mashup,true, false,em);
                     ApplicationHelper.transferMashupLevels(mashup, oldPublished,em);
                     ApplicationHelper.transferMashupComponents(mashup, application);
                     em.persist(mashup);
