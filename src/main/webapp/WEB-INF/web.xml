@@ -223,6 +223,8 @@
         <web-resource-collection>
             <web-resource-name>roles</web-resource-name>
             <url-pattern>/logout.jsp</url-pattern>
+            <url-pattern>/resources/images/TailormapLogo.svg</url-pattern>
+            <url-pattern>/resources/css/main.css</url-pattern>
             <url-pattern>/action/admin/upgradecheck/ping</url-pattern>
         </web-resource-collection>
     </security-constraint>
