@@ -1,0 +1,178 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "cli": {
+    "schematicCollections": [
+      "@tailormap-viewer/schematics"
+    ],
+    "analytics": false
+  },
+  "projects": {
+    "app": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:application": {
+          "strict": true
+        }
+      },
+      "root": "projects/app",
+      "sourceRoot": "projects/app/src",
+      "prefix": "app",
+      "i18n": {
+        "sourceLocale": "en-US",
+        "locales": {
+          "nl": {
+            "translation": "locale/messages.nl.xlf"
+          }
+        }
+      },
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "../webapp/resources/frontend",
+            "index": "projects/app/src/index.html",
+            "main": "projects/app/src/main.ts",
+            "polyfills": "projects/app/src/polyfills.ts",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/app/src/assets",
+                "output": "."
+              },
+              {
+                "glob": "**/*",
+                "input": "projects/admin-core/assets",
+                "output": "assets/core"
+              }
+            ],
+            "styles": [
+              "projects/admin-core/assets/custom-theme.scss",
+              "projects/admin-core/assets/tailormap-styles.css"
+            ],
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "xml-utils",
+              "pbf",
+              "html2canvas",
+              "core-js",
+              "raf",
+              "rgbcolor",
+              "lru-cache",
+              "web-worker",
+              "dompurify",
+              "rbush",
+              "cssesc",
+              "font-family-papandreou"
+            ],
+            "i18nMissingTranslation": "warning"
+          },
+          "configurations": {
+            "nl": {
+              "localize": ["nl"]
+            },
+            "production": {
+              "tsConfig": "projects/app/tsconfig.prod.json",
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "2.2mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kb",
+                  "maximumError": "6kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "projects/app/src/environments/environment.ts",
+                  "with": "projects/app/src/environments/environment.prod.ts"
+                }
+              ],
+              "outputHashing": "none",
+              "sourceMap": true
+            },
+            "development": {
+              "tsConfig": "projects/app/tsconfig.app.json",
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "browserTarget": "app:build:production"
+            },
+            "development": {
+              "browserTarget": "app:build:development"
+            },
+            "nl": {
+              "browserTarget": "app:build:development,nl"
+            }
+          },
+          "options": {
+            "port": 4201
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "app:build"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/app/**/*.ts",
+              "projects/app/**/*.html"
+            ]
+          }
+        }
+      }
+    },
+    "admin-core": {
+      "projectType": "library",
+      "root": "projects/admin-core",
+      "sourceRoot": "projects/admin-core/src",
+      "prefix": "tm",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/admin-core/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/admin-core/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/admin-core/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/admin-core/**/*.ts",
+              "projects/admin-core/**/*.html"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

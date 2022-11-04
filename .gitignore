@@ -3,3 +3,4 @@ src/main/resources/git.properties
 .idea/
 *.iml
 target/
+src/main/webapp/resources/frontend

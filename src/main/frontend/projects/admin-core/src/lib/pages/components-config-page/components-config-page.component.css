@@ -1,0 +1,17 @@
+.components-config-page {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  padding: 20px;
+}
+
+.components-list {
+  width: 280px;
+  overflow: auto;
+  margin-right: 20px;
+}
+
+.component-configuration {
+  flex: 1;
+  overflow: auto;
+}

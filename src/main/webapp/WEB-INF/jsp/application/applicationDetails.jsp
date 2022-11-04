@@ -1,5 +1,5 @@
 <%--
-Copyright (C) 2011-2013 B3Partners B.V.
+Copyright (C) 2011-2022 B3Partners B.V.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -18,38 +18,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/taglibs.jsp"%>
 
-<stripes:layout-render name="/WEB-INF/jsp/templates/angularStandardpage.jsp">
+<stripes:layout-render name="/WEB-INF/jsp/templates/angular.jsp">
     <stripes:layout-component name="head">
-        <title><fmt:message key="viewer_admin.form.title" /></title>
-        <style>
-            #content {
-                display: flex;
-                flex-direction: column;
-            }
-            #content > h1 {
-                position: static;
-            }
-            .formContent {
-                flex: 1;
-                position: static;
-                overflow: auto;
-            }
-        </style>
+        <title><fmt:message key="viewer_admin.applicationdetails.0" /></title>
     </stripes:layout-component>
     <stripes:layout-component name="header">
         <jsp:include page="/WEB-INF/jsp/header.jsp"/>
     </stripes:layout-component>
     <stripes:layout-component name="body">
-        <div id="content">
-            <stripes:errors/>
-            <stripes:messages/>
-            <h1><fmt:message key="viewer_admin.form.header" /><a href="#Soorten_Applicaties_Help" title="<fmt:message key="viewer_admin.form.helptext" />" class="helplink"></a></h1>
-            <div class="formContent">
-               <tailormap-config-form-page></tailormap-config-form-page>
-            </div>
 
+        <tm-admin-root></tm-admin-root>
         <script type="text/javascript">
-            vieweradmin.components.Menu.setActiveLink('menu_forms');
+            vieweradmin.components.Menu.setActiveLink('menu_app_details');
         </script>
     </stripes:layout-component>
 </stripes:layout-render>
