@@ -122,11 +122,6 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.google.javascript</groupId>
-        <artifactId>closure-compiler</artifactId>
-        <version>v20221102</version>
-      </dependency>
-      <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
         <version>${jackson2.version}</version>
@@ -383,6 +378,10 @@
         <exclusion>
           <groupId>org.tailormap-gbimaps</groupId>
           <artifactId>viewer-config-persistence</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.javascript</groupId>
+          <artifactId>closure-compiler</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
