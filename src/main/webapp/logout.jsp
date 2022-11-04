@@ -27,10 +27,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="teststring" content="<h1>Uitgelogd</h1>">
         <title><fmt:message key="viewer_admin.logout.0" /></title>
+        <link rel="stylesheet" type="text/css" href="${contextPath}/resources/css/main.css">
+        <style>
+            body {font-family: 'Open Sans', 'Helvetica Neue', helvetica, arial, verdana, sans-serif;}
+        </style>
     </head>
     <body>
+        <p><img class="tailormapLogo" src="${contextPath}/resources/images/TailormapLogo.svg" width="822" height="170"/></p>
         <h1><fmt:message key="viewer_admin.logout.1" /></h1>
-
-        <b><fmt:message key="viewer_admin.logout.2" /> <stripes:link beanclass="nl.tailormap.viewer.admin.stripes.IndexActionBean"><fmt:message key="viewer_admin.logout.3" /></stripes:link></b>
+        <div id="content">
+        <fmt:message key="viewer_admin.logout.2" /> <stripes:link beanclass="nl.tailormap.viewer.admin.stripes.IndexActionBean"><fmt:message key="viewer_admin.logout.3" /></stripes:link>
+        </div>
     </body>
 </html>

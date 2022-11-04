@@ -24,15 +24,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="teststring" content="<title>Beheeromgeving geo-viewers</title>">
         <title><fmt:message key="viewer_admin.login.0" /></title>
-        <style type="text/css">
-            .loginfield {
-                width: 130px;
-                margin-left: 5px;
-            }
+        <link rel="stylesheet" type="text/css" href="${contextPath}/resources/css/main.css">
+        <style>
+            body {font-family: 'Open Sans', 'Helvetica Neue', helvetica, arial, verdana, sans-serif;}
+            .loginfield {width: 130px;margin-left: 5px;}
         </style>
     </head>
     <body>
-        <h2><fmt:message key="viewer_admin.login.1" /></h2>
+        <p><img class="tailormapLogo" src="${contextPath}/resources/images/TailormapLogo.svg" width="822" height="170"/></p>
+
+        <h1><fmt:message key="viewer_admin.login.1" /></h1>
+        <div id="content">
         <form method="post" action="j_security_check">
             <table>
                 <tr><td><fmt:message key="viewer_admin.login.2" />:</td><td><input type="text" name="j_username" class="loginfield" /></td></tr>
@@ -41,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <br />
             <input type="submit" name="submit" value="<fmt:message key="viewer_admin.login.4" />" />
         </form>
+        </div>
         <script type="text/javascript">
             window.onload = function() {
                 document.forms[0].j_username.focus();
