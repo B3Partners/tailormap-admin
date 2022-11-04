@@ -1,4 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-
+    <suppress>
+        <notes><![CDATA[
+   file name: geotools-commons-5.9.24.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.tailormap\-gbimaps/geotools\-commons@.*$</packageUrl>
+        <cpe>cpe:/a:geotools:geotools</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: gt-coverage-28-RC.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.geotools/gt\-coverage@.*$</packageUrl>
+        <cpe>cpe:/a:image_processing_software:image_processing_software</cpe>
+        <cpe>cpe:/a:processing:processing</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: spring-security-crypto-5.7.5.jar
+   We don't use Encryptors#queryableText(CharSequence, CharSequence)
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring\-security\-crypto@.*$</packageUrl>
+        <vulnerabilityName>CVE-2020-5408</vulnerabilityName>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: guava-27.0-jre.jar transitive dependency from it.geosolutions.jaiext.stats:jt-stats / geotools wms
+   The vulnerable code is not used in the application
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+        <cve>CVE-2020-8908</cve>
+    </suppress>
 </suppressions>
