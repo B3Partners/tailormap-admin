@@ -1,5 +1,5 @@
-import { BaseComponentConfigModel } from './base-component-config.model';
+import { ComponentModel } from '@tailormap-viewer/api';
 
 export interface ComponentsConfigModel {
-  components: BaseComponentConfigModel[];
+  components: ComponentModel[];
 }

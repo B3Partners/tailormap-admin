@@ -1,10 +1,10 @@
 import { Component, OnInit, ChangeDetectionStrategy, Input, inject, ChangeDetectorRef, OnDestroy } from '@angular/core';
-import { BaseComponentConfigModel } from '../../models/base-component-config.model';
 import { Store } from '@ngrx/store';
-import { selectComponentsConfig, selectComponentsConfigByType } from '../../state/admin-core.selectors';
+import { selectComponentsConfigByType } from '../../state/admin-core.selectors';
 import { Subject, takeUntil } from 'rxjs';
 import { ComponentConfigHelper } from '../../helpers/component-config.helper';
 import { updateComponentConfig } from '../../state/admin-core.actions';
+import { ComponentModel } from '@tailormap-viewer/api';
 
 @Component({
   selector: 'tm-base-component-config',
@@ -24,7 +24,7 @@ export class BaseComponentConfigComponent implements OnInit, OnDestroy {
   @Input()
   public label: string | undefined;
 
-  public config: BaseComponentConfigModel | undefined = undefined;
+  public component: ComponentModel | undefined = undefined;
 
   public ngOnInit(): void {
     if (!this.type) {
@@ -34,7 +34,7 @@ export class BaseComponentConfigComponent implements OnInit, OnDestroy {
     this.store$.select(selectComponentsConfigByType(type))
       .pipe(takeUntil(this.destroyed))
       .subscribe(config => {
-        this.config = config || ComponentConfigHelper.getBaseConfig(type);
+        this.component = config || ComponentConfigHelper.getBaseConfig(type);
         this.cdr.detectChanges();
       });
   }
@@ -45,18 +45,24 @@ export class BaseComponentConfigComponent implements OnInit, OnDestroy {
   }
 
   public getEnabled() {
-    if (!this.config) {
+    if (!this.component) {
       return false;
     }
-    return this.config.enabled;
+    return this.component.config.enabled;
   }
 
   public toggleEnabled() {
-    if (!this.config) {
+    if (!this.component) {
       return;
     }
     this.store$.dispatch(updateComponentConfig({
-      config: { ...this.config, enabled: !this.config.enabled },
+      config: {
+        ...this.component,
+        config: {
+          ...this.component.config,
+          enabled: !this.component.config.enabled,
+        },
+      },
     }));
   }
 

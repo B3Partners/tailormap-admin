@@ -1,6 +1,6 @@
 import { createAction, props } from '@ngrx/store';
 import { ComponentsConfigModel } from '../models/components-config.model';
-import { BaseComponentConfigModel } from '../models/base-component-config.model';
+import { ComponentModel } from '@tailormap-viewer/api';
 
 const adminCoreActionsPrefix = '[AdminCore]';
 
@@ -29,5 +29,5 @@ export const setSelectedComponent = createAction(
 
 export const updateComponentConfig = createAction(
   `${adminCoreActionsPrefix} Update component config`,
-  props<{ config: BaseComponentConfigModel }>(),
+  props<{ config: ComponentModel }>(),
 );

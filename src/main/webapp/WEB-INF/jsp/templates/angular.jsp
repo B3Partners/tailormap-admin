@@ -50,8 +50,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <c:if test="${requestLocale == 'nl'}">
             <c:set var="angularPath" value="${contextPath}/resources/frontend/nl"/>
         </c:if>
-        <jsp:useBean id="now" class="java.util.Date" />
-        <c:set var="cacheBuster"><c:if test="${param.debug == true}"><c:out value="${now.getTime()}" /></c:if></c:set>
+        <c:set var="cacheBuster" value="${project.version}" />
+        <c:if test="${param.debug == true}">
+            <jsp:useBean id="now" class="java.util.Date" />
+            <c:set var="cacheBuster" value="${now.getTime()}" />
+        </c:if>
         <script type="text/javascript">
             var contextPath = <js:quote value="${contextPath}"/>;
             var currentApplicationId = <js:quote value="${sessionScope['applicationId']}"/>;
