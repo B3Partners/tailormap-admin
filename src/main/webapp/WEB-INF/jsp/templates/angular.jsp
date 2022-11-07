@@ -1,7 +1,4 @@
-<%@ page import="javax.xml.parsers.DocumentBuilderFactory" %>
-<%@ page import="javax.xml.parsers.DocumentBuilder" %>
-<%@ page import="org.w3c.dom.Document" %>
-<%@ page import="java.io.File" %><%--
+<%--
 Copyright (C) 2011-2013 B3Partners B.V.
 
 This program is free software: you can redistribute it and/or modify
@@ -49,7 +46,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <script type="text/javascript" src="${contextPath}/resources/js/menu.js"></script>
 
 
-        <c:set var="angularPath" value="${contextPath}/resources/frontend"/>
+        <c:set var="angularPath" value="${contextPath}/resources/frontend/en-US"/>
+        <c:if test="${requestLocale == 'nl'}">
+            <c:set var="angularPath" value="${contextPath}/resources/frontend/nl"/>
+        </c:if>
         <jsp:useBean id="now" class="java.util.Date" />
         <c:set var="cacheBuster"><c:if test="${param.debug == true}"><c:out value="${now.getTime()}" /></c:if></c:set>
         <script type="text/javascript">
