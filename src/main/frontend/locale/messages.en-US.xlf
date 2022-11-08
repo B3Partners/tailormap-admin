@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en-US" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="1002760959716392484" datatype="html">
+        <source>Color code</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">node_modules/projects/shared/src/lib/components/color-picker/color-picker.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7518736402145395939" datatype="html">
+        <source> Color is required </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">node_modules/projects/shared/src/lib/components/color-picker/color-picker.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3542042671420335679" datatype="html">
+        <source>No</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">node_modules/projects/shared/src/lib/components/confirm-dialog/confirm-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2807800733729323332" datatype="html">
+        <source>Yes</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">node_modules/projects/shared/src/lib/components/confirm-dialog/confirm-dialog.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6563353603432420930" datatype="html">
+        <source>Background layer selection</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">node_modules/projects/shared/src/lib/components/split-button/split-button.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3582579452908115906" datatype="html">
+        <source>Table of contents</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
+          <context context-type="linenumber">29</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7297822327994766046" datatype="html">
+        <source>Legend</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
+          <context context-type="linenumber">30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1805761197959018001" datatype="html">
+        <source>Drawing</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
+          <context context-type="linenumber">31</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7049887240439736400" datatype="html">
+        <source>Print</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
+          <context context-type="linenumber">32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7251686705365735219" datatype="html">
+        <source>Attribute list</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
+          <context context-type="linenumber">33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6666414176053743738" datatype="html">
+        <source>Measure tools</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
+          <context context-type="linenumber">34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2212136963008896527" datatype="html">
+        <source>Coordinate picker tool</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
+          <context context-type="linenumber">35</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4816216590591222133" datatype="html">
+        <source>Enabled</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/components/base-component-config/base-component-config.component.html</context>
+          <context context-type="linenumber">3</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3222680854518085385" datatype="html">
+        <source>List of available components</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/pages/components-config-page/components-config-page.component.html</context>
+          <context context-type="linenumber">5</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -862,3 +862,18 @@ body.x-body {
     display: flex;
     flex-direction: row;
 }
+
+.angular-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+}
+
+.angular-header {
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.angular-body {
+    flex: 1;
+}

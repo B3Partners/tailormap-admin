@@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.ApplicationSettingsActionBean" id="menu_instellingen"><fmt:message key="viewer_admin.header.19" /></stripes:link></li>
                                 <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.ApplicationTreeActionBean" id="menu_boomstructuur"><fmt:message key="viewer_admin.header.20" /></stripes:link></li>
                                 <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.ApplicationStartMapActionBean" id="menu_startkaartbeeld"><fmt:message key="viewer_admin.header.21" /></stripes:link></li>
+                                <li><stripes:link beanclass="nl.tailormap.viewer.admin.stripes.ApplicationSettingsActionBean" event="applicationDetails" id="menu_app_details"><fmt:message key="viewer_admin.applicationdetails.0" /></stripes:link></li>
                             </ul>
                         </li>
                     </c:if>

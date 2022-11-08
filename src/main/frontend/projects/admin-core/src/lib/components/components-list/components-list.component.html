@@ -1,0 +1,7 @@
+<mat-selection-list [multiple]="false">
+  <mat-list-option *ngFor="let component of listOfComponents$ | async"
+                   [value]="component"
+                   (click)="setActiveComponent(component.type)">
+    {{ component.label }}
+  </mat-list-option>
+</mat-selection-list>

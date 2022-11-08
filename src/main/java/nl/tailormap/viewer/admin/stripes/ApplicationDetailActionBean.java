@@ -5,19 +5,16 @@
  */
 package nl.tailormap.viewer.admin.stripes;
 
-import net.sourceforge.stripes.action.DefaultHandler;
-import net.sourceforge.stripes.action.ErrorResolution;
-import net.sourceforge.stripes.action.Resolution;
-import net.sourceforge.stripes.action.StreamingResolution;
-import net.sourceforge.stripes.action.StrictBinding;
-import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.action.*;
 import net.sourceforge.stripes.validation.Validate;
 import nl.tailormap.viewer.config.ClobElement;
 import nl.tailormap.viewer.config.security.Group;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONException;
 import org.stripesstuff.stripersist.Stripersist;
 
 import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;

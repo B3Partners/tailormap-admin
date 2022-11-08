@@ -1,0 +1,26 @@
+tm-tree ::ng-deep .tree-node-wrapper > .mat-icon-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+tm-tree ::ng-deep .tree-node-wrapper > .mat-icon-button mat-icon {
+  width: 18px;
+  height: 18px;
+}
+
+tm-tree ::ng-deep .tree-node-wrapper--folder {
+  font-weight: 600;
+}
+
+tm-tree ::ng-deep .tree-node-wrapper--folder mat-icon {
+  color: #1e8fe1;
+}
+
+tm-tree ::ng-deep .mat-tree-node--folder + .mat-tree-node--folder {
+  margin-top: 7px;
+}
+
+tm-tree ::ng-deep .tree-node-wrapper--leaf {
+  margin-left: -10px;
+}

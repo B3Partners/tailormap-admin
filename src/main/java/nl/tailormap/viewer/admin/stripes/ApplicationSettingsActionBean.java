@@ -43,11 +43,21 @@ import nl.tailormap.viewer.util.SelectedContentCache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONException;
 import org.stripesstuff.stripersist.Stripersist;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -580,4 +590,9 @@ public class ApplicationSettingsActionBean extends ApplicationActionBean {
         }
         return version;
     }
+
+    public Resolution applicationDetails() throws JSONException {
+        return new ForwardResolution("/WEB-INF/jsp/application/applicationDetails.jsp");
+    }
+
 }

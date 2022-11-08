@@ -15,35 +15,67 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@include file="/WEB-INF/jsp/taglibs.jsp"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
+<%@include file="/WEB-INF/jsp/taglibs.jsp" %>
 
 <stripes:layout-definition>
 
-<!doctype html>
-<html>
+    <!DOCTYPE html>
+    <html class="x-border-box theme-triton">
     <head>
-        <meta charset="UTF-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <base href="${contextPath}">
 
-        <c:set var="tailorMapComponentsConfigPath" value="${contextPath}/tailormap-components-config"/>
+        <link rel="stylesheet" type="text/css" href="${contextPath}/extjs/resources/css/triton/theme-triton-all.css">
+        <link rel="stylesheet" type="text/css" href="${contextPath}/resources/css/main.css">
+        <script type="text/javascript" src="${contextPath}/extjs/ext-all${param.debug == true ? '-debug' : ''}.js"></script>
+        <c:if test="${requestLocale == 'nl'}">
+            <script type="text/javascript" src="${contextPath}/extjs/locale/locale-nl${param.debug == true ? '-debug' : ''}.js"></script>
+        </c:if>
+        <script type="text/javascript" src="${contextPath}/resources/i18n/i18next.11.9.0.min.js"></script>
+        <script type="text/javascript" src="<stripes:url beanclass="nl.tailormap.viewer.admin.stripes.I18nActionBean" event="i18nextJs" />"></script>
+        <script type="text/javascript">
+            var uxpath = '${contextPath}/resources/js/ux';
+            var csspath = '${contextPath}/resources/css/';
+            var helppath = '${contextPath}/resources/html/help.html';
+            var viewer_admin_debug_mode = ${param.debug == true ? 'true' : 'false'};
+            Ext.Loader.setConfig({enabled: true});
+            Ext.Loader.setPath('Ext.ux', uxpath);
+        </script>
+        <script type="text/javascript" src="${contextPath}/resources/js/defaultconfigs.js"></script>
+        <script type="text/javascript" src="${contextPath}/resources/js/menu.js"></script>
+
+
+        <c:set var="angularPath" value="${contextPath}/resources/frontend/en-US"/>
+        <c:if test="${requestLocale == 'nl'}">
+            <c:set var="angularPath" value="${contextPath}/resources/frontend/nl"/>
+        </c:if>
+        <c:set var="cacheBuster" value="${project.version}" />
         <c:if test="${param.debug == true}">
-            <c:set var="tailorMapComponentsConfigPath" value="http://localhost:3201"/>
+            <jsp:useBean id="now" class="java.util.Date" />
+            <c:set var="cacheBuster" value="${now.getTime()}" />
         </c:if>
         <script type="text/javascript">
-            var tailorMapComponentsConfigPath = <js:quote value="${tailorMapComponentsConfigPath}"/>;
             var contextPath = <js:quote value="${contextPath}"/>;
+            var currentApplicationId = <js:quote value="${sessionScope['applicationId']}"/>;
         </script>
-        <link rel="stylesheet" type="text/css" href="${tailorMapComponentsConfigPath}/styles.css">
-        <script src="${tailorMapComponentsConfigPath}/vendor.js" type="module"></script>
-        <script src="${tailorMapComponentsConfigPath}/runtime.js" type="module"></script>
-        <script src="${tailorMapComponentsConfigPath}/polyfills.js" type="module"></script>
-        <script src="${tailorMapComponentsConfigPath}/main.js" type="module"></script>
+        <link rel="stylesheet" type="text/css" href="${angularPath}/styles.css?${cacheBuster}">
+        <c:if test="${param.debug == true}">
+            <script src="${angularPath}/vendor.js?${cacheBuster}" type="module"></script>
+        </c:if>
+        <script src="${angularPath}/runtime.js?${cacheBuster}" type="module"></script>
+        <script src="${angularPath}/polyfills.js?${cacheBuster}" type="module"></script>
+        <script src="${angularPath}/main.js?${cacheBuster}" type="module"></script>
 
         <stripes:layout-component name="head"/>
     </head>
-    <body>
-        <stripes:layout-component name="header" />
-        <stripes:layout-component name="body"/>
+    <body class="x-body angular-page">
+        <div class="angular-header">
+            <stripes:layout-component name="header" />
+        </div>
+        <div class="angular-body">
+            <stripes:layout-component name="body"/>
+        </div>
     </body>
 </html>
 
