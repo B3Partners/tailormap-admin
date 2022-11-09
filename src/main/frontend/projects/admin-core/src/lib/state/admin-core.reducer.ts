@@ -46,23 +46,20 @@ const onUpdateComponentConfig = (
   state: AdminCoreState,
   payload: ReturnType<typeof AdminCoreActions.updateComponentConfig>,
 ): AdminCoreState => {
-  if (!state.componentsConfig || !state.componentsConfig.components) {
+  if (!state.componentsConfig) {
     return {
       ...state,
-      componentsConfig: { components: [payload.config] },
+      componentsConfig: [payload.config],
     };
   }
-  const stateComponents = state.componentsConfig.components;
+  const stateComponents = state.componentsConfig;
   const idx = stateComponents.findIndex(c => c.type === payload.config.type);
   const updatedComponents = idx !== -1
     ? [ ...stateComponents.slice(0, idx), payload.config, ...stateComponents.slice(idx + 1) ]
     : [ ...stateComponents, { ...payload.config }];
   return {
     ...state,
-    componentsConfig: {
-      ...state.componentsConfig,
-      components: updatedComponents,
-    },
+    componentsConfig: updatedComponents,
   };
 };
 

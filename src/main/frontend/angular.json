@@ -93,7 +93,8 @@
                 }
               ],
               "outputHashing": "none",
-              "sourceMap": true
+              "sourceMap": true,
+              "vendorChunk": true
             },
             "development": {
               "tsConfig": "projects/app/tsconfig.app.json",

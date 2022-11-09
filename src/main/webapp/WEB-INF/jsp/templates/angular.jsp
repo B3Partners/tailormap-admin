@@ -60,9 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             var currentApplicationId = <js:quote value="${sessionScope['applicationId']}"/>;
         </script>
         <link rel="stylesheet" type="text/css" href="${angularPath}/styles.css?${cacheBuster}">
-        <c:if test="${param.debug == true}">
-            <script src="${angularPath}/vendor.js?${cacheBuster}" type="module"></script>
-        </c:if>
+        <script src="${angularPath}/vendor.js?${cacheBuster}" type="module"></script>
         <script src="${angularPath}/runtime.js?${cacheBuster}" type="module"></script>
         <script src="${angularPath}/polyfills.js?${cacheBuster}" type="module"></script>
         <script src="${angularPath}/main.js?${cacheBuster}" type="module"></script>

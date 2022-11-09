@@ -4,7 +4,7 @@ import { selectComponentsConfigByType } from '../../state/admin-core.selectors';
 import { Subject, takeUntil } from 'rxjs';
 import { ComponentConfigHelper } from '../../helpers/component-config.helper';
 import { updateComponentConfig } from '../../state/admin-core.actions';
-import { ComponentModel } from '@tailormap-viewer/api';
+import { ComponentBaseConfigModel } from '@tailormap-viewer/api/lib/models/component-base-config.model';
 
 @Component({
   selector: 'tm-base-component-config',
@@ -24,7 +24,7 @@ export class BaseComponentConfigComponent implements OnInit, OnDestroy {
   @Input()
   public label: string | undefined;
 
-  public component: ComponentModel | undefined = undefined;
+  public config: ComponentBaseConfigModel | undefined = undefined;
 
   public ngOnInit(): void {
     if (!this.type) {
@@ -34,7 +34,7 @@ export class BaseComponentConfigComponent implements OnInit, OnDestroy {
     this.store$.select(selectComponentsConfigByType(type))
       .pipe(takeUntil(this.destroyed))
       .subscribe(config => {
-        this.component = config || ComponentConfigHelper.getBaseConfig(type);
+        this.config = config?.config || ComponentConfigHelper.getBaseConfig();
         this.cdr.detectChanges();
       });
   }
@@ -45,22 +45,22 @@ export class BaseComponentConfigComponent implements OnInit, OnDestroy {
   }
 
   public getEnabled() {
-    if (!this.component) {
+    if (!this.config) {
       return false;
     }
-    return this.component.config.enabled;
+    return this.config.enabled;
   }
 
   public toggleEnabled() {
-    if (!this.component) {
+    if (!this.config || !this.type) {
       return;
     }
     this.store$.dispatch(updateComponentConfig({
       config: {
-        ...this.component,
+        type: this.type,
         config: {
-          ...this.component.config,
-          enabled: !this.component.config.enabled,
+          ...this.config,
+          enabled: !this.config.enabled,
         },
       },
     }));

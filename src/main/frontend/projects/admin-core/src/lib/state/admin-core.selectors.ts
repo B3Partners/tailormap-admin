@@ -10,5 +10,10 @@ export const selectApplicationId = createSelector(selectAdminCoreState, state =>
 
 export const selectComponentsConfigByType = (type: string) => createSelector(
   selectComponentsConfig,
-  config => config?.components?.find(c => c.type === type),
+  config => {
+    if (!config || !Array.isArray(config)) {
+      return undefined;
+    }
+    return (config || []).find(c => c.type === type);
+  },
 );
