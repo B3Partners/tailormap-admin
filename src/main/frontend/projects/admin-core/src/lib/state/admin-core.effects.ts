@@ -29,6 +29,11 @@ export class AdminCoreEffects {
             if (response === null) {
               return AdminCoreActions.loadComponentsConfigFailed();
             }
+            if (!Array.isArray(response) || response.length === 0) {
+              return AdminCoreActions.loadComponentsConfigSuccess({
+                config: [],
+              });
+            }
             return AdminCoreActions.loadComponentsConfigSuccess({
               config: response,
             });

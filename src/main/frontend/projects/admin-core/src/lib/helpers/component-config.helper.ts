@@ -1,11 +1,10 @@
-import { ComponentModel } from '@tailormap-viewer/api';
+import { ComponentBaseConfigModel } from '@tailormap-viewer/api/lib/models/component-base-config.model';
 
 export class ComponentConfigHelper {
 
-  public static getBaseConfig(type: string): ComponentModel {
+  public static getBaseConfig(): ComponentBaseConfigModel {
     return {
-      type,
-      config: { enabled: true },
+      enabled: true,
     };
   }
 

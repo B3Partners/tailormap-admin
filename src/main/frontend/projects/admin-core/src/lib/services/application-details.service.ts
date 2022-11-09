@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { from, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { ComponentsConfigModel } from '../models/components-config.model';
+import { ComponentModel } from '@tailormap-viewer/api';
 
 @Injectable({
   providedIn: 'root',
@@ -19,8 +19,8 @@ export class ApplicationDetailsService {
     return +(appId);
   }
 
-  public getComponentsConfig$(): Observable<ComponentsConfigModel> {
-    return this.httpClient.get<ComponentsConfigModel>('/admin/action/applicationdetail', {
+  public getComponentsConfig$(): Observable<ComponentModel[]> {
+    return this.httpClient.get<ComponentModel[]>('/admin/action/applicationdetail', {
       params: {
         application: this.getApplicationId(),
         key: this.COMPONENTS_CONFIG_KEY,
@@ -28,7 +28,7 @@ export class ApplicationDetailsService {
     });
   }
 
-  public updateComponentsConfig$(config: ComponentsConfigModel): Observable<boolean> {
+  public updateComponentsConfig$(config: ComponentModel[]): Observable<boolean> {
     const body = new URLSearchParams({ value: JSON.stringify(config) });
     const url = [
       '/admin/action/applicationdetail',
