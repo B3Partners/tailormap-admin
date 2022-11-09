@@ -5,6 +5,7 @@ import { ConfigurationComponentRegistryService } from '../services/configuration
 import { MatListModule } from '@angular/material/list';
 import { ComponentsListComponent } from './components-list/components-list.component';
 import { ComponentConfigRendererComponent } from './component-config-renderer/component-config-renderer.component';
+import { BaseComponentTypeEnum } from '@tailormap-viewer/api';
 
 @NgModule({
   declarations: [
@@ -26,12 +27,12 @@ export class AdminCoreComponentsModule {
   constructor(
     configurationComponentService: ConfigurationComponentRegistryService,
   ) {
-    configurationComponentService.registerConfigurationComponents('toc', $localize `Table of contents`, BaseComponentConfigComponent);
-    configurationComponentService.registerConfigurationComponents('legend', $localize `Legend`, BaseComponentConfigComponent);
-    configurationComponentService.registerConfigurationComponents('drawing', $localize `Drawing`, BaseComponentConfigComponent);
-    configurationComponentService.registerConfigurationComponents('print', $localize `Print`, BaseComponentConfigComponent);
-    configurationComponentService.registerConfigurationComponents('attributeList', $localize `Attribute list`, BaseComponentConfigComponent);
-    configurationComponentService.registerConfigurationComponents('measure', $localize `Measure tools`, BaseComponentConfigComponent);
-    configurationComponentService.registerConfigurationComponents('coordinate_picker', $localize `Coordinate picker tool`, BaseComponentConfigComponent);
+    configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.TOC, $localize `Table of contents`, BaseComponentConfigComponent);
+    configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.LEGEND, $localize `Legend`, BaseComponentConfigComponent);
+    configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.DRAWING, $localize `Drawing`, BaseComponentConfigComponent);
+    configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.PRINT, $localize `Print`, BaseComponentConfigComponent);
+    configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.ATTRIBUTE_LIST, $localize `Attribute list`, BaseComponentConfigComponent);
+    configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.MEASURE, $localize `Measure tools`, BaseComponentConfigComponent);
+    configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.COORDINATE_PICKER, $localize `Coordinate picker tool`, BaseComponentConfigComponent);
   }
 }
