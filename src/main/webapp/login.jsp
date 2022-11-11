@@ -25,25 +25,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <meta name="teststring" content="<title>Beheeromgeving geo-viewers</title>">
         <title><fmt:message key="viewer_admin.login.0" /></title>
         <link rel="stylesheet" type="text/css" href="${contextPath}/resources/css/main.css">
-        <style>
-            body {font-family: 'Open Sans', 'Helvetica Neue', helvetica, arial, verdana, sans-serif;}
-            .loginfield {width: 130px;margin-left: 5px;}
-        </style>
+        <link rel="stylesheet" type="text/css" href="${contextPath}/resources/css/login.css">
     </head>
     <body>
-        <p><img class="tailormapLogo" src="${contextPath}/resources/images/TailormapLogo.svg" width="822" height="170"/></p>
-
-        <h1><fmt:message key="viewer_admin.login.1" /></h1>
-        <div id="content">
+    <div class="login-page">
         <form method="post" action="j_security_check">
-            <table>
-                <tr><td><fmt:message key="viewer_admin.login.2" />:</td><td><input type="text" name="j_username" class="loginfield" /></td></tr>
-                <tr><td><fmt:message key="viewer_admin.login.3" />:</td><td><input type="password" name="j_password" class="loginfield" /></td></tr>
-            </table>
-            <br />
-            <input type="submit" name="submit" value="<fmt:message key="viewer_admin.login.4" />" />
+            <div class="login-form">
+                <div class="login-form__header">
+                    <div><fmt:message key="viewer_admin.login.1" /></div>
+                    <img src="${contextPath}/resources/images/TailormapLogo.svg" width="200" alt="Tailormap" />
+                </div>
+                <div class="login-form__body">
+                    <div class="form-field">
+                        <label for="login_username"><fmt:message key="viewer_admin.login.2" /></label>
+                        <input type="text" name="j_username" class="loginfield" id="login_username" />
+                    </div>
+                    <div class="form-field">
+                        <label for="login_password"><fmt:message key="viewer_admin.login.3" /></label>
+                        <input type="password" name="j_password" class="loginfield" id="login_password" />
+                    </div>
+                </div>
+                <div class="buttons">
+                    <input type="submit" name="submit" value="<fmt:message key="viewer_admin.login.4" />" />
+                </div>
+            </div>
         </form>
-        </div>
+    </div>
+
         <script type="text/javascript">
             window.onload = function() {
                 document.forms[0].j_username.focus();

@@ -225,6 +225,9 @@
             <url-pattern>/logout.jsp</url-pattern>
             <url-pattern>/resources/images/TailormapLogo.svg</url-pattern>
             <url-pattern>/resources/css/main.css</url-pattern>
+            <url-pattern>/resources/css/login.css</url-pattern>
+            <url-pattern>/resources/css/inter-font.css</url-pattern>
+            <url-pattern>/resources/css/fonts/*</url-pattern>
             <url-pattern>/action/admin/upgradecheck/ping</url-pattern>
         </web-resource-collection>
     </security-constraint>
