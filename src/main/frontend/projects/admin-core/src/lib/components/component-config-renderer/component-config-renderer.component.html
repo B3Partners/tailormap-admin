@@ -1,4 +1,7 @@
 <ng-template #componentConfigContainer></ng-template>
 <div *ngIf="selectedComponent" class="save-btn">
-  <button mat-flat-button color="primary" (click)="save()">Save</button>
+  <button mat-flat-button color="primary" (click)="save()" [disabled]="isSaving$ | async">
+    <ng-template #saveLabel><ng-container i18n>Save</ng-container></ng-template>
+    <mat-spinner *ngIf="(isSaving$ | async); else: saveLabel" diameter="20" color="primary" mode="indeterminate"></mat-spinner>
+  </button>
 </div>

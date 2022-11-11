@@ -47,7 +47,7 @@
         <target state="translated">Lijst met kaartlagen</target>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
-          <context context-type="linenumber">29</context>
+          <context context-type="linenumber">30</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7297822327994766046" datatype="html">
@@ -55,7 +55,7 @@
         <target state="translated">Legenda</target>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
-          <context context-type="linenumber">30</context>
+          <context context-type="linenumber">31</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1805761197959018001" datatype="html">
@@ -63,7 +63,7 @@
         <target state="translated">Tekenen</target>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
-          <context context-type="linenumber">31</context>
+          <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7049887240439736400" datatype="html">
@@ -71,7 +71,7 @@
         <target state="translated">Printen</target>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
-          <context context-type="linenumber">32</context>
+          <context context-type="linenumber">33</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7251686705365735219" datatype="html">
@@ -79,7 +79,7 @@
         <target state="translated">Attributenlijst</target>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">34</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6666414176053743738" datatype="html">
@@ -87,7 +87,7 @@
         <target state="translated">Meet hulpmiddelen</target>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
-          <context context-type="linenumber">34</context>
+          <context context-type="linenumber">35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2212136963008896527" datatype="html">
@@ -95,7 +95,7 @@
         <target state="translated">Coördinaten zoeker</target>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
-          <context context-type="linenumber">35</context>
+          <context context-type="linenumber">36</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4816216590591222133" datatype="html">
@@ -104,6 +104,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">projects/admin-core/src/lib/components/base-component-config/base-component-config.component.html</context>
           <context context-type="linenumber">3</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3768927257183755959" datatype="html">
+        <source>Save</source>
+        <target state="translated">Opslaan</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/components/component-config-renderer/component-config-renderer.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2951349834773350384" datatype="html">
+        <source>Configuration saved</source>
+        <target state="translated">Configuratie opgeslagen</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/components/component-config-renderer/component-config-renderer.component.ts</context>
+          <context context-type="linenumber">70</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3222680854518085385" datatype="html">
