@@ -28,15 +28,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <meta name="teststring" content="<h1>Uitgelogd</h1>">
         <title><fmt:message key="viewer_admin.logout.0" /></title>
         <link rel="stylesheet" type="text/css" href="${contextPath}/resources/css/main.css">
-        <style>
-            body {font-family: 'Open Sans', 'Helvetica Neue', helvetica, arial, verdana, sans-serif;}
-        </style>
+        <link rel="stylesheet" type="text/css" href="${contextPath}/resources/css/login.css">
     </head>
     <body>
-        <p><img class="tailormapLogo" src="${contextPath}/resources/images/TailormapLogo.svg" width="822" height="170"/></p>
-        <h1><fmt:message key="viewer_admin.logout.1" /></h1>
-        <div id="content">
-        <fmt:message key="viewer_admin.logout.2" /> <stripes:link beanclass="nl.tailormap.viewer.admin.stripes.IndexActionBean"><fmt:message key="viewer_admin.logout.3" /></stripes:link>
+    <div class="login-page">
+        <div class="login-form">
+            <div class="login-form__header">
+                <div><fmt:message key="viewer_admin.logout.1" /></div>
+                <img src="${contextPath}/resources/images/TailormapLogo.svg" width="200" alt="Tailormap" />
+            </div>
+            <div class="login-form__body">
+                <fmt:message key="viewer_admin.logout.2" />
+                <br /><br />
+                <stripes:link beanclass="nl.tailormap.viewer.admin.stripes.IndexActionBean"><fmt:message key="viewer_admin.logout.3" /></stripes:link>
+            </div>
         </div>
+    </div>
     </body>
 </html>
