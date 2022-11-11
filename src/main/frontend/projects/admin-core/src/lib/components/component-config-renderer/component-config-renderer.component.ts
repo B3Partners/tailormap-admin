@@ -3,11 +3,12 @@ import {
 } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { selectComponentsConfig, selectSelectedComponent } from '../../state/admin-core.selectors';
-import { Subject, take, takeUntil } from 'rxjs';
+import { BehaviorSubject, concatMap, of, Subject, take, takeUntil, tap } from 'rxjs';
 import { ConfigurationComponentRegistryService } from '../../services/configuration-component-registry.service';
-import { DynamicComponentsHelper } from '@tailormap-viewer/shared';
+import { DynamicComponentsHelper, SnackBarMessageComponent, SnackBarMessageOptionsModel } from '@tailormap-viewer/shared';
 import { BaseComponentConfigComponent } from '../base-component-config/base-component-config.component';
 import { ApplicationDetailsService } from '../../services/application-details.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'tm-component-config-renderer',
@@ -21,10 +22,14 @@ export class ComponentConfigRendererComponent implements OnInit, OnDestroy {
   private componentConfigContainer: ViewContainerRef | null = null;
 
   private store$ = inject(Store);
+  private snackBar = inject(MatSnackBar);
+
   private configurationComponentRegistryService = inject(ConfigurationComponentRegistryService);
   private cdr = inject(ChangeDetectorRef);
   private appDetailsService = inject(ApplicationDetailsService);
 
+  private saving$ = new BehaviorSubject<boolean>(false);
+  public isSaving$ = this.saving$.asObservable();
   private destroyed = new Subject();
   private renderedConfigurationComponent: ComponentRef<unknown> | undefined;
   private availableComponents: Map<string, { component: Type<any>; label: string }> = new Map();
@@ -48,11 +53,22 @@ export class ComponentConfigRendererComponent implements OnInit, OnDestroy {
 
   public save() {
     this.store$.select(selectComponentsConfig)
-      .pipe(take(1))
-      .subscribe(config => {
-        if (config) {
-          this.appDetailsService.updateComponentsConfig$(config);
-        }
+      .pipe(
+        take(1),
+        tap(() => {
+          this.saving$.next(true);
+        }),
+        concatMap(config => {
+          if (!config) {
+            return of(null);
+          }
+          return this.appDetailsService.updateComponentsConfig$(config);
+        }),
+      )
+      .subscribe(() => {
+        this.saving$.next(false);
+        const config: SnackBarMessageOptionsModel = { message: $localize `Configuration saved`, duration: 2000 };
+        SnackBarMessageComponent.open$(this.snackBar, config);
       });
   }
 
