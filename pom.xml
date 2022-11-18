@@ -81,7 +81,7 @@
     <spring-security.version>5.7.5</spring-security.version>
     <tailormap-gbimaps.version>5.9.24</tailormap-gbimaps.version>
     <tailormap-persistence.version>10.1-SNAPSHOT</tailormap-persistence.version>
-    <geotools.version>28-RC</geotools.version>
+    <geotools.version>28.0</geotools.version>
     <jts.version>1.19.0</jts.version>
     <apache.poi.version>5.2.3</apache.poi.version>
     <hsqldb.version>2.7.1</hsqldb.version>
