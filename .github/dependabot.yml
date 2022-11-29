@@ -21,6 +21,9 @@ updates:
       - dependency-name: org.apache.tomcat.embed:*
         versions:
           - '>= 10'
+      - dependency-name: org.springframework.security:spring-security-crypto
+        versions:
+          - '>= 6'
 
 
   - package-ecosystem: github-actions
