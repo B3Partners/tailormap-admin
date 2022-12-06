@@ -100,7 +100,7 @@
     <maven.surefire.version>3.0.0-M7</maven.surefire.version>
     <cargo-maven3-plugin.version>1.10.4</cargo-maven3-plugin.version>
     <tomcat.localDatasource>false</tomcat.localDatasource>
-    <tomcat.version>9.0.69</tomcat.version>
+    <tomcat.version>9.0.70</tomcat.version>
     <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
     <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
     <maven-pmd-plugin.version>3.15.0</maven-pmd-plugin.version>
