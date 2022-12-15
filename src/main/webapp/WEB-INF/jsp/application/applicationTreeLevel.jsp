@@ -117,10 +117,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             
             var actionBeans = { 
                 "appTreeLevel": <js:quote><stripes:url beanclass="nl.tailormap.viewer.admin.stripes.ApplicationTreeLevelActionBean"/></js:quote>,
-                "imageupload": <js:quote><stripes:url beanclass="nl.tailormap.viewer.admin.stripes.ImageUploadActionBean"/></js:quote>
             };
         </script>
-        <script type="text/javascript" src="${contextPath}/resources/js/ux/form/HtmlEditorImage.js"></script>
         <script type="text/javascript" src="${contextPath}/resources/js/ux/form/HtmlEditorTable.js"></script>
         <script type="text/javascript" src="${contextPath}/resources/js/ux/b3p/TreeSelection.js"></script>
         <script type="text/javascript" src="${contextPath}/resources/js/application/applicationTreeLevel.js"></script>

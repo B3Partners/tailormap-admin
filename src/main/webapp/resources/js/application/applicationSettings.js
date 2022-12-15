@@ -151,10 +151,6 @@ Ext.define('vieweradmin.components.ApplicationSettings', {
             value: Ext.get('details_opmerkingen').dom.value,
             renderTo: 'details_opmerkingen_container',
             plugins: [
-                new Ext.create('Ext.ux.form.HtmlEditor.imageUpload', Ext.apply(vieweradmin.components.DefaultConfgurations.getDefaultImageUploadConfig(), {
-                    submitUrl: this.config.actionBeans.imageupload,
-                    managerUrl: Ext.urlAppend(this.config.actionBeans.imageupload, "manage=t")
-                })),
                 new Ext.ux.form.HtmlEditor.Table(vieweradmin.components.DefaultConfgurations.getDefaultHtmlEditorTableConfig())
             ]
         });
