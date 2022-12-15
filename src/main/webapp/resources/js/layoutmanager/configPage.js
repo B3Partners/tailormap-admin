@@ -117,10 +117,6 @@ Ext.define("vieweradmin.components.ConfigPage", {
                                 fieldLabel: i18next.t('viewer_admin_configpage_4'),
                                 labelWidth: 100,
                                 plugins: [
-                                    new Ext.create('Ext.ux.form.HtmlEditor.imageUpload', Ext.apply(vieweradmin.components.DefaultConfgurations.getDefaultImageUploadConfig(), {
-                                        submitUrl: this.getActionBeanUrl('imageupload'),
-                                        managerUrl: Ext.urlAppend(this.getActionBeanUrl('imageupload'), "manage=t")
-                                    })),
                                     new Ext.ux.form.HtmlEditor.Table(vieweradmin.components.DefaultConfgurations.getDefaultHtmlEditorTableConfig())
                                 ],
                                 renderTo: 'helpHtmlEditorContainer'

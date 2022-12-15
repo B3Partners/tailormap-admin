@@ -36,7 +36,6 @@ Ext.define('vieweradmin.components.ApplicationTreeLayer', {
         styleDetails: {},
         imagePath: "",
         actionBeans: {
-            imageupload: "",
             appTreeLayer: "",
             featureSourceURL: "",
             featureTypesURL: "",
@@ -953,10 +952,6 @@ Ext.define('vieweradmin.components.ApplicationTreeLayer', {
             maxHeight: 150,
             value: Ext.get('details_summary_description').dom.value,
             plugins: [
-                new Ext.create('Ext.ux.form.HtmlEditor.imageUpload', Ext.apply(vieweradmin.components.DefaultConfgurations.getDefaultImageUploadConfig(), {
-                    submitUrl: this.config.actionBeans['imageupload'],
-                    managerUrl: Ext.urlAppend(this.config.actionBeans['imageupload'], "manage=t")
-                })),
                 new Ext.ux.form.HtmlEditor.Table(vieweradmin.components.DefaultConfgurations.getDefaultHtmlEditorTableConfig())
             ],
             renderTo: 'details_summary_description_container'

@@ -183,16 +183,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </stripes:form>
         </div>
 
-        <script type="text/javascript" src="${contextPath}/resources/js/ux/form/HtmlEditorImage.js"></script>
         <script type="text/javascript" src="${contextPath}/resources/js/ux/form/HtmlEditorTable.js"></script>
         <script type="text/javascript" src="${contextPath}/resources/js/ux/b3p/ColorPickerButton.js"></script>
         <script type="text/javascript" src="${contextPath}/resources/js/application/applicationSettings.js"></script>
         <script type="text/javascript">
             Ext.onReady(function() {
                 Ext.create("vieweradmin.components.ApplicationSettings", {
-                    actionBeans: {
-                        imageupload: <js:quote><stripes:url beanclass="nl.tailormap.viewer.admin.stripes.ImageUploadActionBean"/></js:quote>
-                    },
                     steunkleur1: "${actionBean.application.details['steunkleur1']}",
                     steunkleur2: "${actionBean.application.details['steunkleur2']}"
                 });

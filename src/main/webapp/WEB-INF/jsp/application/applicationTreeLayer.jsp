@@ -169,7 +169,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <fmt:message key="viewer_admin.applicationtreelayer.39" />: <stripes:text name="details['metadataurl']" style="width: 390px;"/>
                 </div>
             </div>
-            <script type="text/javascript" src="${contextPath}/resources/js/ux/form/HtmlEditorImage.js"></script>
             <script type="text/javascript" src="${contextPath}/resources/js/ux/form/HtmlEditorTable.js"></script>
             <script type="text/javascript" src="${contextPath}/resources/js/application/applicationTreeLayer.js"></script>
             <script type="text/javascript" src="${contextPath}/resources/js/application/layer/attributes.js"></script>
@@ -186,7 +185,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         styleDetails : ${actionBean.details.stylesOrder != null ? actionBean.details.stylesOrder : '{}'},
                         imagePath: "${contextPath}/resources/images/",
                         actionBeans: {
-                            imageupload: <js:quote><stripes:url beanclass="nl.tailormap.viewer.admin.stripes.ImageUploadActionBean"/></js:quote>,
                             appTreeLayer: <js:quote><stripes:url beanclass="nl.tailormap.viewer.admin.stripes.ApplicationTreeLayerActionBean"/></js:quote>,
                             featureSourceURL: <js:quote><stripes:url beanclass="nl.tailormap.viewer.admin.stripes.AttributeSourceActionBean" event="getGridData"/></js:quote>,
                             featureTypesURL: <js:quote><stripes:url beanclass="nl.tailormap.viewer.admin.stripes.AttributeActionBean" event="getFeatureTypes"/></js:quote>,

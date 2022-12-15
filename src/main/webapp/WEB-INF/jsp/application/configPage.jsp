@@ -37,7 +37,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <script type="text/javascript" src="${configSource}"></script>
         </c:if>
         <script type="text/javascript" src="${contextPath}/resources/js/ux/b3p/FilterableCheckboxes.js"></script>
-        <script type="text/javascript" src="${contextPath}/resources/js/ux/form/HtmlEditorImage.js"></script>
         <script type="text/javascript" src="${contextPath}/resources/js/ux/form/HtmlEditorTable.js"></script>
         <script type="text/javascript" src="${contextPath}/resources/js/ux/b3p/SelectionGrid.js"></script>
         <script type="text/javascript" src="${contextPath}/resources/js/ux/b3p/CrudGrid.js"></script>
@@ -69,7 +68,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     details: details,
                     appConfig: {},
                     actionBeans: {
-                        "imageupload": <js:quote><stripes:url beanclass="nl.tailormap.viewer.admin.stripes.ImageUploadActionBean"/></js:quote>
                     }
                 });
             });
