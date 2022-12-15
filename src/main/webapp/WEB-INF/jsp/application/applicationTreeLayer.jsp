@@ -165,8 +165,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
                 <div id="context-tab" class="tabdiv">
                     <a href="#Context_Info_Per_Kaartlaag_Help" title="<fmt:message key="viewer_admin.applicationtreelayer.38" />" class="helplink"></a>
-                    <stripes:textarea cols="150" rows="5" name="details['context']" id="context_textarea" style="display: none;" />
-                    <div id="contextHtmlEditorContainer" style="width: 475px; height: 400px;"></div>
+                    <stripes:textarea cols="80" rows="5" name="details['context']" id="context_textarea" class="extliketextarea" />
                     <fmt:message key="viewer_admin.applicationtreelayer.39" />: <stripes:text name="details['metadataurl']" style="width: 390px;"/>
                 </div>
             </div>
