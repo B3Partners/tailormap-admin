@@ -49,7 +49,6 @@ Ext.define('vieweradmin.components.ApplicationTreeLayer', {
     namedLayerTitle: "",
     styleTitle: "",
     stylesOrder:null,
-    htmlEditorRendered: false,
     contextHtmlEditorRendered: false,
 
     constructor: function(config) {
@@ -198,33 +197,6 @@ Ext.define('vieweradmin.components.ApplicationTreeLayer', {
             },
             layoutOnTabChange: false,
             items: tabconfig,
-            listeners: {
-                tabchange: {
-                    fn: function (panel, activetab, previoustab) {
-                        if (activetab.getItemId() === 'context-tab' && !this.htmlEditorRendered) {
-                            // HTML editor is rendered when the tab is first opened. This prevents a bug where the contents could not be edited
-                            Ext.create('Ext.form.field.HtmlEditor', {
-                                itemId: 'extContextHtmlEditor',
-                                width: 475,
-                                maxWidth: 475,
-                                height: 400,
-                                maxHeight: 400,
-                                value: Ext.get('context_textarea').dom.value,
-                                plugins: [
-                                    new Ext.create('Ext.ux.form.HtmlEditor.imageUpload', Ext.apply(vieweradmin.components.DefaultConfgurations.getDefaultImageUploadConfig(), {
-                                        submitUrl: this.config.actionBeans['imageupload'],
-                                        managerUrl: Ext.urlAppend(this.config.actionBeans['imageupload'], "manage=t")
-                                    })),
-                                    new Ext.ux.form.HtmlEditor.Table(vieweradmin.components.DefaultConfgurations.getDefaultHtmlEditorTableConfig())
-                                ],
-                                renderTo: 'contextHtmlEditorContainer'
-                            });
-                            this.htmlEditorRendered = true;
-                        }
-                    },
-                    scope: this
-                }
-            },
             bbar: [
                 "->",
                 {
@@ -1014,12 +986,18 @@ Ext.define('vieweradmin.components.ApplicationTreeLayer', {
         if(document.getElementById('styleSelect')) {
             document.getElementById('styleSelect').addEventListener("change", this.updateStyleTitles.bind(this));
         }
-        document.getElementById('layerTitle').addEventListener("click", (function() {
-            this.setTitleAlias('layer');
-        }).bind(this));
-        document.getElementById('styleTitle').addEventListener("click", (function() {
-            this.setTitleAlias('style');
-        }).bind(this));
+        var layerTitle = document.getElementById('layerTitle');
+        var styleTitle = document.getElementById('styleTitle');
+        if (layerTitle) {
+            layerTitle.addEventListener("click", (function () {
+                this.setTitleAlias('layer');
+            }).bind(this));
+        }
+        if (styleTitle) {
+            styleTitle.addEventListener("click", (function() {
+                this.setTitleAlias('style');
+            }).bind(this));
+        }
         this.initAttributeGroupClick();
     },
 
@@ -1030,10 +1008,6 @@ Ext.define('vieweradmin.components.ApplicationTreeLayer', {
         var toggle = document.querySelector('.use-plain-text-editor');
         if(settingsHtmlEditor && !toggle.checked) {
             document.getElementById('details_summary_description').value = settingsHtmlEditor.getValue();
-        }
-        var htmlEditor = this.getComponentByItemId('#extContextHtmlEditor');
-        if(htmlEditor) {
-            document.getElementById('context_textarea').value = htmlEditor.getValue();
         }
         if (document.getElementById('details_editfeature_usernameAttribute') && this.getComponentByItemId('#ext_editfeature_usernameAttribute')){
             document.getElementById('details_editfeature_usernameAttribute').value = this.getComponentByItemId('#ext_editfeature_usernameAttribute').getValue();

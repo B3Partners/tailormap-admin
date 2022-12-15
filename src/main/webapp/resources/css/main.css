@@ -877,3 +877,10 @@ body.x-body {
 .angular-body {
     flex: 1;
 }
+
+#context_textarea {
+    display: block;
+    width: 60%;
+    height: 180px;
+    margin-bottom: 20px;
+}

@@ -139,7 +139,6 @@ Ext.onReady(function() {
     var headercontent = headerdiv.innerText || headerdiv.textContent;
     headerdiv.style.display = 'none';
 
-    var htmlEditorRendered = false;
     Ext.select('.tabdiv', true).removeCls('tabdiv').setVisibilityMode(Ext.dom.Element.OFFSETS).setVisible(false);
     Ext.createWidget('tabpanel', {
         title: headercontent,
@@ -156,30 +155,6 @@ Ext.onReady(function() {
         },
         layoutOnTabChange: true,
         items: tabconfig,
-        listeners: {
-            tabchange: function(panel, activetab, previoustab) {
-                if(activetab.getItemId() === 'context-tab' && !htmlEditorRendered) {
-                    // HTML editor is rendered when the tab is first opened. This prevents a bug where the contents could not be edited
-                    Ext.create('Ext.form.field.HtmlEditor', {
-                        id: 'extContextHtmlEditor',
-                        width: 475,
-                        maxWidth: 475,
-                        height: 400,
-                        maxHeight: 400,
-                        value: Ext.get('context_textarea').dom.value,
-                        plugins: [
-                            new Ext.create('Ext.ux.form.HtmlEditor.imageUpload', Ext.apply(vieweradmin.components.DefaultConfgurations.getDefaultImageUploadConfig(), {
-                                submitUrl: actionBeans['imageupload'],
-                                managerUrl: Ext.urlAppend(actionBeans['imageupload'], "manage=t")
-                            })),
-                            new Ext.ux.form.HtmlEditor.Table(vieweradmin.components.DefaultConfgurations.getDefaultHtmlEditorTableConfig())
-                        ],
-                        renderTo: 'contextHtmlEditorContainer'
-                    });
-                    htmlEditorRendered = true;
-                }
-            }
-        },
         bbar: [
             '->',
             {
@@ -217,8 +192,6 @@ Ext.onReady(function() {
     function saveFunction() {
         Ext.fly('selectedlayersinput').set({value:kaartSelectie.getSelection()});
         Ext.fly('selecteddocsinput').set({value:docsSelectie.getSelection()});
-        var htmlEditor = Ext.getCmp('extContextHtmlEditor');
-        if(htmlEditor) Ext.get('context_textarea').dom.value = htmlEditor.getValue();
         var frm = document.forms[0];
         frm.action = "?save=t";
         frm.submit();
