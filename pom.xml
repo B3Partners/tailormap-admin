@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>nl.b3p.tailormap</groupId>
   <artifactId>tailormap-admin</artifactId>
-  <version>10.0.0-rc2-SNAPSHOT</version>
+  <version>10.0.0-rc2</version>
   <packaging>war</packaging>
   <name>Tailormap Admin</name>
   <description>Tailormap Admin provides the administration application for Tailormap</description>
@@ -41,7 +41,7 @@
   <scm>
     <connection>scm:git:git@github.com:B3Partners/tailormap-admin.git</connection>
     <developerConnection>scm:git:git@github.com:B3Partners/tailormap-admin.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>tailormap-admin-10.0.0-rc2</tag>
     <url>https://github.com/B3Partners/tailormap-admin/</url>
   </scm>
   <issueManagement>
@@ -75,7 +75,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.build.sourceVersion>${java.version}</project.build.sourceVersion>
     <project.build.targetVersion>${java.version}</project.build.targetVersion>
-    <project.build.outputTimestamp>2022-10-14T09:42:01Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2022-12-22T13:23:38Z</project.build.outputTimestamp>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <spring-security.version>5.8.1</spring-security.version>
