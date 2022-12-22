@@ -109,7 +109,7 @@
     <dependency-check-maven.version>7.4.1</dependency-check-maven.version>
     <!--    <pmd.version>6.50.0</pmd.version>-->
     <!--    <errorProne.version>2.16</errorProne.version>-->
-    <errorProneFlags />
+    <errorProneFlags></errorProneFlags>
     <compiler.lint>deprecation,unchecked</compiler.lint>
     <fmt.action>format</fmt.action>
     <pom.fmt.action>sort</pom.fmt.action>
@@ -1125,7 +1125,6 @@
               </images>
             </configuration>
             <executions>
-              </execution>
               <execution>
                 <id>docker-push</id>
                 <goals>
