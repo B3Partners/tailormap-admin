@@ -1084,26 +1084,50 @@
             <artifactId>docker-maven-plugin</artifactId>
             <configuration>
               <verbose>true</verbose>
+              <imagePullPolicy>Always</imagePullPolicy>
               <images>
                 <image>
                   <name>${docker.deploy.repo}/b3partners/%a:%l</name>
+                  <build>
+                    <!-- default location -->
+                    <dockerFile>${project.basedir}/src/main/docker/Dockerfile</dockerFile>
+                    <contextDir>${project.basedir}</contextDir>
+                    <args>
+                      <TM_VERSION>${project.version}</TM_VERSION>
+                    </args>
+                    <noCache>true</noCache>
+                    <buildx>
+                      <platforms>
+                        <platform>linux/amd64</platform>
+                        <platform>linux/arm64</platform>
+                      </platforms>
+                    </buildx>
+                  </build>
+                </image>
+                <image>
+                  <name>${docker.deploy.repo}/b3partners/%a:latest</name>
+                  <build>
+                    <!-- default location -->
+                    <dockerFile>${project.basedir}/src/main/docker/Dockerfile</dockerFile>
+                    <contextDir>${project.basedir}</contextDir>
+                    <args>
+                      <TM_VERSION>${project.version}</TM_VERSION>
+                    </args>
+                    <noCache>true</noCache>
+                    <buildx>
+                      <platforms>
+                        <platform>linux/amd64</platform>
+                        <platform>linux/arm64</platform>
+                      </platforms>
+                    </buildx>
+                  </build>
                 </image>
               </images>
             </configuration>
             <executions>
-              <execution>
-                <id>docker-tag</id>
-                <goals>
-                  <goal>tag</goal>
-                </goals>
-                <phase>verify</phase>
-                <configuration>
-                  <tagName>latest</tagName>
-                  <repo>${docker.deploy.repo}/b3partners</repo>
-                </configuration>
               </execution>
               <execution>
-                <id>docker-push-latest</id>
+                <id>docker-push</id>
                 <goals>
                   <goal>push</goal>
                 </goals>
@@ -1111,6 +1135,9 @@
                 <configuration>
                   <verbose>true</verbose>
                   <images>
+                    <image>
+                      <name>${docker.deploy.repo}/b3partners/%a:%l</name>
+                    </image>
                     <image>
                       <name>${docker.deploy.repo}/b3partners/%a:latest</name>
                     </image>
