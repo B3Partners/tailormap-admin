@@ -31,6 +31,7 @@ export class AdminCoreComponentsModule {
     configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.LEGEND, $localize `Legend`, BaseComponentConfigComponent);
     configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.DRAWING, $localize `Drawing`, BaseComponentConfigComponent);
     configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.PRINT, $localize `Print`, BaseComponentConfigComponent);
+    configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.FILTER, $localize `Filter`, BaseComponentConfigComponent);
     configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.ATTRIBUTE_LIST, $localize `Attribute list`, BaseComponentConfigComponent);
     configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.MEASURE, $localize `Measure tools`, BaseComponentConfigComponent);
     configurationComponentService.registerConfigurationComponents(BaseComponentTypeEnum.COORDINATE_PICKER, $localize `Coordinate picker tool`, BaseComponentConfigComponent);
