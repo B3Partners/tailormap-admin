@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import * as AdminCoreActions from './admin-core.actions';
-import { concatMap, map, catchError, of } from 'rxjs';
+import { concatMap, map, catchError, of, forkJoin } from 'rxjs';
 import { ApplicationDetailsService } from '../services/application-details.service';
 
 @Injectable()
@@ -13,29 +13,26 @@ export class AdminCoreEffects {
   public triggerLoadConfig$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(AdminCoreActions.setApplicationId),
-      map(() => AdminCoreActions.loadComponentsConfig()),
+      map(() => AdminCoreActions.loadApplicationConfig()),
     );
   });
 
-  public loadComponentsConfig$ = createEffect(() => {
+  public loadApplicationConfig$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(AdminCoreActions.loadComponentsConfig),
+      ofType(AdminCoreActions.loadApplicationConfig),
       concatMap(_action => {
-        return this.appDetailsService.getComponentsConfig$().pipe(
-          catchError(() => {
-            return of(null);
-          }),
-          map(response => {
-            if (response === null) {
-              return AdminCoreActions.loadComponentsConfigFailed();
+        return forkJoin([
+          this.appDetailsService.getComponentsConfig$().pipe(catchError(() => of(null))),
+          this.appDetailsService.getApplicationStyling$().pipe(catchError(() => of(null))),
+        ]).pipe(
+          map(([ componentsConfig, styleConfig ]) => {
+            if (componentsConfig === null || styleConfig === null) {
+              return AdminCoreActions.loadApplicationConfigFailed();
             }
-            if (!Array.isArray(response) || response.length === 0) {
-              return AdminCoreActions.loadComponentsConfigSuccess({
-                config: [],
-              });
-            }
-            return AdminCoreActions.loadComponentsConfigSuccess({
-              config: response,
+            const emptyComponentsConfig = !Array.isArray(componentsConfig) || componentsConfig.length === 0;
+            return AdminCoreActions.loadApplicationConfigSuccess({
+              componentsConfig: emptyComponentsConfig ? [] : componentsConfig,
+              styleConfig: !styleConfig ? {} : styleConfig,
             });
           }),
         );

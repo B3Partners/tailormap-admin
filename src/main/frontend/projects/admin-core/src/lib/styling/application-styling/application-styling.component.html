@@ -1,0 +1,25 @@
+<div *ngIf="stylingConfig$ | async as stylingConfig">
+
+  <div class="form-row">
+    <strong i18n>Primary color used in application</strong>
+    <tm-color-picker
+      [dropdownPosition]="dropdownPosition"
+      [color]="stylingConfig.primaryColor || DEFAULT_PRIMARY_COLOR"
+      (colorChange)="onPrimaryColorChange($event)"></tm-color-picker>
+  </div>
+
+  <div class="form-row">
+    <strong i18n>Upload logo for application</strong>
+    <tm-image-upload-field (imageChanged)="onImageChanged($event)"
+                           [maxSize]="2"
+                           [resizeSize]="600"
+                           [currentImage]="stylingConfig.logo"></tm-image-upload-field>
+  </div>
+
+  <div class="form-row">
+    <button mat-flat-button color="primary" (click)="save()" [disabled]="isSaving$ | async">
+      <ng-template #saveLabel><ng-container i18n>Save</ng-container></ng-template>
+      <mat-spinner *ngIf="(isSaving$ | async); else: saveLabel" diameter="20" color="primary" mode="indeterminate"></mat-spinner>
+    </button>
+  </div>
+</div>

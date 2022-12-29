@@ -58,6 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <script type="text/javascript">
             var contextPath = <js:quote value="${contextPath}"/>;
             var currentApplicationId = <js:quote value="${sessionScope['applicationId']}"/>;
+            var angularPath = <js:quote value="${angularPath.replace(contextPath, '')}"/>;
         </script>
         <link rel="stylesheet" type="text/css" href="${angularPath}/styles.css?${cacheBuster}">
         <script src="${angularPath}/vendor.js?${cacheBuster}" type="module"></script>

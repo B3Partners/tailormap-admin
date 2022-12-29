@@ -65,25 +65,32 @@
           <context context-type="linenumber">33</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="8829497237648100098" datatype="html">
+        <source>Filter</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
+          <context context-type="linenumber">34</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="7251686705365735219" datatype="html">
         <source>Attribute list</source>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
-          <context context-type="linenumber">34</context>
+          <context context-type="linenumber">35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6666414176053743738" datatype="html">
         <source>Measure tools</source>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
-          <context context-type="linenumber">35</context>
+          <context context-type="linenumber">36</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2212136963008896527" datatype="html">
         <source>Coordinate picker tool</source>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/admin-core/src/lib/components/admin-core-components.module.ts</context>
-          <context context-type="linenumber">36</context>
+          <context context-type="linenumber">37</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4816216590591222133" datatype="html">
@@ -99,6 +106,10 @@
           <context context-type="sourcefile">projects/admin-core/src/lib/components/component-config-renderer/component-config-renderer.component.html</context>
           <context context-type="linenumber">4</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/styling/application-styling/application-styling.component.html</context>
+          <context context-type="linenumber">21</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="2951349834773350384" datatype="html">
         <source>Configuration saved</source>
@@ -106,12 +117,65 @@
           <context context-type="sourcefile">projects/admin-core/src/lib/components/component-config-renderer/component-config-renderer.component.ts</context>
           <context context-type="linenumber">70</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/styling/application-styling/application-styling.component.ts</context>
+          <context context-type="linenumber">54</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1831139682192909712" datatype="html">
+        <source>Components</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/pages/application-config-page/application-config-page.component.html</context>
+          <context context-type="linenumber">2</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="657310079267053935" datatype="html">
+        <source>Style</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/pages/application-config-page/application-config-page.component.html</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3504853255704754396" datatype="html">
+        <source>Please select an application first</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/pages/application-config-page/application-config-page.component.html</context>
+          <context context-type="linenumber">14,16</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="3222680854518085385" datatype="html">
         <source>List of available components</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">projects/admin-core/src/lib/pages/components-config-page/components-config-page.component.html</context>
+          <context context-type="sourcefile">projects/admin-core/src/lib/pages/application-config-page/components-config-tab/components-config-tab.component.html</context>
           <context context-type="linenumber">5</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4001020896425342268" datatype="html">
+        <source>Primary color used in application</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/styling/application-styling/application-styling.component.html</context>
+          <context context-type="linenumber">4,5</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6541504597432152387" datatype="html">
+        <source>Upload logo for application</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/styling/application-styling/application-styling.component.html</context>
+          <context context-type="linenumber">12,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7650624232624154748" datatype="html">
+        <source>Current image</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/styling/image-upload-field/image-upload-field.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2573143895292271000" datatype="html">
+        <source>Remove the image</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/admin-core/src/lib/styling/image-upload-field/image-upload-field.component.html</context>
+          <context context-type="linenumber">13</context>
         </context-group>
       </trans-unit>
     </body>

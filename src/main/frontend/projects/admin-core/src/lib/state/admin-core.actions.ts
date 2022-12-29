@@ -1,5 +1,5 @@
 import { createAction, props } from '@ngrx/store';
-import { ComponentModel } from '@tailormap-viewer/api';
+import { AppStylingModel, ComponentModel } from '@tailormap-viewer/api';
 
 const adminCoreActionsPrefix = '[AdminCore]';
 
@@ -8,17 +8,17 @@ export const setApplicationId = createAction(
   props<{ applicationId: number }>(),
 );
 
-export const loadComponentsConfig = createAction(
-  `${adminCoreActionsPrefix} Load components config`,
+export const loadApplicationConfig = createAction(
+  `${adminCoreActionsPrefix} Load application config`,
 );
 
-export const loadComponentsConfigSuccess = createAction(
-  `${adminCoreActionsPrefix} Load components config success`,
-  props<{ config: ComponentModel[] }>(),
+export const loadApplicationConfigSuccess = createAction(
+  `${adminCoreActionsPrefix} Load application config success`,
+  props<{ componentsConfig: ComponentModel[]; styleConfig?: AppStylingModel }>(),
 );
 
-export const loadComponentsConfigFailed = createAction(
-  `${adminCoreActionsPrefix} Load components config failed`,
+export const loadApplicationConfigFailed = createAction(
+  `${adminCoreActionsPrefix} Load application config failed`,
 );
 
 export const setSelectedComponent = createAction(
@@ -30,3 +30,9 @@ export const updateComponentConfig = createAction(
   `${adminCoreActionsPrefix} Update component config`,
   props<{ config: ComponentModel }>(),
 );
+
+export const updateStyleConfig = createAction(
+  `${adminCoreActionsPrefix} Update style config`,
+  props<{ config: Partial<AppStylingModel> }>(),
+);
+

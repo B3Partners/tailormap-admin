@@ -1,20 +1,19 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from '@tailormap-viewer/shared';
-import { ComponentsConfigPageComponent } from './components-config-page/components-config-page.component';
 import { MatListModule } from '@angular/material/list';
 import { AdminCoreComponentsModule } from '../components/admin-core-components.module';
+import { ApplicationConfigPageModule } from './application-config-page/application-config-page.module';
 
 @NgModule({
-  declarations: [
-    ComponentsConfigPageComponent,
-  ],
+  declarations: [],
   imports: [
     SharedModule,
     MatListModule,
     AdminCoreComponentsModule,
+    ApplicationConfigPageModule,
   ],
   exports: [
-    ComponentsConfigPageComponent,
+    ApplicationConfigPageModule,
   ],
 })
 export class AdminCorePagesModule {}
