@@ -11,27 +11,28 @@ const onSetApplicationId = (
   applicationId: payload.applicationId,
 });
 
-const onLoadComponentsConfig = (
+const onLoadApplicationConfig = (
   state: AdminCoreState,
 ): AdminCoreState => ({
   ...state,
-  componentsConfigLoadStatus: LoadingStateEnum.LOADING,
+  applicationConfigLoadStatus: LoadingStateEnum.LOADING,
 });
 
-const onLoadComponentsConfigSuccess = (
+const onLoadApplicationConfigSuccess = (
   state: AdminCoreState,
-  payload: ReturnType<typeof AdminCoreActions.loadComponentsConfigSuccess>,
+  payload: ReturnType<typeof AdminCoreActions.loadApplicationConfigSuccess>,
 ): AdminCoreState => ({
   ...state,
-  componentsConfigLoadStatus: LoadingStateEnum.LOADED,
-  componentsConfig: payload.config,
+  applicationConfigLoadStatus: LoadingStateEnum.LOADED,
+  componentsConfig: payload.componentsConfig,
+  styleConfig: payload.styleConfig,
 });
 
-const onLoadComponentsConfigFailed = (
+const onLoadApplicationConfigFailed = (
   state: AdminCoreState,
 ): AdminCoreState => ({
   ...state,
-  componentsConfigLoadStatus: LoadingStateEnum.FAILED,
+  applicationConfigLoadStatus: LoadingStateEnum.FAILED,
 });
 
 const onSetSelectedComponent = (
@@ -63,13 +64,33 @@ const onUpdateComponentConfig = (
   };
 };
 
+const onUpdateStyleConfig = (
+  state: AdminCoreState,
+  payload: ReturnType<typeof AdminCoreActions.updateStyleConfig>,
+): AdminCoreState => {
+  if (!state.styleConfig) {
+    return {
+      ...state,
+      styleConfig: payload.config,
+    };
+  }
+  return {
+    ...state,
+    styleConfig: {
+      ...state.styleConfig,
+      ...payload.config,
+    },
+  };
+};
+
 const adminCoreReducerImpl = createReducer<AdminCoreState>(
   initialAdminCoreState,
   on(AdminCoreActions.setApplicationId, onSetApplicationId),
-  on(AdminCoreActions.loadComponentsConfig, onLoadComponentsConfig),
-  on(AdminCoreActions.loadComponentsConfigSuccess, onLoadComponentsConfigSuccess),
-  on(AdminCoreActions.loadComponentsConfigFailed, onLoadComponentsConfigFailed),
+  on(AdminCoreActions.loadApplicationConfig, onLoadApplicationConfig),
+  on(AdminCoreActions.loadApplicationConfigSuccess, onLoadApplicationConfigSuccess),
+  on(AdminCoreActions.loadApplicationConfigFailed, onLoadApplicationConfigFailed),
   on(AdminCoreActions.setSelectedComponent, onSetSelectedComponent),
   on(AdminCoreActions.updateComponentConfig, onUpdateComponentConfig),
+  on(AdminCoreActions.updateStyleConfig, onUpdateStyleConfig),
 );
 export const adminCoreReducer = (state: AdminCoreState | undefined, action: Action) => adminCoreReducerImpl(state, action);

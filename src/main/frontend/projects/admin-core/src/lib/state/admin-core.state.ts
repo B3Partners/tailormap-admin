@@ -1,15 +1,16 @@
 import { LoadingStateEnum } from '@tailormap-viewer/shared';
-import { ComponentModel } from '@tailormap-viewer/api';
+import { AppStylingModel, ComponentModel } from '@tailormap-viewer/api';
 
 export const adminCoreStateKey = 'adminCore';
 
 export interface AdminCoreState {
-  componentsConfigLoadStatus: LoadingStateEnum;
+  applicationConfigLoadStatus: LoadingStateEnum;
   componentsConfig?: ComponentModel[];
   selectedComponent?: string;
+  styleConfig?: AppStylingModel;
   applicationId?: number;
 }
 
 export const initialAdminCoreState: AdminCoreState = {
-  componentsConfigLoadStatus: LoadingStateEnum.INITIAL,
+  applicationConfigLoadStatus: LoadingStateEnum.INITIAL,
 };

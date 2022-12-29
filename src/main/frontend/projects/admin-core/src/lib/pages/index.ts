@@ -1,1 +1,1 @@
-export * from './components-config-page/components-config-page.component';
+export * from './application-config-page/components-config-tab/components-config-tab.component';
