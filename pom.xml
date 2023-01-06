@@ -79,7 +79,7 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <spring-security.version>5.8.1</spring-security.version>
-    <tailormap-gbimaps.version>5.9.26</tailormap-gbimaps.version>
+    <tailormap-gbimaps.version>5.9.27</tailormap-gbimaps.version>
     <tailormap-persistence.version>10.1</tailormap-persistence.version>
     <geotools.version>28.0</geotools.version>
     <jts.version>1.19.0</jts.version>
