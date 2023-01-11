@@ -10,7 +10,7 @@ export class ApplicationDetailsService {
 
   private httpClient = inject(HttpClient);
   private COMPONENTS_CONFIG_KEY = 'components';
-  private APPLICATION_STYLING_CONFIG_KEY = 'application_settings';
+  private APPLICATION_STYLING_CONFIG_KEY = 'application_style';
 
   private getApplicationId() {
     const appId = (window as any).currentApplicationId;
