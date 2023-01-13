@@ -24,6 +24,9 @@ updates:
       - dependency-name: org.springframework.security:spring-security-crypto
         versions:
           - '>= 6'
+      - dependency-name: com.microsoft.sqlserver:mssql-jdbc
+        versions:
+          - '>= 11'
 
 
   - package-ecosystem: github-actions
