@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MonitorJob.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.monitoring</a> &gt; <span class="el_source">MonitorJob.java</span></div><h1>MonitorJob.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.monitoring;
+
+import nl.tailormap.mail.Mailer;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.security.User;
+import nl.tailormap.viewer.config.services.GeoService;
+import nl.tailormap.viewer.helpers.services.GeoserviceFactoryHelper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.quartz.InterruptableJob;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.persistence.EntityManager;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ *
+ * @author Matthijs Laan
+ */
+<span class="nc" id="L42">public class MonitorJob implements Job, InterruptableJob {</span>
+<span class="nc" id="L43">    private static final Log log = LogFactory.getLog(MonitorJob.class);</span>
+    
+<span class="nc" id="L45">    private boolean interrupted = false;</span>
+    
+    public void interrupt() {
+<span class="nc" id="L48">        log.info(&quot;Setting interrupt flag&quot;);</span>
+<span class="nc" id="L49">        interrupted = true;</span>
+<span class="nc" id="L50">    }    </span>
+        
+    private boolean isInterrupted() {
+<span class="nc" id="L53">        return interrupted;</span>
+    }
+    
+    public void execute(JobExecutionContext jec) throws JobExecutionException {
+
+        try {
+<span class="nc" id="L59">            Stripersist.requestInit();</span>
+<span class="nc" id="L60">            EntityManager em = Stripersist.getEntityManager();</span>
+
+<span class="nc" id="L62">            StringBuilder monitoringFailures = new StringBuilder();</span>
+
+<span class="nc" id="L64">            int online = 0, offline = 0;</span>
+            
+            // TODO: where monitoringEnabled = true...
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            for(GeoService gs: em.createQuery(&quot;from GeoService&quot;, GeoService.class).getResultList()) {</span>
+
+<span class="nc" id="L69">                String debugMsg = String.format(&quot;%s service %s (#%d) with URL: %s&quot;,</span>
+<span class="nc" id="L70">                            gs.getProtocol(),</span>
+<span class="nc" id="L71">                            gs.getName(),</span>
+<span class="nc" id="L72">                            gs.getId(),</span>
+<span class="nc" id="L73">                            gs.getUrl()</span>
+                            );
+                try {
+                    
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                    if(isInterrupted()) {</span>
+<span class="nc" id="L78">                        log.info(&quot;Interrupted, ending monitoring job&quot;);</span>
+<span class="nc" id="L79">                        return;</span>
+                    }
+
+<span class="nc" id="L82">                    GeoserviceFactoryHelper.checkServiceOnline(em, gs);</span>
+<span class="nc" id="L83">                    online++;</span>
+<span class="nc" id="L84">                    gs.setMonitoringStatusok(true);</span>
+<span class="nc" id="L85">                    log.debug(&quot;ONLINE: &quot; + debugMsg);</span>
+<span class="nc" id="L86">                } catch(Exception e) {</span>
+<span class="nc" id="L87">                    gs.setMonitoringStatusok(false);</span>
+<span class="nc" id="L88">                    offline++;</span>
+<span class="nc" id="L89">                    log.debug(&quot;OFFLINE: &quot; + debugMsg);</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                    if(log.isTraceEnabled()) {</span>
+<span class="nc" id="L91">                        log.trace(&quot;Exception&quot;, e);</span>
+                    }
+<span class="nc" id="L93">                    StringBuilder message = new StringBuilder(e.toString());</span>
+<span class="nc" id="L94">                    Throwable cause = e.getCause();</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                    while(cause != null) {</span>
+<span class="nc" id="L96">                        message.append(&quot;; &quot;).append(cause);</span>
+<span class="nc" id="L97">                        cause = cause.getCause();</span>
+                    }
+<span class="nc" id="L99">                    monitoringFailures.append(String.format(&quot;%s service %s (#%d)\nURL: %s\nFout: %s\n\n&quot;,</span>
+<span class="nc" id="L100">                            gs.getProtocol(),</span>
+<span class="nc" id="L101">                            gs.getName(),</span>
+<span class="nc" id="L102">                            gs.getId(),</span>
+<span class="nc" id="L103">                            gs.getUrl(),</span>
+                            message));
+<span class="nc" id="L105">                }</span>
+<span class="nc" id="L106">            }</span>
+            
+<span class="nc" id="L108">            em.getTransaction().commit();</span>
+
+<span class="nc" id="L110">            log.info(String.format(&quot;Total services %d, online: %d, offline: %d, runtime: %d s&quot;,</span>
+<span class="nc" id="L111">                    online+offline,</span>
+<span class="nc" id="L112">                    online,</span>
+<span class="nc" id="L113">                    offline,</span>
+<span class="nc" id="L114">                    jec.getJobRunTime() / 1000));</span>
+            
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            if(offline &gt; 0) {</span>
+                
+<span class="nc" id="L118">                Set&lt;String&gt; emails = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">                for(User admin: em.createQuery(&quot;select u from User u &quot;</span>
+                        + &quot;join u.groups g &quot;
+<span class="nc" id="L121">                        + &quot;where g.name = '&quot; + Group.SERVICE_ADMIN + &quot;' &quot;, User.class).getResultList()) {</span>
+<span class="nc" id="L122">                    emails.add(admin.getDetails().get(User.DETAIL_EMAIL));</span>
+<span class="nc" id="L123">                }</span>
+<span class="nc" id="L124">                emails.remove(null);</span>
+                
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                if(!emails.isEmpty()) {</span>
+
+<span class="nc" id="L128">                    SimpleDateFormat f = new SimpleDateFormat(&quot;dd-MM-yyy HH:mm:ss&quot;);</span>
+<span class="nc" id="L129">                    String mail = String.format(&quot;Bij een controle op %s zijn in het gegevensregister %d services gevonden waarbij fouten zijn geconstateerd.\n&quot;</span>
+                                    + &quot;\nDe volgende controle zal worden uitgevoerd op %s.\nHieronder staat de lijst met probleemservices:\n\n&quot;,
+<span class="nc" id="L131">                            f.format(jec.getFireTime()),</span>
+<span class="nc" id="L132">                            offline,</span>
+<span class="nc" id="L133">                            f.format(jec.getNextFireTime())) +</span>
+                            monitoringFailures;
+                    
+<span class="nc" id="L136">                    mail(jec, emails, offline + &quot; services zijn offline bij controle&quot;, mail);</span>
+                }
+                
+            }
+<span class="nc" id="L140">        } catch(Exception e) {</span>
+<span class="nc" id="L141">            log.error(&quot;Error&quot;, e);</span>
+        } finally {
+<span class="nc" id="L143">            Stripersist.requestComplete();</span>
+        }
+        
+<span class="nc" id="L146">    }</span>
+    
+    private void mail(JobExecutionContext jec, Set&lt;String&gt; emails, String subject, String mail) {
+        try {
+<span class="nc" id="L150">            log.info(&quot;Sending mail to service admins: &quot; + Arrays.toString(emails.toArray()));</span>
+
+<span class="nc bnc" id="L152" title="All 2 branches missed.">            for(String email: emails) {</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                if(isInterrupted()) {</span>
+<span class="nc" id="L154">                    log.info(&quot;Interrupted, ending monitoring job&quot;);</span>
+<span class="nc" id="L155">                    return;</span>
+                }               
+
+                try {
+<span class="nc" id="L159">                    Mailer.sendMail(</span>
+<span class="nc" id="L160">                            (String)jec.getJobDetail().getJobDataMap().get(&quot;from.name&quot;),</span>
+<span class="nc" id="L161">                            (String)jec.getJobDetail().getJobDataMap().get(&quot;from.email&quot;),</span>
+                            email, subject, mail);
+<span class="nc" id="L163">                } catch(Exception e) {</span>
+<span class="nc" id="L164">                    log.error(&quot;Error sending mail to service admin &quot; + email, e);</span>
+<span class="nc" id="L165">                }</span>
+<span class="nc" id="L166">            }</span>
+<span class="nc" id="L167">        } catch(Exception e) {</span>
+<span class="nc" id="L168">            log.error(&quot;Error sending mail to service admins&quot;, e);</span>
+<span class="nc" id="L169">        }        </span>
+<span class="nc" id="L170">    }</span>
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

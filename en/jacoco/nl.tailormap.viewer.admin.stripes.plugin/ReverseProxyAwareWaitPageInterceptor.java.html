@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReverseProxyAwareWaitPageInterceptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes.plugin</a> &gt; <span class="el_source">ReverseProxyAwareWaitPageInterceptor.java</span></div><h1>ReverseProxyAwareWaitPageInterceptor.java</h1><pre class="source lang-java linenums">package nl.tailormap.viewer.admin.stripes.plugin;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.RedirectResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.config.ConfigurableComponent;
+import net.sourceforge.stripes.config.Configuration;
+import net.sourceforge.stripes.controller.ExecutionContext;
+import net.sourceforge.stripes.controller.FlashScope;
+import net.sourceforge.stripes.controller.Interceptor;
+import net.sourceforge.stripes.controller.Intercepts;
+import net.sourceforge.stripes.controller.LifecycleStage;
+import net.sourceforge.stripes.controller.StripesConstants;
+import net.sourceforge.stripes.controller.StripesFilter;
+import net.sourceforge.stripes.util.CryptoUtil;
+import net.sourceforge.stripes.util.Log;
+import net.sourceforge.stripes.util.UrlBuilder;
+import org.stripesstuff.plugin.waitpage.Context;
+import org.stripesstuff.plugin.waitpage.WaitPage;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Interceptor documentation is explained in {@link WaitPage} documentation.
+ *
+ * @author Aaron Porter
+ * @author Christian Poitras
+ * @see WaitPage
+ */
+@Intercepts({LifecycleStage.ActionBeanResolution,
+        LifecycleStage.HandlerResolution,
+        LifecycleStage.BindingAndValidation,
+        LifecycleStage.CustomValidation,
+        LifecycleStage.EventHandling,
+        LifecycleStage.ResolutionExecution})
+<span class="nc" id="L44">public class ReverseProxyAwareWaitPageInterceptor implements Interceptor, ConfigurableComponent {</span>
+
+<span class="nc" id="L46">    private static final Log log = Log.getInstance(ReverseProxyAwareWaitPageInterceptor.class);</span>
+
+    /**
+     * Init parameter that we look for to configure CONTEXT_TIMEOUT.
+     */
+    public static final String CONTEXT_TIMEOUT_NAME = &quot;WaitPageInterceptor.ContextTimeout&quot;;
+    /**
+     * Init parameter that we look for to configure SELF_URL.
+     */
+    public static final String SELF_URL = &quot;WaitPageInterceptor.SelfUrl&quot;;
+    /**
+     * Parameter used in wait page to find wait context.
+     */
+    private static final String ID_PARAMETER = &quot;__WPI__&quot;;
+    /**
+     * URL used to invoke event handler (wait page annotation skips the event execution on normal request).
+     */
+    private static final String THREAD_URL = &quot;/__WPI_THREAD__.wait&quot;;
+    /**
+     * Parameter used to known we are using an AJAX updater.
+     */
+    private static final String AJAX = &quot;ajax&quot;;
+    /**
+     * Default refresh time if none is specified in wait page annotation.&lt;br&gt;
+     * Default will refresh wait page every 60 seconds.
+     */
+    private static final int DEFAULT_REFRESH_TIMEOUT = 60000;
+    /**
+     * Default time allowed for user to access a completed context (in milliseconds).&lt;br&gt;
+     * Default timeout is 5 minutes.
+     */
+    private static final int DEFAULT_CONTEXT_TIMEOUT = 300000;
+    /**
+     * Saved wait context.
+     */
+<span class="nc" id="L81">    private final Map&lt;Integer, Context&gt; contexts = new ConcurrentHashMap&lt;&gt;();</span>
+    /**
+     * Time allowed for user to access a completed context (in milliseconds).&lt;br&gt;
+     * After that time, context are removed to allow garbage collection.
+     */
+<span class="nc" id="L86">    private long contextTimeout = DEFAULT_CONTEXT_TIMEOUT;</span>
+
+    /**
+     * URL to call when executing the request in the background. In a reverse proxy configuration using a RemoteIpValve,
+     * the {@code request.getScheme()}, {@code request.getServerName()} and {@code request.getPort()} may not be reachable
+     * and need to be replaced by for instance {@code http://localhost:8080/}.
+     */
+<span class="nc" id="L93">    private URL selfUrl = null;</span>
+
+    /**
+     * Intercepts execution to handle {@link WaitPage} annotation and invoke the event in a background request.
+     */
+    public Resolution intercept(ExecutionContext executionContext) throws Exception {
+        // Remove expired contexts.
+<span class="nc" id="L100">        removeExpired(contexts);</span>
+
+        // Get wait context, if any.
+<span class="nc" id="L103">        Context context = getContext(executionContext);</span>
+<span class="nc" id="L104">        LifecycleStage stage = executionContext.getLifecycleStage();</span>
+
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (executionContext.getActionBeanContext().getRequest().getRequestURI().contains(THREAD_URL)) {</span>
+            // The request we are processing is the one used to invoke event handler in background and to get resolution to send to user when event completes.
+            // Since we are going to invoke the real event, the action bean and event must stay the same.
+            // Binding and validation must be skipped since they were done in the first request.
+<span class="nc bnc" id="L110" title="All 7 branches missed.">            switch (executionContext.getLifecycleStage()) {</span>
+                // Use action bean that will process event.
+                case ActionBeanResolution:
+<span class="nc" id="L113">                    log.trace(&quot;injecting ActionBean&quot;);</span>
+                    // Since session can be lost from original request (Tomcat is a good example), request must be updated with the background request.
+<span class="nc" id="L115">                    context.actionBean.setContext(executionContext.getActionBeanContext());</span>
+<span class="nc" id="L116">                    executionContext.setActionBean(context.actionBean);</span>
+                    // Skip normal action bean resolution.
+<span class="nc" id="L118">                    return null;</span>
+                // Select event to call.
+                case HandlerResolution:
+<span class="nc" id="L121">                    log.trace(&quot;injecting event handler&quot;);</span>
+<span class="nc" id="L122">                    executionContext.setHandler(context.eventHandler);</span>
+                    // Skip normal handler resolution.
+<span class="nc" id="L124">                    return null;</span>
+                // No biding or validation, it was done before a background request was created to handle event.
+                case BindingAndValidation:
+                case CustomValidation:
+<span class="nc" id="L128">                    log.trace(&quot;skipping binding and validation&quot;);</span>
+                    // Skip binding and validation.
+<span class="nc" id="L130">                    return null;</span>
+                // Execute event since we are in the background request.
+                case EventHandling:
+<span class="nc" id="L133">                    log.trace(&quot;executing event handler&quot;);</span>
+                    // Execute event and save exception if any.
+                    try {
+<span class="nc" id="L136">                        return executionContext.proceed();</span>
+                    }
+<span class="nc" id="L138">                    catch (Exception e) {</span>
+<span class="nc" id="L139">                        synchronized(context.actionBean)</span>
+                        {
+<span class="nc" id="L141">                            log.trace(&quot;setting exception in context&quot;);</span>
+<span class="nc" id="L142">                            context.throwable = e;</span>
+<span class="nc" id="L143">                            context.status = Context.Status.COMPLETE;</span>
+<span class="nc" id="L144">                            context.completeMoment = System.currentTimeMillis();</span>
+<span class="nc" id="L145">                            context.actionBean.notifyAll();</span>
+<span class="nc" id="L146">                            context.eventFlashScope = FlashScope.getCurrent(context.actionBean.getContext().getRequest(), false);</span>
+<span class="nc" id="L147">                        }</span>
+<span class="nc" id="L148">                        throw e;</span>
+                    }
+                    // Save resolution to send to user when he will refresh wait page.
+                case ResolutionExecution:
+<span class="nc" id="L152">                    synchronized(context.actionBean)</span>
+                    {
+<span class="nc" id="L154">                        log.trace(&quot;setting resolution in context&quot;);</span>
+<span class="nc" id="L155">                        context.resolution = executionContext.getResolution();</span>
+<span class="nc" id="L156">                        context.status = Context.Status.COMPLETE;</span>
+<span class="nc" id="L157">                        context.completeMoment = System.currentTimeMillis();</span>
+<span class="nc" id="L158">                        context.actionBean.notifyAll();</span>
+<span class="nc" id="L159">                        context.eventFlashScope = FlashScope.getCurrent(context.actionBean.getContext().getRequest(), false);</span>
+<span class="nc" id="L160">                    }</span>
+
+                    // Use a default resolution to prevent processing the one event returned.
+<span class="nc" id="L163">                    executionContext.setResolution(new StreamingResolution(&quot;text/plain&quot;, &quot;thread complete&quot;));</span>
+<span class="nc" id="L164">                    return executionContext.proceed();</span>
+                case RequestInit:
+                case RequestComplete:
+<span class="nc" id="L167">                    return executionContext.proceed();</span>
+            }
+        }
+        else {
+<span class="nc bnc" id="L171" title="All 2 branches missed.">            if (LifecycleStage.ActionBeanResolution.equals(stage)) {</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">                if (context != null) {</span>
+                    // We are using a wait context for this request. Go to wait page or event's resolution depending on status and skip everything else.
+<span class="nc" id="L174">                    return checkStatus(executionContext, context);</span>
+                }
+            }
+<span class="nc bnc" id="L177" title="All 2 branches missed.">            else if (LifecycleStage.EventHandling.equals(stage)) {</span>
+<span class="nc" id="L178">                WaitPage annotation = executionContext.getHandler().getAnnotation(WaitPage.class);</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                if (annotation != null) {</span>
+                    // Event has @WaitPage annotation. Create wait context to invoke event in background and redirect user to wait page.
+<span class="nc" id="L181">                    return createContextAndRedirect(executionContext, annotation);</span>
+                }
+            }
+        }
+
+<span class="nc" id="L186">        return executionContext.proceed();</span>
+    }
+
+    /**
+     * Returns wait context based on context id found in request.
+     * @param executionContext execution context
+     * @return wait context
+     */
+    private Context getContext(ExecutionContext executionContext) {
+        // Get context id.
+<span class="nc" id="L196">        HttpServletRequest request = executionContext.getActionBeanContext().getRequest();</span>
+<span class="nc" id="L197">        String parameter = request.getParameter(ID_PARAMETER);</span>
+
+        // Return context.
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (parameter != null) {</span>
+<span class="nc" id="L201">            int id = Integer.parseInt(parameter, 16);</span>
+<span class="nc" id="L202">            return contexts.get(id);</span>
+        }
+
+<span class="nc" id="L205">        return null;</span>
+    }
+
+    /**
+     * Create a wait context to execute event in background.
+     * @param executionContext execution context
+     * @param annotation wait page annotation
+     * @return redirect redirect user so that wait page appears
+     * @throws IOException could not create background request
+     */
+    private Resolution createContextAndRedirect(ExecutionContext executionContext, WaitPage annotation) throws IOException {
+        // Create context used to call the event in background.
+<span class="nc" id="L217">        Context context = this.createContext(executionContext);</span>
+<span class="nc" id="L218">        context.actionBean = executionContext.getActionBean();</span>
+<span class="nc" id="L219">        context.eventHandler = executionContext.getHandler();</span>
+<span class="nc" id="L220">        context.annotation = annotation;</span>
+<span class="nc" id="L221">        context.resolution = new ForwardResolution(annotation.path());</span>
+<span class="nc" id="L222">        context.bindingFlashScope = FlashScope.getCurrent(context.actionBean.getContext().getRequest(), false);</span>
+<span class="nc" id="L223">        int id = context.hashCode();</span>
+
+        // Id of context.
+<span class="nc" id="L226">        String ids = Integer.toHexString(id);</span>
+
+        // Create background request to execute event.
+<span class="nc" id="L229">        HttpServletRequest request = executionContext.getActionBeanContext().getRequest();</span>
+<span class="nc" id="L230">        UrlBuilder urlBuilder = new UrlBuilder(executionContext.getActionBeanContext().getLocale(), THREAD_URL, false);</span>
+
+        // Add parameters from the original request in case there were some parameters that weren't bound but are used
+<span class="nc" id="L233">        Set&lt;Map.Entry&lt;String,String[]&gt;&gt; paramSet = request.getParameterMap().entrySet();</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">        for (Map.Entry&lt;String,String[]&gt; param : paramSet)</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">            for (String value : param.getValue())</span>
+<span class="nc" id="L236">                urlBuilder.addParameter(param.getKey(), value);</span>
+
+<span class="nc" id="L238">        urlBuilder.addParameter(ID_PARAMETER, ids);</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">        if (context.bindingFlashScope != null) {</span>
+<span class="nc" id="L240">            urlBuilder.addParameter(StripesConstants.URL_KEY_FLASH_SCOPE_ID, String.valueOf(context.bindingFlashScope.key()));</span>
+        }
+<span class="nc" id="L242">        urlBuilder.addParameter(StripesConstants.URL_KEY_SOURCE_PAGE, CryptoUtil.encrypt(executionContext.getActionBeanContext().getSourcePage()));</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">        if (selfUrl != null) {</span>
+<span class="nc" id="L244">            context.url = new URL(selfUrl, request.getContextPath() + urlBuilder);</span>
+        } else {
+<span class="nc" id="L246">            context.url = new URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath() + urlBuilder);</span>
+        }
+<span class="nc" id="L248">        context.cookies = request.getHeader(&quot;Cookie&quot;);</span>
+
+        // Save context.
+<span class="nc" id="L251">        contexts.put(id, context);</span>
+
+        // Execute background request.
+<span class="nc" id="L254">        context.thread = new Thread(context);</span>
+<span class="nc" id="L255">        context.thread.start();</span>
+
+        // Redirect user to wait page.
+<span class="nc" id="L258">        return new RedirectResolution(StripesFilter.getConfiguration().getActionResolver().getUrlBinding(context.actionBean.getClass())) {</span>
+            @Override
+            public RedirectResolution addParameter(String key, Object... value) {
+                // Leave flash scope to background request.
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                if (!StripesConstants.URL_KEY_FLASH_SCOPE_ID.equals(key)) {</span>
+<span class="nc" id="L263">                    return super.addParameter(key, value);</span>
+                }
+<span class="nc" id="L265">                return this;</span>
+            }
+<span class="nc" id="L267">        }.addParameter(ID_PARAMETER, ids);</span>
+    }
+    /**
+     * Returns a new instance of context.
+     * @param executionContext execution context
+     * @return new instance of context
+     */
+    protected Context createContext(ExecutionContext executionContext) {
+<span class="nc" id="L275">        return new Context();</span>
+    }
+
+    /**
+     * Return wait page resolution or event's resolution depending on completion status.
+     * @param executionContext execution context
+     * @param context wait context
+     * @return wait page resolution or event's resolution depending on completion status
+     * @throws Exception exception thrown by event if no error page is specified
+     */
+    private Resolution checkStatus(ExecutionContext executionContext, Context context) throws Exception {
+        // Resolution execution must not be executed while we are checking status.
+<span class="nc" id="L287">        synchronized (context.actionBean) {</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">            if (context.status == Context.Status.INIT) {</span>
+                // If a delay was specified we'll just wait here. If event completes while we're waiting the wait page won't be displayed.
+<span class="nc bnc" id="L290" title="All 2 branches missed.">                if (context.annotation.delay() &gt; 0) context.actionBean.wait(context.annotation.delay());</span>
+
+<span class="nc bnc" id="L292" title="All 2 branches missed.">                if (context.status == Context.Status.INIT) {</span>
+                    // We've waited long enough, go to wait page.
+<span class="nc" id="L294">                    context.status = Context.Status.WAITING;</span>
+                }
+            }
+<span class="nc bnc" id="L297" title="All 2 branches missed.">            else if (context.status == Context.Status.WAITING) {</span>
+                // Wait some time to allow event to complete before refreshing wait page.
+<span class="nc" id="L299">                log.trace(&quot;waiting to be signaled&quot;);</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">                context.actionBean.wait(context.annotation.refresh() &gt; 0 ? context.annotation.refresh() : DEFAULT_REFRESH_TIMEOUT);</span>
+            }
+
+            // Default is to go to wait page. This will be changed if an AJAX updater is used.
+            // If event completed, this will be the resolution returned by event.
+<span class="nc" id="L305">            Resolution resolution = context.resolution;</span>
+            // Action to use is the action bean on which event is invoked.
+<span class="nc" id="L307">            executionContext.setActionBean(context.actionBean);</span>
+            // Save action bean in request scope to make it available in JSP.
+<span class="nc" id="L309">            executionContext.getActionBeanContext().getRequest().setAttribute(&quot;actionBean&quot;, context.actionBean);</span>
+            // Set action bean in request so form will be populated.
+<span class="nc" id="L311">            executionContext.getActionBeanContext().getRequest().setAttribute(StripesFilter.getConfiguration().getActionResolver().getUrlBinding(context.actionBean.getClass()), context.actionBean);</span>
+            // Copy flash scope/messages from action bean's context to execution context.
+<span class="nc bnc" id="L313" title="All 2 branches missed.">            if (context.bindingFlashScope != null) {</span>
+<span class="nc" id="L314">                this.copyFlashScope(context.bindingFlashScope, FlashScope.getCurrent(executionContext.getActionBeanContext().getRequest(), true));</span>
+            }
+<span class="nc bnc" id="L316" title="All 2 branches missed.">            if (context.eventFlashScope != null) {</span>
+<span class="nc" id="L317">                this.copyFlashScope(context.eventFlashScope, FlashScope.getCurrent(executionContext.getActionBeanContext().getRequest(), true));</span>
+            }
+
+<span class="nc bnc" id="L320" title="All 2 branches missed.">            if (executionContext.getActionBeanContext().getRequest().getParameter(AJAX) != null)</span>
+            {
+                // We are using an AJAX updater. We need to go to AJAX page to allow javascript to validate if event completed.
+<span class="nc bnc" id="L323" title="All 2 branches missed.">                resolution = new ForwardResolution(context.annotation.ajax().length() &gt; 0 ? context.annotation.ajax() : context.annotation.path());</span>
+            }
+<span class="nc bnc" id="L325" title="All 2 branches missed.">            else if (context.status == Context.Status.COMPLETE)</span>
+            {
+<span class="nc" id="L327">                log.trace(&quot;the processor is finished so we'll remove it from the map&quot;);</span>
+                // Remove context since event completed and we will show resolution returned by event.
+<span class="nc" id="L329">                contexts.remove(context.hashCode());</span>
+                // Copy errors from action bean's context to execution context.
+<span class="nc" id="L331">                this.copyErrors(context.actionBean.getContext(), executionContext.getActionBeanContext());</span>
+                // Replace request in action bean so that session will be valid.
+<span class="nc" id="L333">                context.actionBean.setContext(executionContext.getActionBeanContext());</span>
+
+<span class="nc bnc" id="L335" title="All 2 branches missed.">                if (context.throwable != null) {</span>
+                    // Event did not complete normally, it thrown an exception.
+<span class="nc bnc" id="L337" title="All 4 branches missed.">                    if ((&quot;&quot;.equals(context.annotation.error())) &amp;&amp; (context.throwable instanceof Exception)) {</span>
+                        // No error page, throw exception.
+<span class="nc" id="L339">                        throw (Exception) context.throwable;</span>
+                    }
+                    else {
+                        // An error page is specified, save error and go to error page.
+<span class="nc" id="L343">                        executionContext.getActionBeanContext().getRequest().setAttribute(&quot;exception&quot;, context.throwable);</span>
+<span class="nc" id="L344">                        resolution = new ForwardResolution(context.annotation.error());</span>
+                    }
+                }
+                // Stripes or user code may use executionContext.getResolution() to obtain resolution instead of returned resolution. So set resolution in executionContext too.
+<span class="nc" id="L348">                executionContext.setResolution(resolution);</span>
+            }
+
+            // Since context in current execution context is artificial, we should not update context in action bean as it would make action bean in other thread inconsistent.
+            //context.actionBean.setContext(executionContext.getActionBeanContext());
+
+            // Go to wait page or execute resolution from event, if it completed.
+<span class="nc" id="L355">            return resolution;</span>
+        }
+    }
+
+    /**
+     * Copy errors from a context to another context.
+     * @param source source containing errors to copy
+     * @param destination where errors will be copied
+     */
+    protected void copyErrors(ActionBeanContext source, ActionBeanContext destination) {
+<span class="nc" id="L365">        destination.getValidationErrors().putAll(source.getValidationErrors());</span>
+<span class="nc" id="L366">    }</span>
+    /**
+     * Copy source flash scope content (including messages) from to destination flash scope.
+     * @param source flash scope to copy
+     * @param destination where source flash scope content will be copied
+     */
+    protected void copyFlashScope(FlashScope source, FlashScope destination) {
+<span class="nc" id="L373">        destination.putAll(source);</span>
+<span class="nc" id="L374">    }</span>
+    /**
+     * Remove all contexts that are expired.
+     * @param contexts all contexts currently in memory
+     */
+    protected void removeExpired(Map&lt;Integer, Context&gt; contexts) {
+<span class="nc bnc" id="L380" title="All 2 branches missed.">        contexts.values().removeIf(context -&gt; context.completeMoment != null</span>
+<span class="nc bnc" id="L381" title="All 2 branches missed.">                &amp;&amp; System.currentTimeMillis() - context.completeMoment &gt; contextTimeout);</span>
+<span class="nc" id="L382">    }</span>
+
+    /**
+     * Read context timeout, if any.
+     */
+    public void init(Configuration configuration) throws Exception {
+<span class="nc bnc" id="L388" title="All 2 branches missed.">        if (configuration.getBootstrapPropertyResolver().getProperty(CONTEXT_TIMEOUT_NAME) != null) {</span>
+<span class="nc" id="L389">            log.debug(&quot;Configuring context timeout with value &quot;, configuration.getBootstrapPropertyResolver().getProperty(CONTEXT_TIMEOUT_NAME));</span>
+            try {
+<span class="nc" id="L391">                contextTimeout = Long.parseLong(configuration.getBootstrapPropertyResolver().getProperty(CONTEXT_TIMEOUT_NAME));</span>
+<span class="nc" id="L392">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L393">                log.warn(&quot;Init parameter &quot;, CONTEXT_TIMEOUT_NAME, &quot; is not a parsable long, timeout will be &quot;, &quot; instead&quot;);</span>
+<span class="nc" id="L394">                contextTimeout = DEFAULT_CONTEXT_TIMEOUT;</span>
+<span class="nc" id="L395">            }</span>
+        }
+
+<span class="nc bnc" id="L398" title="All 2 branches missed.">        if (configuration.getBootstrapPropertyResolver().getProperty(SELF_URL) != null) {</span>
+<span class="nc" id="L399">            log.debug(&quot;Configuring self URL with value &quot;, configuration.getBootstrapPropertyResolver().getProperty(SELF_URL));</span>
+            try {
+<span class="nc" id="L401">                selfUrl = new URL(configuration.getBootstrapPropertyResolver().getProperty(SELF_URL));</span>
+<span class="nc" id="L402">            } catch (MalformedURLException e) {</span>
+<span class="nc" id="L403">                log.warn(&quot;Init parameter &quot;, SELF_URL, &quot; is not a parsable URL, self URL will be based on request instead&quot;);</span>
+<span class="nc" id="L404">            }</span>
+        }
+<span class="nc" id="L406">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

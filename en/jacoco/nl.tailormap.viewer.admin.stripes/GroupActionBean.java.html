@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">GroupActionBean.java</span></div><h1>GroupActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.DontBind;
+import net.sourceforge.stripes.action.DontValidate;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.HandlesEvent;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import net.sourceforge.stripes.validation.ValidationErrors;
+import net.sourceforge.stripes.validation.ValidationMethod;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.config.app.Level;
+import nl.tailormap.viewer.config.security.Group;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.NoResultException;
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+
+/**
+ *
+ * @author Jytte Schaeffer
+ */
+@StrictBinding
+@UrlBinding(&quot;/action/group/{$event}/{service}&quot;)
+@RolesAllowed({Group.ADMIN,Group.USER_ADMIN})
+<span class="nc" id="L60">public class GroupActionBean extends LocalizableActionBean {</span>
+
+    private static final String JSP = &quot;/WEB-INF/jsp/security/group.jsp&quot;;
+    private static final String EDITJSP = &quot;/WEB-INF/jsp/security/editgroup.jsp&quot;;
+        
+    private ActionBeanContext context;
+    
+    @Validate
+    private int page;
+    @Validate
+    private int start;
+    @Validate
+    private int limit;
+    @Validate
+    private String sort;
+    @Validate
+    private String dir;
+    @Validate
+    private JSONArray filter;
+    
+    @Validate
+    private Group group;
+    
+    @Validate
+    private String name;
+    @Validate
+    private String description;
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+    public ActionBeanContext getContext() {
+<span class="nc" id="L90">        return context;</span>
+    }
+
+    public void setContext(ActionBeanContext context) {
+<span class="nc" id="L94">        this.context = context;</span>
+<span class="nc" id="L95">    }</span>
+
+    public Group getGroup() {
+<span class="nc" id="L98">        return group;</span>
+    }
+
+    public void setGroup(Group group) {
+<span class="nc" id="L102">        this.group = group;</span>
+<span class="nc" id="L103">    }</span>
+
+    public String getDescription() {
+<span class="nc" id="L106">        return description;</span>
+    }
+
+    public void setDescription(String description) {
+<span class="nc" id="L110">        this.description = description;</span>
+<span class="nc" id="L111">    }</span>
+
+    public String getName() {
+<span class="nc" id="L114">        return name;</span>
+    }
+
+    public void setName(String name) {
+<span class="nc" id="L118">        this.name = name;</span>
+<span class="nc" id="L119">    }</span>
+
+    public String getDir() {
+<span class="nc" id="L122">        return dir;</span>
+    }
+
+    public void setDir(String dir) {
+<span class="nc" id="L126">        this.dir = dir;</span>
+<span class="nc" id="L127">    }</span>
+
+    public JSONArray getFilter() {
+<span class="nc" id="L130">        return filter;</span>
+    }
+
+    public void setFilter(JSONArray filter) {
+<span class="nc" id="L134">        this.filter = filter;</span>
+<span class="nc" id="L135">    }</span>
+
+    public int getLimit() {
+<span class="nc" id="L138">        return limit;</span>
+    }
+
+    public void setLimit(int limit) {
+<span class="nc" id="L142">        this.limit = limit;</span>
+<span class="nc" id="L143">    }</span>
+
+    public int getPage() {
+<span class="nc" id="L146">        return page;</span>
+    }
+
+    public void setPage(int page) {
+<span class="nc" id="L150">        this.page = page;</span>
+<span class="nc" id="L151">    }</span>
+
+    public String getSort() {
+<span class="nc" id="L154">        return sort;</span>
+    }
+
+    public void setSort(String sort) {
+<span class="nc" id="L158">        this.sort = sort;</span>
+<span class="nc" id="L159">    }</span>
+
+    public int getStart() {
+<span class="nc" id="L162">        return start;</span>
+    }
+
+    public void setStart(int start) {
+<span class="nc" id="L166">        this.start = start;</span>
+<span class="nc" id="L167">    }</span>
+    //&lt;/editor-fold&gt;
+        
+    @DefaultHandler
+    @HandlesEvent(&quot;default&quot;)
+    @DontValidate
+    public Resolution defaultResolution() {
+<span class="nc" id="L174">        return new ForwardResolution(JSP);</span>
+    }
+
+    @DontValidate
+    public Resolution edit() {
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        if(group != null){</span>
+<span class="nc" id="L180">            name = group.getName();</span>
+<span class="nc" id="L181">            description = group.getDescription();</span>
+        }
+<span class="nc" id="L183">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    @DontBind
+    public Resolution cancel() {
+<span class="nc" id="L188">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    public Resolution save() {
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        if (group == null) {</span>
+<span class="nc" id="L193">            group = new Group();</span>
+<span class="nc" id="L194">            group.setName(name);</span>
+<span class="nc" id="L195">            group.setDescription(description);</span>
+        } else {
+<span class="nc" id="L197">            group.setDescription(description);</span>
+        }
+
+<span class="nc" id="L200">        Stripersist.getEntityManager().persist(group);</span>
+<span class="nc" id="L201">        Stripersist.getEntityManager().getTransaction().commit();</span>
+
+<span class="nc" id="L203">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.groupactionbean.ugsaved&quot;)));</span>
+<span class="nc" id="L204">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    @ValidationMethod(on = &quot;save&quot;)
+    public void validate(ValidationErrors errors) throws Exception {
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (group == null) {</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">            if(name == null) {</span>
+<span class="nc" id="L211">                errors.add(&quot;name&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.groupactionbean.nameobl&quot;)));</span>
+<span class="nc" id="L212">                return;</span>
+            }
+            
+            try {
+<span class="nc" id="L216">                Object o = Stripersist.getEntityManager().createQuery(&quot;select 1 from Group where name = :name&quot;).setMaxResults(1).setParameter(&quot;name&quot;, name).getSingleResult();</span>
+
+<span class="nc" id="L218">                errors.add(&quot;name&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.groupactionbean.namenotunique&quot;)));</span>
+<span class="nc" id="L219">                return;</span>
+
+<span class="nc" id="L221">            } catch (NoResultException nre) {</span>
+                // name is unique
+            }
+        }
+<span class="nc" id="L225">    }</span>
+
+    @DontValidate
+    public Resolution delete() {
+<span class="nc bnc" id="L229" title="All 2 branches missed.">        if (!group.getMembers().isEmpty()) {</span>
+<span class="nc" id="L230">            getContext().getValidationErrors().add(&quot;group&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.groupactionbean.ughasu&quot;)));</span>
+<span class="nc" id="L231">            return new ForwardResolution(EDITJSP);</span>
+        }
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if(groupInUse()){</span>
+<span class="nc" id="L234">            getContext().getValidationErrors().add(&quot;group&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.groupactionbean.uginuse&quot;)));</span>
+<span class="nc" id="L235">            return new ForwardResolution(EDITJSP);</span>
+        }
+<span class="nc" id="L237">        Stripersist.getEntityManager().remove(group);</span>
+<span class="nc" id="L238">        Stripersist.getEntityManager().getTransaction().commit();</span>
+
+<span class="nc" id="L240">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.groupactionbean.ugrem&quot;)));</span>
+
+<span class="nc" id="L242">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    @DontValidate
+    public Resolution getGridData() throws JSONException {
+<span class="nc" id="L247">        JSONArray jsonData = new JSONArray();</span>
+
+<span class="nc" id="L249">        String filterName = &quot;&quot;;</span>
+<span class="nc" id="L250">        String filterDescription = &quot;&quot;;</span>
+        /* 
+         * FILTERING: filter is delivered by frontend as JSON array [{property, value}]
+         * for demo purposes the value is now returned, ofcourse here should the DB
+         * query be built to filter the right records
+         */
+<span class="nc bnc" id="L256" title="All 2 branches missed.">        if (this.getFilter() != null) {</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">            for (int k = 0; k &lt; this.getFilter().length(); k++) {</span>
+<span class="nc" id="L258">                JSONObject j = this.getFilter().getJSONObject(k);</span>
+<span class="nc" id="L259">                String property = j.getString(&quot;property&quot;);</span>
+<span class="nc" id="L260">                String value = j.getString(&quot;value&quot;);</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">                if (property.equals(&quot;name&quot;)) {</span>
+<span class="nc" id="L262">                    filterName = value;</span>
+                }
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                if (property.equals(&quot;description&quot;)) {</span>
+<span class="nc" id="L265">                    filterDescription = value;</span>
+                }
+            }
+        }
+
+<span class="nc" id="L270">        Session sess = (Session) Stripersist.getEntityManager().getDelegate();</span>
+<span class="nc" id="L271">        Criteria c = sess.createCriteria(Group.class);</span>
+
+        /* Sorting is delivered by the frontend
+         * as two variables: sort which holds the column name and dir which
+         * holds the direction (ASC, DESC).
+         */
+<span class="nc bnc" id="L277" title="All 6 branches missed.">        if (sort != null &amp;&amp; dir != null &amp;&amp; sort.equals(&quot;name&quot;)) {</span>
+<span class="nc" id="L278">            Order order = null;</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">            if (dir.equals(&quot;ASC&quot;)) {</span>
+<span class="nc" id="L280">                order = Order.asc(sort);</span>
+            } else {
+<span class="nc" id="L282">                order = Order.desc(sort);</span>
+            }
+<span class="nc" id="L284">            order.ignoreCase();</span>
+<span class="nc" id="L285">            c.addOrder(order);</span>
+        }
+
+<span class="nc bnc" id="L288" title="All 4 branches missed.">        if (filterName != null &amp;&amp; filterName.length() &gt; 0) {</span>
+<span class="nc" id="L289">            Criterion nameCrit = Restrictions.ilike(&quot;name&quot;, filterName, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L290">            c.add(nameCrit);</span>
+        }
+<span class="nc bnc" id="L292" title="All 4 branches missed.">        if (filterDescription != null &amp;&amp; filterDescription.length() &gt; 0) {</span>
+<span class="nc" id="L293">            Criterion urlCrit = Restrictions.ilike(&quot;description&quot;, filterDescription, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L294">            c.add(urlCrit);</span>
+        }
+        
+<span class="nc" id="L297">        int rowCount = c.list().size();</span>
+        
+<span class="nc" id="L299">        c.setMaxResults(limit);</span>
+<span class="nc" id="L300">        c.setFirstResult(start);</span>
+
+<span class="nc" id="L302">        List groups = c.list();</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">        for (Object o : groups) {</span>
+<span class="nc" id="L304">            Group gr = (Group) o;</span>
+<span class="nc" id="L305">            JSONObject j = this.getGridRow(gr.getName(), gr.getDescription());</span>
+<span class="nc" id="L306">            jsonData.put(j);</span>
+<span class="nc" id="L307">        }</span>
+
+<span class="nc" id="L309">        final JSONObject grid = new JSONObject();</span>
+<span class="nc" id="L310">        grid.put(&quot;totalCount&quot;, rowCount);</span>
+<span class="nc" id="L311">        grid.put(&quot;gridrows&quot;, jsonData);</span>
+
+<span class="nc" id="L313">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+
+            @Override
+            public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L317">                response.getWriter().print(grid);</span>
+<span class="nc" id="L318">            }</span>
+        };
+    }
+    
+    private boolean groupInUse(){
+<span class="nc" id="L323">        boolean inUse = false;</span>
+<span class="nc" id="L324">        List&lt;Level&gt; levels = Stripersist.getEntityManager().createQuery(&quot;from Level&quot;, Level.class).getResultList();</span>
+
+<span class="nc bnc" id="L326" title="All 2 branches missed.">        for (Level level : levels) {</span>
+<span class="nc bnc" id="L327" title="All 2 branches missed.">            if (level.getReaders().contains(group.getName())) {</span>
+<span class="nc" id="L328">                inUse = true;</span>
+<span class="nc" id="L329">                break;</span>
+            }
+<span class="nc" id="L331">        }</span>
+        
+        /*
+         * not only a check on level.readers, but on every readers or writers
+         */
+
+<span class="nc" id="L337">        return inUse;</span>
+    }
+
+    private JSONObject getGridRow(String name, String description) throws JSONException {
+<span class="nc" id="L341">        JSONObject j = new JSONObject();</span>
+<span class="nc" id="L342">        j.put(&quot;name&quot;, name);</span>
+<span class="nc" id="L343">        j.put(&quot;description&quot;, description);</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        if(Group.DEFAULT_GROUPS.contains(name)) {</span>
+<span class="nc" id="L345">            j.put(&quot;editable&quot;, false);</span>
+        } else {
+<span class="nc" id="L347">            j.put(&quot;editable&quot;, true);</span>
+        }
+<span class="nc" id="L349">        return j;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookmarkActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">BookmarkActionBean.java</span></div><h1>BookmarkActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2015-2017 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.config.app.Application;
+import nl.tailormap.viewer.config.app.Bookmark;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletResponse;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+/**
+ *
+ * @author Meine Toonen meinetoonen@b3partners.nl
+ */
+<span class="nc" id="L51">public class BookmarkActionBean extends LocalizableActionBean {</span>
+
+    private static final String JSP = &quot;/WEB-INF/jsp/services/bookmark.jsp&quot;;
+    private static final String EDITJSP = &quot;/WEB-INF/jsp/services/bookmarkEdit.jsp&quot;;
+    private ActionBeanContext context;
+            
+    @Validate
+    private int limit;
+
+    @Validate
+    private int start;
+
+    @Validate
+    private int page;
+
+    @Validate
+    private String sort;
+
+    @Validate
+    private JSONArray filter;
+
+    @Validate
+    private String dir;
+
+    @Validate
+    private Bookmark bookmark;
+
+    // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Getters and Setters&quot;&gt;
+
+    public ActionBeanContext getContext() {
+<span class="nc" id="L81">        return context;</span>
+    }
+
+    public void setContext(ActionBeanContext context) {
+<span class="nc" id="L85">        this.context = context;</span>
+<span class="nc" id="L86">    }</span>
+
+    public int getLimit() {
+<span class="nc" id="L89">        return limit;</span>
+    }
+
+    public void setLimit(int limit) {
+<span class="nc" id="L93">        this.limit = limit;</span>
+<span class="nc" id="L94">    }</span>
+
+    public int getStart() {
+<span class="nc" id="L97">        return start;</span>
+    }
+
+    public void setStart(int start) {
+<span class="nc" id="L101">        this.start = start;</span>
+<span class="nc" id="L102">    }</span>
+
+    public int getPage() {
+<span class="nc" id="L105">        return page;</span>
+    }
+
+    public void setPage(int page) {
+<span class="nc" id="L109">        this.page = page;</span>
+<span class="nc" id="L110">    }</span>
+
+    public String getSort() {
+<span class="nc" id="L113">        return sort;</span>
+    }
+
+    public void setSort(String sort) {
+<span class="nc" id="L117">        this.sort = sort;</span>
+<span class="nc" id="L118">    }</span>
+
+    public String getDir() {
+<span class="nc" id="L121">        return dir;</span>
+    }
+
+    public void setDir(String dir) {
+<span class="nc" id="L125">        this.dir = dir;</span>
+<span class="nc" id="L126">    }</span>
+
+    public JSONArray getFilter() {
+<span class="nc" id="L129">        return filter;</span>
+    }
+
+    public void setFilter(JSONArray filter) {
+<span class="nc" id="L133">        this.filter = filter;</span>
+<span class="nc" id="L134">    }</span>
+
+    public Bookmark getBookmark() {
+<span class="nc" id="L137">        return bookmark;</span>
+    }
+
+    public void setBookmark(Bookmark bookmark) {
+<span class="nc" id="L141">        this.bookmark = bookmark;</span>
+<span class="nc" id="L142">    }</span>
+    // &lt;/editor-fold&gt;
+        
+    @DefaultHandler
+    public Resolution view(){
+<span class="nc" id="L147">        return new ForwardResolution(JSP);</span>
+    }
+
+    public Resolution viewEdit(){
+<span class="nc" id="L151">        return new ForwardResolution(EDITJSP);</span>
+        
+    }
+
+    public Resolution deleteBookmark() throws JSONException{
+        
+        
+        try{
+<span class="nc" id="L159">            EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L160">            em.remove(bookmark);</span>
+<span class="nc" id="L161">            em.getTransaction().commit();</span>
+<span class="nc" id="L162">            context.getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.bookmarkactionbean.remsuccess&quot;)));</span>
+<span class="nc" id="L163">        }catch(Exception e ){</span>
+<span class="nc" id="L164">            context.getValidationErrors().add(&quot;Verwijderen&quot;,new SimpleError(getBundle().getString(&quot;viewer_admin.bookmarkactionbean.remfailed&quot;), e.getLocalizedMessage()));</span>
+<span class="nc" id="L165">        }</span>
+<span class="nc" id="L166">        return viewEdit();</span>
+    }
+
+    public Resolution getGridData() throws JSONException {
+<span class="nc" id="L170">        final JSONObject result = new JSONObject();</span>
+<span class="nc" id="L171">        JSONArray gridrows = new JSONArray();</span>
+
+
+<span class="nc" id="L174">        Session sess = (Session) Stripersist.getEntityManager().getDelegate();</span>
+<span class="nc" id="L175">        Criteria c = sess.createCriteria(Bookmark.class,&quot;bookmark&quot;);</span>
+<span class="nc" id="L176">        c.createAlias(&quot;bookmark.application&quot;, &quot;application&quot;);</span>
+
+<span class="nc" id="L178">        String applicationName = &quot;&quot;;</span>
+        /*
+         * FILTERING: filter is delivered by frontend as JSON array [{property,
+         * value}] for demo purposes the value is now returned, ofcourse here
+         * should the DB query be built to filter the right records
+         */
+<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (this.getFilter() != null) {</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">            for (int k = 0; k &lt; this.getFilter().length(); k++) {</span>
+<span class="nc" id="L186">                JSONObject j = this.getFilter().getJSONObject(k);</span>
+<span class="nc" id="L187">                String property = j.getString(&quot;property&quot;);</span>
+<span class="nc" id="L188">                String value = j.getString(&quot;value&quot;);</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">                if (property.equals(&quot;application.name&quot;)) {</span>
+<span class="nc" id="L190">                    applicationName = value;</span>
+                }
+            }
+        }
+        
+         /*
+         * Sorting is delivered by the frontend as two variables: sort which
+         * holds the column name and dir which holds the direction (ASC, DESC).
+         */
+<span class="nc bnc" id="L199" title="All 4 branches missed.">        if (sort != null &amp;&amp; dir != null) {</span>
+            Order order;
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            if (sort.equals(&quot;published&quot;)) {</span>
+<span class="nc" id="L202">                sort = &quot;version&quot;;</span>
+            }
+<span class="nc bnc" id="L204" title="All 2 branches missed.">            if (dir.equals(&quot;ASC&quot;)) {</span>
+<span class="nc" id="L205">                order = Order.asc(sort);</span>
+            } else {
+<span class="nc" id="L207">                order = Order.desc(sort);</span>
+            }
+<span class="nc" id="L209">            order.ignoreCase();</span>
+<span class="nc" id="L210">            c.addOrder(order);</span>
+        }
+
+<span class="nc bnc" id="L213" title="All 4 branches missed.">        if (applicationName != null &amp;&amp; applicationName.length() &gt; 0) {</span>
+<span class="nc" id="L214">            Criterion nameCrit = Restrictions.ilike(&quot;application.name&quot;, applicationName, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L215">            c.add(nameCrit);</span>
+        }
+
+<span class="nc" id="L218">        int rowCount = c.list().size();</span>
+
+<span class="nc" id="L220">        c.setMaxResults(limit);</span>
+<span class="nc" id="L221">        c.setFirstResult(start);</span>
+
+<span class="nc" id="L223">        List&lt;Bookmark&gt; bookmarks = c.list();</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        for (Bookmark bm : bookmarks) {</span>
+<span class="nc" id="L225">            Application app = bm.getApplication();</span>
+<span class="nc" id="L226">            String appName = null;</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">            if (app != null) {</span>
+<span class="nc" id="L228">                appName = app.getName();</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                if (app.getVersion() != null) {</span>
+<span class="nc" id="L230">                    appName += &quot; v&quot; + app.getVersion();</span>
+                }
+            }
+
+<span class="nc" id="L234">            Date dateCreated = bm.getCreatedAt();</span>
+
+<span class="nc" id="L236">            JSONObject j = getGridRow(bm.getId(), appName, bm.getCode(), dateCreated);</span>
+<span class="nc" id="L237">            gridrows.put(j);</span>
+<span class="nc" id="L238">        }</span>
+
+<span class="nc" id="L240">        result.put(&quot;totalCount&quot;, rowCount);</span>
+<span class="nc" id="L241">        result.put(&quot;gridrows&quot;, gridrows);</span>
+
+<span class="nc" id="L243">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+
+            @Override
+            public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L247">                response.getWriter().print(result);</span>
+<span class="nc" id="L248">            }</span>
+        };
+    }
+
+    private JSONObject getGridRow(long id, String appName, String code, Date createdDate) throws JSONException{
+<span class="nc" id="L253">        JSONObject row = new JSONObject();</span>
+<span class="nc" id="L254">        row.put(&quot;id&quot;, id);</span>
+<span class="nc" id="L255">        row.put(&quot;application.name&quot;, appName);</span>
+<span class="nc" id="L256">        row.put(&quot;code&quot;, code);</span>
+<span class="nc" id="L257">        SimpleDateFormat sdf = new SimpleDateFormat(&quot;HH-mm dd-MM-yyyy&quot;);</span>
+<span class="nc" id="L258">        String date = sdf.format(createdDate);</span>
+<span class="nc" id="L259">        row.put(&quot;createdAt&quot;, date);</span>
+<span class="nc" id="L260">        return row;</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

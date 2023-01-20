@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">ApplicationActionBean.java</span></div><h1>ApplicationActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2012-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.After;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.controller.LifecycleStage;
+import net.sourceforge.stripes.validation.Validate;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.config.app.Application;
+import nl.tailormap.viewer.config.security.Group;
+import org.stripesstuff.plugin.session.Session;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import java.util.List;
+
+/**
+ *
+ * @author Meine Toonen
+ */
+@StrictBinding
+@RolesAllowed({Group.ADMIN,Group.APPLICATION_ADMIN}) 
+<span class="fc" id="L40">public abstract class ApplicationActionBean extends LocalizableActionBean {</span>
+
+    protected ActionBeanContext context;
+            
+    @Validate
+    protected Application application;
+    
+    @Session(key = &quot;applicationId&quot;)
+    protected Long applicationId;
+    
+    @Session(key = &quot;applicationName&quot;)
+    private String applicationName;
+
+
+    protected List&lt;Group&gt; allGroups;
+
+
+    // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Getters and Setters&quot;&gt;
+    public void setContext(ActionBeanContext abc) {
+<span class="fc" id="L59">        this.context = abc;</span>
+<span class="fc" id="L60">    }</span>
+
+    public ActionBeanContext getContext() {
+<span class="fc" id="L63">        return context;</span>
+    }
+
+    public Application getApplication() {
+<span class="nc" id="L67">        return application;</span>
+    }
+
+    public String getApplicationName() {
+<span class="nc" id="L71">        return applicationName;</span>
+    }
+
+    public void setApplicationName(String applicationName) {
+<span class="nc" id="L75">        this.applicationName = applicationName;</span>
+<span class="nc" id="L76">    }</span>
+
+    public List&lt;Group&gt; getAllGroups() {
+<span class="nc" id="L79">        return allGroups;</span>
+    }
+
+    public void setAllGroups(List&lt;Group&gt; allGroups) {
+<span class="nc" id="L83">        this.allGroups = allGroups;</span>
+<span class="nc" id="L84">    }</span>
+    // &lt;/editor-fold&gt;
+    
+    public void setApplication(Application application) {
+<span class="fc" id="L88">        this.application = application;</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        if(application != null) {</span>
+<span class="fc" id="L90">            this.applicationId = application.getId();</span>
+<span class="fc" id="L91">            this.applicationName = application.getName();</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">            if(application.getVersion() != null) {</span>
+<span class="fc" id="L93">                this.applicationName += &quot; v&quot; + application.getVersion();</span>
+            }
+        } else {
+<span class="fc" id="L96">            this.applicationId = null;</span>
+<span class="fc" id="L97">            this.applicationName = null;</span>
+        }
+<span class="fc" id="L99">    }</span>
+
+    @After(stages = {LifecycleStage.BindingAndValidation})
+    public void initApplication() {
+<span class="nc" id="L103">            EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc bnc" id="L104" title="All 4 branches missed.">        if(applicationId != null &amp;&amp; applicationId != -1L ){</span>
+<span class="nc" id="L105">            application = em.find(Application.class, applicationId);</span>
+<span class="nc" id="L106">            setApplication(application);</span>
+        }
+<span class="nc" id="L108">        allGroups = em.createQuery(&quot;from Group&quot;, Group.class).getResultList();</span>
+<span class="nc" id="L109">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

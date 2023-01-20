@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CycloramaConfigurationActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">CycloramaConfigurationActionBean.java</span></div><h1>CycloramaConfigurationActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2014 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.FileBean;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import net.sourceforge.stripes.validation.ValidateNestedProperties;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.config.CycloramaAccount;
+import nl.tailormap.viewer.config.security.Group;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.interfaces.RSAPrivateCrtKey;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+
+/**
+ *
+ * @author Meine Toonen
+ */
+@UrlBinding(&quot;/action/cyclorama/{$event}&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN,Group.REGISTRY_ADMIN})
+<span class="nc" id="L67">public class CycloramaConfigurationActionBean extends LocalizableActionBean {</span>
+<span class="nc" id="L68">    private static final Log log = LogFactory.getLog(CycloramaConfigurationActionBean.class);</span>
+
+<span class="nc" id="L70">    private final String CERT_TYPE = &quot;PKCS12&quot;;</span>
+<span class="nc" id="L71">    private final String KEY_FORMAT = &quot;PKCS#8&quot;;</span>
+
+    private ActionBeanContext context;
+<span class="nc" id="L74">    private final String JSP = &quot;/WEB-INF/jsp/services/cyclorama.jsp&quot;;</span>
+
+    @Validate
+    private FileBean key;
+<span class="nc" id="L78">    private List&lt;CycloramaAccount&gt; accounts = new ArrayList&lt;&gt;();</span>
+
+    @Validate
+    @ValidateNestedProperties({
+        @Validate(field = &quot;username&quot;),
+        @Validate(field = &quot;password&quot;)
+    })
+    private CycloramaAccount account;
+
+    // &lt;editor-fold desc=&quot;Getters and setters&quot; defaultstate=&quot;collapsed&quot;&gt;
+    @Override
+    public void setContext(ActionBeanContext abc) {
+<span class="nc" id="L90">        this.context = abc;</span>
+<span class="nc" id="L91">    }</span>
+
+    @Override
+    public ActionBeanContext getContext() {
+<span class="nc" id="L95">        return context;</span>
+    }
+
+    public FileBean getKey() {
+<span class="nc" id="L99">        return key;</span>
+    }
+
+    public void setKey(FileBean key) {
+<span class="nc" id="L103">        this.key = key;</span>
+<span class="nc" id="L104">    }</span>
+
+    public List&lt;CycloramaAccount&gt; getAccounts() {
+<span class="nc" id="L107">        return accounts;</span>
+    }
+
+    public void setAccounts(List&lt;CycloramaAccount&gt; accounts) {
+<span class="nc" id="L111">        this.accounts = accounts;</span>
+<span class="nc" id="L112">    }</span>
+
+    public CycloramaAccount getAccount() {
+<span class="nc" id="L115">        return account;</span>
+    }
+
+    public void setAccount(CycloramaAccount account) {
+<span class="nc" id="L119">        this.account = account;</span>
+<span class="nc" id="L120">    }</span>
+
+    // &lt;/editor-fold&gt;
+        
+    @DefaultHandler
+    public Resolution view() {
+<span class="nc" id="L126">        accounts = getAccountList();</span>
+<span class="nc" id="L127">        return new ForwardResolution(JSP);</span>
+    }
+
+    public Resolution save() throws KeyStoreException {
+        try {
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            if (key != null) {</span>
+<span class="nc" id="L133">                String privateBase64Key = getBase64EncodedPrivateKeyFromPfxUpload(key.getInputStream(), account.getPassword());</span>
+<span class="nc" id="L134">                account.setPrivateBase64Key(privateBase64Key);</span>
+<span class="nc" id="L135">                account.setFilename(key.getFileName());</span>
+<span class="nc" id="L136">                key.delete();</span>
+<span class="nc" id="L137">            }else{</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">                if(account.getPrivateBase64Key() == null){</span>
+<span class="nc" id="L139">                    context.getValidationErrors().add(&quot;Key&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.cycloramaconfigurationactionbean.pfx&quot;)));</span>
+                }
+            }
+<span class="nc" id="L142">            EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L143">            em.persist(account);</span>
+<span class="nc" id="L144">            em.getTransaction().commit();</span>
+
+<span class="nc" id="L146">        } catch (Exception ex) {</span>
+<span class="nc" id="L147">            context.getValidationErrors().add(&quot;Key&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.cycloramaconfigurationactionbean.keywrong&quot;)));</span>
+<span class="nc" id="L148">            log.error(&quot;Something went wrong with reading the key&quot;,ex);</span>
+<span class="nc" id="L149">        }</span>
+<span class="nc" id="L150">        return view();</span>
+    }
+
+    public Resolution removeKey() {
+<span class="nc" id="L154">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L155">        em.remove(account);</span>
+<span class="nc" id="L156">        em.getTransaction().commit();</span>
+<span class="nc" id="L157">        account = new CycloramaAccount();</span>
+<span class="nc" id="L158">        this.context.getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.cycloramaconfigurationactionbean.keyrem&quot;)));</span>
+<span class="nc" id="L159">        return view();</span>
+    }
+
+    public Resolution accountList() throws JSONException{
+<span class="nc" id="L163">        List&lt;CycloramaAccount&gt; list = getAccountList();</span>
+<span class="nc" id="L164">        JSONArray accountArray = new JSONArray();</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">        for (CycloramaAccount account : list) {</span>
+<span class="nc" id="L166">            JSONObject accountObj = account.toJSON();</span>
+<span class="nc" id="L167">            accountArray.put(accountObj);</span>
+<span class="nc" id="L168">        }</span>
+<span class="nc" id="L169">        return new StreamingResolution(&quot;application/json&quot;, new StringReader(accountArray.toString()));</span>
+    }
+
+    private String getBase64EncodedPrivateKeyFromPfxUpload(InputStream in, String password)
+            throws KeyStoreException, IOException, NoSuchAlgorithmException,
+            CertificateException, UnrecoverableKeyException {
+
+<span class="nc" id="L176">        String base64 = null;</span>
+
+<span class="nc" id="L178">        PrivateKey privateKey = null;</span>
+
+<span class="nc" id="L180">        KeyStore ks = java.security.KeyStore.getInstance(CERT_TYPE);</span>
+<span class="nc" id="L181">        ks.load(new BufferedInputStream(in), password.toCharArray());</span>
+
+<span class="nc" id="L183">        Enumeration&lt;String&gt; aliases = ks.aliases();</span>
+
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        while (aliases.hasMoreElements()) {</span>
+<span class="nc" id="L186">            String alias = aliases.nextElement();</span>
+
+<span class="nc" id="L188">            Key ksKey = ks.getKey(alias, password.toCharArray());</span>
+<span class="nc" id="L189">            String keyFormat = ksKey.getFormat();</span>
+
+<span class="nc bnc" id="L191" title="All 4 branches missed.">            if ((ksKey instanceof RSAPrivateCrtKey) &amp;&amp; keyFormat.equals(KEY_FORMAT)) {</span>
+<span class="nc" id="L192">                privateKey = (PrivateKey) ksKey;</span>
+            }
+<span class="nc" id="L194">        }</span>
+
+<span class="nc bnc" id="L196" title="All 2 branches missed.">        if (privateKey != null) {</span>
+<span class="nc" id="L197">            Base64 encoder = new Base64();</span>
+<span class="nc" id="L198">            base64 = new String(encoder.encode(privateKey.getEncoded()));</span>
+        }
+
+<span class="nc" id="L201">        return base64;</span>
+    }
+
+    public List&lt;CycloramaAccount&gt; getAccountList(){
+<span class="nc" id="L205">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L206">        return em.createQuery(&quot;FROM CycloramaAccount&quot;, CycloramaAccount.class).getResultList();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

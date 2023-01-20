@@ -1,0 +1,630 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AttributeSourceActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">AttributeSourceActionBean.java</span></div><h1>AttributeSourceActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2011-2013 B3Partners B.V.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.Before;
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SimpleMessage;
+import net.sourceforge.stripes.action.StreamingResolution;
+import net.sourceforge.stripes.action.StrictBinding;
+import net.sourceforge.stripes.action.UrlBinding;
+import net.sourceforge.stripes.validation.SimpleError;
+import net.sourceforge.stripes.validation.Validate;
+import net.sourceforge.stripes.validation.ValidationErrors;
+import net.sourceforge.stripes.validation.ValidationMethod;
+import nl.tailormap.i18n.LocalizableActionBean;
+import nl.tailormap.viewer.config.security.Group;
+import nl.tailormap.viewer.config.services.FeatureSource;
+import nl.tailormap.viewer.config.services.FeatureSourceUpdateResult;
+import nl.tailormap.viewer.config.services.JDBCFeatureSource;
+import nl.tailormap.viewer.config.services.SimpleFeatureType;
+import nl.tailormap.viewer.config.services.UpdateResult;
+import nl.tailormap.viewer.config.services.WFSFeatureSource;
+import nl.tailormap.viewer.helpers.featuresources.FeatureSourceFactoryHelper;
+import nl.tailormap.viewer.helpers.featuresources.JDBCFeatureSourceHelper;
+import nl.tailormap.viewer.helpers.featuresources.WFSFeatureSourceHelper;
+import nl.tailormap.web.WaitPageStatus;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.geotools.data.wfs.WFSDataStoreFactory;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.stripesstuff.plugin.waitpage.WaitPage;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ *
+ * @author Matthijs Laan
+ */
+@UrlBinding(&quot;/action/attributesource/{$event}&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN, Group.REGISTRY_ADMIN})
+<span class="fc" id="L74">public class AttributeSourceActionBean extends LocalizableActionBean {</span>
+
+<span class="fc" id="L76">    private static final Log log = LogFactory.getLog(AttributeSourceActionBean.class);</span>
+    private ActionBeanContext context;
+            
+    private static final String JSP = &quot;/WEB-INF/jsp/services/attributesource.jsp&quot;;
+    private static final String EDITJSP = &quot;/WEB-INF/jsp/services/editattributesource.jsp&quot;;
+    @Validate
+    private int page;
+    @Validate
+    private int start;
+    @Validate
+    private int limit;
+    @Validate
+    private String sort;
+    @Validate
+    private String dir;
+    @Validate
+    private JSONArray filter;
+    @Validate(on = {&quot;save&quot;, &quot;saveEdit&quot;}, required = true, label=&quot;Naam&quot;)
+    private String name;
+    @Validate
+    private String url;
+<span class="fc" id="L97">    @Validate(on = &quot;save&quot;, required = true)</span>
+    private String protocol = &quot;jdbc&quot;;
+    @Validate
+    private String username;
+    @Validate
+    private String password;
+    @Validate(on = &quot;save&quot;)
+    private String host;
+    @Validate(on = &quot;save&quot;)
+    private String port;
+    @Validate(on = &quot;save&quot;)
+    private String dbtype;
+    @Validate(on = &quot;save&quot;)
+    private String database;
+    @Validate(on = &quot;save&quot;)
+    private String schema;
+<span class="fc" id="L113">    private WaitPageStatus status = new WaitPageStatus();</span>
+    @Validate
+    private FeatureSource featureSource;
+
+    private boolean updatable;
+    
+    //for updatable reporting
+    @Validate
+    private Map&lt;UpdateResult.Status,List&lt;SimpleFeatureType&gt;&gt; changedFeatureTypes;
+    @Validate
+    private Long changedFeatureSourceId;
+        
+    @DefaultHandler
+    public Resolution view() {
+<span class="nc" id="L127">        return new ForwardResolution(JSP);</span>
+    }
+
+    public Resolution edit() {
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (featureSource != null) {</span>
+<span class="nc" id="L132">            protocol = featureSource.getProtocol();</span>
+<span class="nc" id="L133">            name = featureSource.getName();</span>
+<span class="nc" id="L134">            url = featureSource.getUrl();</span>
+<span class="nc" id="L135">            username = featureSource.getUsername();</span>
+<span class="nc" id="L136">            password = featureSource.getPassword();</span>
+        }
+<span class="nc" id="L138">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    public Resolution newAttributeSource() {
+<span class="nc" id="L142">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    public Resolution cancel() {
+<span class="nc" id="L146">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    public Resolution delete() {
+<span class="nc" id="L150">        EntityManager em = Stripersist.getEntityManager();</span>
+
+<span class="nc" id="L152">        deleteFeatureSource(em);</span>
+<span class="nc" id="L153">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.attributesourceactionbean.asremoved&quot;)));</span>
+<span class="nc" id="L154">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    private void deleteFeatureTypes(EntityManager em, List&lt;SimpleFeatureType&gt; fts){
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (!fts.isEmpty()) {</span>
+<span class="nc" id="L159">            em.createQuery(&quot;update Layer set featureType = null where featureType in :fts&quot;).setParameter(&quot;fts&quot;, fts).executeUpdate();</span>
+<span class="nc" id="L160">            em.createQuery(&quot;update ConfiguredAttribute set featureType=null where featureType in :fts&quot;).setParameter(&quot;fts&quot;,fts).executeUpdate();</span>
+<span class="nc" id="L161">            em.createQuery(&quot;update ConfiguredAttribute set valueListFeatureType=null where valueListFeatureType in :fts&quot;).setParameter(&quot;fts&quot;,fts).executeUpdate();</span>
+        }
+<span class="nc" id="L163">    }</span>
+
+    protected void deleteFeatureSource(EntityManager em){
+<span class="nc" id="L166">        this.deleteFeatureTypes(em, featureSource.getFeatureTypes());</span>
+
+<span class="nc" id="L168">        em.createQuery(&quot;update ConfiguredAttribute set valueListFeatureSource=null, valueListLabelName=null,valueListValueName=null where valueListFeatureSource in :fs&quot;).setParameter(&quot;fs&quot;,featureSource).executeUpdate();</span>
+
+<span class="nc" id="L170">        em.remove(featureSource);</span>
+<span class="nc" id="L171">        em.getTransaction().commit();</span>
+<span class="nc" id="L172">    }</span>
+
+    @WaitPage(path = &quot;/WEB-INF/jsp/waitpage.jsp&quot;, delay = 2000, refresh = 1000, ajax = &quot;/WEB-INF/jsp/waitpageajax.jsp&quot;)
+    public Resolution save() throws Exception {
+        
+
+        try {
+<span class="nc" id="L179">            addService(Stripersist.getEntityManager());</span>
+<span class="nc" id="L180">        } catch (Exception e) {</span>
+<span class="nc" id="L181">            log.error(&quot;Error loading new feauture source&quot;, e);</span>
+<span class="nc" id="L182">            String s = e.toString();</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">            if (e.getCause() != null) {</span>
+<span class="nc" id="L184">                s += &quot;; cause: &quot; + e.getCause().toString();</span>
+            }
+<span class="nc" id="L186">            getContext().getValidationErrors().addGlobalError(new SimpleError(getBundle().getString(&quot;viewer_admin.attributesourceactionbean.errorload&quot;), s));</span>
+<span class="nc" id="L187">        }</span>
+
+<span class="nc" id="L189">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    protected void addService(EntityManager em) throws Exception {
+<span class="fc" id="L193">        Map&lt;String,String&gt; params = new HashMap&lt;&gt;();</span>
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">        if (protocol.equals(&quot;jdbc&quot;)) {</span>
+<span class="nc" id="L195">            params.put(&quot;dbtype&quot;, dbtype);</span>
+<span class="nc" id="L196">            params.put(&quot;host&quot;, host);</span>
+<span class="nc" id="L197">            params.put(&quot;port&quot;, port);</span>
+<span class="nc" id="L198">            params.put(&quot;database&quot;, database);</span>
+<span class="nc" id="L199">            params.put(&quot;schema&quot;, schema);</span>
+<span class="nc" id="L200">            params.put(&quot;user&quot;, username);</span>
+<span class="nc" id="L201">            params.put(&quot;passwd&quot;, password);</span>
+
+<span class="nc" id="L203">            JDBCFeatureSource fs = new JDBCFeatureSource(params);</span>
+<span class="nc" id="L204">            fs.setName(name);</span>
+<span class="nc" id="L205">            JDBCFeatureSourceHelper.loadFeatureTypes(fs, status);</span>
+
+<span class="nc" id="L207">            em.persist(fs);</span>
+<span class="nc" id="L208">            em.getTransaction().commit();</span>
+
+<span class="nc" id="L210">            featureSource = fs;</span>
+
+<span class="nc" id="L212">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.attributesourceactionbean.asloaded&quot;)));</span>
+
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">        } else if (protocol.equals(&quot;wfs&quot;)) {</span>
+<span class="fc" id="L215">            params.put(WFSDataStoreFactory.URL.key, url);</span>
+<span class="fc" id="L216">            params.put(WFSDataStoreFactory.USERNAME.key, username);</span>
+<span class="fc" id="L217">            params.put(WFSDataStoreFactory.PASSWORD.key, password);</span>
+<span class="fc" id="L218">            WFSFeatureSource fs = new WFSFeatureSource(params);</span>
+<span class="fc" id="L219">            fs.setName(name);</span>
+<span class="fc" id="L220">            WFSFeatureSourceHelper.loadFeatureTypes(fs, status);</span>
+<span class="fc" id="L221">            em.persist(fs);</span>
+<span class="fc" id="L222">            em.getTransaction().commit();</span>
+
+<span class="fc" id="L224">            featureSource = fs;</span>
+
+<span class="fc" id="L226">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.attributesourceactionbean.asloaded&quot;)));</span>
+
+<span class="fc" id="L228">        } else {</span>
+<span class="nc" id="L229">            getContext().getValidationErrors().add(&quot;protocol&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.attributesourceactionbean.invalid&quot;)));</span>
+        }
+<span class="fc" id="L231">    }</span>
+
+    public Resolution saveEdit() {
+<span class="nc" id="L234">        featureSource.setName(name);</span>
+<span class="nc" id="L235">        featureSource.setUsername(username);</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (password != null) {</span>
+<span class="nc" id="L237">            featureSource.setPassword(password);</span>
+        }
+        // When an user updates the service which formerly had a user/pass, but now it doesn't anymore -&gt; remove the password (username already removed in L210
+<span class="nc bnc" id="L240" title="All 4 branches missed.">        if(username == null &amp;&amp; password == null){ </span>
+<span class="nc" id="L241">            featureSource.setPassword(password);</span>
+        }
+
+<span class="nc" id="L244">        Stripersist.getEntityManager().persist(featureSource);</span>
+<span class="nc" id="L245">        Stripersist.getEntityManager().getTransaction().commit();</span>
+
+<span class="nc" id="L247">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.attributesourceactionbean.asloaded&quot;)));</span>
+
+<span class="nc" id="L249">        return edit();</span>
+    }
+    
+    public Resolution update() throws Exception{
+<span class="nc bnc" id="L253" title="All 2 branches missed.">        if(!isUpdatable()) {</span>
+<span class="nc" id="L254">            getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.attributesourceactionbean.noupdate&quot;),</span>
+<span class="nc" id="L255">                    featureSource.getProtocol()));</span>
+<span class="nc" id="L256">            return new ForwardResolution(EDITJSP);</span>
+        }
+<span class="nc" id="L258">        EntityManager em = Stripersist.getEntityManager();</span>
+<span class="nc" id="L259">        FeatureSourceUpdateResult result =  FeatureSourceFactoryHelper.update(em, featureSource);</span>
+
+<span class="nc bnc" id="L261" title="All 2 branches missed.">        if(result.getStatus() == UpdateResult.Status.FAILED) {</span>
+<span class="nc" id="L262">            getContext().getValidationErrors().addGlobalError(new SimpleError(result.getMessage()));</span>
+<span class="nc" id="L263">            em.getTransaction().rollback();</span>
+<span class="nc" id="L264">            return new ForwardResolution(EDITJSP);</span>
+        }
+        
+<span class="nc" id="L267">        Map&lt;UpdateResult.Status,List&lt;String&gt;&gt; byStatus = result.getLayerNamesByStatus();        </span>
+<span class="nc" id="L268">        log.info(String.format(&quot;Update featuretypes stats: unmodified %d, updated %d, new %d, missing %d&quot;,</span>
+<span class="nc" id="L269">                byStatus.get(UpdateResult.Status.UNMODIFIED).size(),</span>
+<span class="nc" id="L270">                byStatus.get(UpdateResult.Status.UPDATED).size(),</span>
+<span class="nc" id="L271">                byStatus.get(UpdateResult.Status.NEW).size(),</span>
+<span class="nc" id="L272">                byStatus.get(UpdateResult.Status.MISSING).size()</span>
+        ));
+<span class="nc" id="L274">        log.info(&quot;Unmodified featuretypes: &quot; + byStatus.get(UpdateResult.Status.UNMODIFIED));</span>
+<span class="nc" id="L275">        log.info(&quot;Updated featuretypes: &quot; + byStatus.get(UpdateResult.Status.UPDATED));</span>
+<span class="nc" id="L276">        log.info(&quot;New featuretypes: &quot; + byStatus.get(UpdateResult.Status.NEW));</span>
+<span class="nc" id="L277">        log.info(&quot;Missing featuretypes: &quot; + byStatus.get(UpdateResult.Status.MISSING));</span>
+        
+<span class="nc" id="L279">        this.changedFeatureTypes = result.getFeatureTypeByStatus();</span>
+<span class="nc" id="L280">        this.changedFeatureSourceId = featureSource.getId();</span>
+        
+<span class="nc" id="L282">        getContext().getMessages().add(new SimpleMessage(getBundle().getString(&quot;viewer_admin.attributesourceactionbean.aschanged&quot;),</span>
+<span class="nc" id="L283">            byStatus.get(UpdateResult.Status.UPDATED).size(),</span>
+<span class="nc" id="L284">            byStatus.get(UpdateResult.Status.UNMODIFIED).size(),</span>
+<span class="nc" id="L285">            byStatus.get(UpdateResult.Status.NEW).size(),</span>
+<span class="nc" id="L286">            byStatus.get(UpdateResult.Status.MISSING).size()</span>
+        ));
+
+<span class="nc" id="L289">        List&lt;SimpleFeatureType&gt; fts = this.changedFeatureTypes.get(UpdateResult.Status.MISSING);</span>
+<span class="nc" id="L290">        deleteFeatureTypes(em, fts);</span>
+<span class="nc" id="L291">        em.persist(featureSource);</span>
+<span class="nc" id="L292">        em.getTransaction().commit();</span>
+        
+<span class="nc" id="L294">        return new ForwardResolution(EDITJSP);</span>
+    }
+
+    @ValidationMethod(on = {&quot;save&quot;, &quot;saveEdit&quot;})
+    public void validate(ValidationErrors errors) throws Exception {
+<span class="nc bnc" id="L299" title="All 2 branches missed.">        if (name == null) {</span>
+<span class="nc" id="L300">            errors.add(&quot;name&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.attributesourceactionbean.nameobl&quot;)));</span>
+<span class="nc" id="L301">            return;</span>
+        }
+
+<span class="nc bnc" id="L304" title="All 2 branches missed.">        if (featureSource == null) {</span>
+            try {
+<span class="nc" id="L306">                Object o = Stripersist.getEntityManager().createQuery(&quot;select 1 from FeatureSource where name = :name&quot;).setMaxResults(1).setParameter(&quot;name&quot;, name).getSingleResult();</span>
+
+<span class="nc" id="L308">                errors.add(&quot;name&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.attributesourceactionbean.uniquename&quot;)));</span>
+
+<span class="nc" id="L310">            } catch (NoResultException nre) {</span>
+                // name is unique
+<span class="nc" id="L312">            }</span>
+        } else {
+            try {
+<span class="nc" id="L315">                Object o = Stripersist.getEntityManager().createQuery(&quot;select 1 from FeatureSource where name = :name &quot;</span>
+<span class="nc" id="L316">                        + &quot;and id != :id&quot;).setMaxResults(1).setParameter(&quot;name&quot;, name).setParameter(&quot;id&quot;, featureSource.getId()).getSingleResult();</span>
+
+<span class="nc" id="L318">                errors.add(&quot;name&quot;, new SimpleError(getBundle().getString(&quot;viewer_admin.attributesourceactionbean.uniquename&quot;)));</span>
+
+<span class="nc" id="L320">            } catch (NoResultException nre) {</span>
+                // name is unique
+<span class="nc" id="L322">            }</span>
+        }
+<span class="nc" id="L324">    }</span>
+
+    public Resolution getGridData() throws JSONException {
+<span class="nc" id="L327">        JSONArray jsonData = new JSONArray();</span>
+
+<span class="nc" id="L329">        String filterName = &quot;&quot;;</span>
+<span class="nc" id="L330">        String filterUrl = &quot;&quot;;</span>
+<span class="nc" id="L331">        String filterType = &quot;&quot;;</span>
+        /*
+         * FILTERING: filter is delivered by frontend as JSON array [{property,
+         * value}] for demo purposes the value is now returned, ofcourse here
+         * should the DB query be built to filter the right records
+         */
+<span class="nc bnc" id="L337" title="All 2 branches missed.">        if (this.getFilter() != null) {</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">            for (int k = 0; k &lt; this.getFilter().length(); k++) {</span>
+<span class="nc" id="L339">                JSONObject j = this.getFilter().getJSONObject(k);</span>
+<span class="nc" id="L340">                String property = j.getString(&quot;property&quot;);</span>
+<span class="nc" id="L341">                String value = j.getString(&quot;value&quot;);</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">                if (property.equals(&quot;name&quot;)) {</span>
+<span class="nc" id="L343">                    filterName = value;</span>
+                }
+<span class="nc bnc" id="L345" title="All 2 branches missed.">                if (property.equals(&quot;url&quot;)) {</span>
+<span class="nc" id="L346">                    filterUrl = value;</span>
+                }
+<span class="nc bnc" id="L348" title="All 2 branches missed.">                if (property.equals(&quot;protocol&quot;)) {</span>
+<span class="nc" id="L349">                    filterType = value;</span>
+                }
+            }
+        }
+
+<span class="nc" id="L354">        Session sess = (Session) Stripersist.getEntityManager().getDelegate();</span>
+<span class="nc" id="L355">        Criteria c = sess.createCriteria(FeatureSource.class);</span>
+
+        /*
+         * Sorting is delivered by the frontend as two variables: sort which
+         * holds the column name and dir which holds the direction (ASC, DESC).
+         */
+<span class="nc bnc" id="L361" title="All 4 branches missed.">        if (sort != null &amp;&amp; dir != null) {</span>
+            /*
+             * Sorteren op status nog niet mogelijk
+             */
+<span class="nc bnc" id="L365" title="All 4 branches missed.">            if (!sort.equals(&quot;status&quot;) &amp;&amp; !sort.equals(&quot;protocol&quot;)) {</span>
+                Order order;
+<span class="nc bnc" id="L367" title="All 2 branches missed.">                if (dir.equals(&quot;ASC&quot;)) {</span>
+<span class="nc" id="L368">                    order = Order.asc(sort);</span>
+                } else {
+<span class="nc" id="L370">                    order = Order.desc(sort);</span>
+                }
+<span class="nc" id="L372">                order.ignoreCase();</span>
+<span class="nc" id="L373">                c.addOrder(order);</span>
+<span class="nc" id="L374">            } else {</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">                if (sort.equals(&quot;protocol&quot;)) {</span>
+                    Order order;
+<span class="nc bnc" id="L377" title="All 2 branches missed.">                    if (dir.equals(&quot;ASC&quot;)) {</span>
+<span class="nc" id="L378">                        order = Order.asc(&quot;class&quot;);</span>
+                    } else {
+<span class="nc" id="L380">                        order = Order.desc(&quot;class&quot;);</span>
+                    }
+<span class="nc" id="L382">                    order.ignoreCase();</span>
+<span class="nc" id="L383">                    c.addOrder(order);</span>
+                }
+            }
+        }
+
+<span class="nc bnc" id="L388" title="All 4 branches missed.">        if (filterName != null &amp;&amp; filterName.length() &gt; 0) {</span>
+<span class="nc" id="L389">            Criterion nameCrit = Restrictions.ilike(&quot;name&quot;, filterName, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L390">            c.add(nameCrit);</span>
+        }
+<span class="nc bnc" id="L392" title="All 4 branches missed.">        if (filterUrl != null &amp;&amp; filterUrl.length() &gt; 0) {</span>
+<span class="nc" id="L393">            Criterion urlCrit = Restrictions.ilike(&quot;url&quot;, filterUrl, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L394">            c.add(urlCrit);</span>
+        }
+<span class="nc bnc" id="L396" title="All 4 branches missed.">        if (filterType != null &amp;&amp; filterType.length() &gt; 0) {</span>
+<span class="nc" id="L397">            Criterion protocolCrit = Restrictions.ilike(&quot;class&quot;, filterType, MatchMode.ANYWHERE);</span>
+<span class="nc" id="L398">            c.add(protocolCrit);</span>
+        }
+
+<span class="nc" id="L401">        int rowCount = c.list().size();</span>
+
+<span class="nc" id="L403">        c.setMaxResults(limit);</span>
+<span class="nc" id="L404">        c.setFirstResult(start);</span>
+
+<span class="nc" id="L406">        List sources = c.list();</span>
+
+<span class="nc bnc" id="L408" title="All 2 branches missed.">        for (Object o : sources) {</span>
+<span class="nc" id="L409">            FeatureSource source = (FeatureSource) o;</span>
+<span class="nc" id="L410">            String protocolType = &quot;&quot;;</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">            if (source instanceof WFSFeatureSource) {</span>
+<span class="nc" id="L412">                protocolType = &quot;WFS&quot;;</span>
+<span class="nc bnc" id="L413" title="All 2 branches missed.">            } else if (source instanceof JDBCFeatureSource) {</span>
+<span class="nc" id="L414">                protocolType = &quot;JDBC&quot;;</span>
+            }
+//            else if (source instanceof ArcGISFeatureSource) {
+//                protocolType = &quot;ArcGIS&quot;;
+//            }
+<span class="nc" id="L419">            JSONObject j = this.getGridRow(source.getId().intValue(), source.getName(), source.getUrl(), protocolType);</span>
+<span class="nc" id="L420">            jsonData.put(j);</span>
+<span class="nc" id="L421">        }</span>
+
+<span class="nc" id="L423">        final JSONObject grid = new JSONObject();</span>
+<span class="nc" id="L424">        grid.put(&quot;totalCount&quot;, rowCount);</span>
+<span class="nc" id="L425">        grid.put(&quot;gridrows&quot;, jsonData);</span>
+
+<span class="nc" id="L427">        return new StreamingResolution(&quot;application/json&quot;) {</span>
+
+            @Override
+            public void stream(HttpServletResponse response) throws Exception {
+<span class="nc" id="L431">                response.getWriter().print(grid);</span>
+<span class="nc" id="L432">            }</span>
+        };
+    }
+
+    private JSONObject getGridRow(int id, String name, String url, String type) throws JSONException {
+<span class="nc" id="L437">        JSONObject j = new JSONObject();</span>
+<span class="nc" id="L438">        j.put(&quot;id&quot;, id);</span>
+<span class="nc" id="L439">        j.put(&quot;status&quot;, &quot;ok&quot;);//Math.random() &gt; 0.5 ? &quot;ok&quot; : &quot;error&quot;);</span>
+<span class="nc" id="L440">        j.put(&quot;name&quot;, &quot;#&quot; + id + &quot; &quot; + name);</span>
+<span class="nc" id="L441">        j.put(&quot;url&quot;, url);</span>
+<span class="nc" id="L442">        j.put(&quot;protocol&quot;, type);</span>
+<span class="nc" id="L443">        return j;</span>
+    }
+    
+    @Before
+    public void setUpdatable() {
+<span class="nc" id="L448">        updatable = FeatureSourceFactoryHelper.isUpdatable(featureSource);</span>
+<span class="nc" id="L449">    }       </span>
+
+    //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;getters &amp; setters&quot;&gt;
+    public void setContext(ActionBeanContext context) {
+<span class="fc" id="L453">        this.context = context;</span>
+<span class="fc" id="L454">    }</span>
+
+    public ActionBeanContext getContext() {
+<span class="fc" id="L457">        return this.context;</span>
+    }
+
+    public int getLimit() {
+<span class="nc" id="L461">        return limit;</span>
+    }
+
+    public void setLimit(int limit) {
+<span class="nc" id="L465">        this.limit = limit;</span>
+<span class="nc" id="L466">    }</span>
+
+    public int getPage() {
+<span class="nc" id="L469">        return page;</span>
+    }
+
+    public void setPage(int page) {
+<span class="nc" id="L473">        this.page = page;</span>
+<span class="nc" id="L474">    }</span>
+
+    public int getStart() {
+<span class="nc" id="L477">        return start;</span>
+    }
+
+    public void setStart(int start) {
+<span class="nc" id="L481">        this.start = start;</span>
+<span class="nc" id="L482">    }</span>
+
+    public String getDir() {
+<span class="nc" id="L485">        return dir;</span>
+    }
+
+    public void setDir(String dir) {
+<span class="nc" id="L489">        this.dir = dir;</span>
+<span class="nc" id="L490">    }</span>
+
+    public String getSort() {
+<span class="nc" id="L493">        return sort;</span>
+    }
+
+    public void setSort(String sort) {
+<span class="nc" id="L497">        this.sort = sort;</span>
+<span class="nc" id="L498">    }</span>
+
+    public JSONArray getFilter() {
+<span class="nc" id="L501">        return filter;</span>
+    }
+
+    public void setFilter(JSONArray filter) {
+<span class="nc" id="L505">        this.filter = filter;</span>
+<span class="nc" id="L506">    }</span>
+
+    public FeatureSource getFeatureSource() {
+<span class="fc" id="L509">        return featureSource;</span>
+    }
+
+    public void setFeatureSource(FeatureSource featureSource) {
+<span class="nc" id="L513">        this.featureSource = featureSource;</span>
+<span class="nc" id="L514">    }</span>
+
+    public String getName() {
+<span class="nc" id="L517">        return name;</span>
+    }
+
+    public void setName(String name) {
+<span class="fc" id="L521">        this.name = name;</span>
+<span class="fc" id="L522">    }</span>
+
+    public String getPassword() {
+<span class="nc" id="L525">        return password;</span>
+    }
+
+    public void setPassword(String password) {
+<span class="nc" id="L529">        this.password = password;</span>
+<span class="nc" id="L530">    }</span>
+
+    public String getProtocol() {
+<span class="nc" id="L533">        return protocol;</span>
+    }
+
+    public void setProtocol(String protocol) {
+<span class="fc" id="L537">        this.protocol = protocol;</span>
+<span class="fc" id="L538">    }</span>
+
+    public String getDatabase() {
+<span class="nc" id="L541">        return database;</span>
+    }
+
+    public void setDatabase(String database) {
+<span class="nc" id="L545">        this.database = database;</span>
+<span class="nc" id="L546">    }</span>
+
+    public String getDbtype() {
+<span class="nc" id="L549">        return dbtype;</span>
+    }
+
+    public void setDbtype(String dbtype) {
+<span class="nc" id="L553">        this.dbtype = dbtype;</span>
+<span class="nc" id="L554">    }</span>
+
+    public String getHost() {
+<span class="nc" id="L557">        return host;</span>
+    }
+
+    public void setHost(String host) {
+<span class="nc" id="L561">        this.host = host;</span>
+<span class="nc" id="L562">    }</span>
+
+    public String getPort() {
+<span class="nc" id="L565">        return port;</span>
+    }
+
+    public void setPort(String port) {
+<span class="nc" id="L569">        this.port = port;</span>
+<span class="nc" id="L570">    }</span>
+
+    public String getSchema() {
+<span class="nc" id="L573">        return schema;</span>
+    }
+
+    public void setSchema(String schema) {
+<span class="nc" id="L577">        this.schema = schema;</span>
+<span class="nc" id="L578">    }</span>
+
+    public WaitPageStatus getStatus() {
+<span class="nc" id="L581">        return status;</span>
+    }
+
+    public void setStatus(WaitPageStatus status) {
+<span class="nc" id="L585">        this.status = status;</span>
+<span class="nc" id="L586">    }</span>
+
+    public String getUrl() {
+<span class="nc" id="L589">        return url;</span>
+    }
+
+    public void setUrl(String url) {
+<span class="fc" id="L593">        this.url = url;</span>
+<span class="fc" id="L594">    }</span>
+
+    public String getUsername() {
+<span class="nc" id="L597">        return username;</span>
+    }
+
+    public void setUsername(String username) {
+<span class="nc" id="L601">        this.username = username;</span>
+<span class="nc" id="L602">    }</span>
+    
+    public boolean isUpdatable() {
+<span class="nc" id="L605">        return updatable;</span>
+    }
+
+    public void setUpdatable(boolean updatable) {
+<span class="nc" id="L609">        this.updatable = updatable;</span>
+<span class="nc" id="L610">    }</span>
+    
+    public Map&lt;UpdateResult.Status,List&lt;SimpleFeatureType&gt;&gt; getChangedFeatureTypes() {
+<span class="nc" id="L613">        return changedFeatureTypes;</span>
+    }
+
+    public void setChangedFeatureTypes(Map&lt;UpdateResult.Status,List&lt;SimpleFeatureType&gt;&gt; changedFeatureTypes) {
+<span class="nc" id="L617">        this.changedFeatureTypes = changedFeatureTypes;</span>
+<span class="nc" id="L618">    }</span>
+    
+    public Long getChangedFeatureSourceId() {
+<span class="nc" id="L621">        return changedFeatureSourceId;</span>
+    }
+
+    public void setChangedFeatureSourceId(Long changedFeatureSourceId) {
+<span class="nc" id="L625">        this.changedFeatureSourceId = changedFeatureSourceId;</span>
+<span class="nc" id="L626">    }</span>
+    //&lt;/editor-fold&gt;
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

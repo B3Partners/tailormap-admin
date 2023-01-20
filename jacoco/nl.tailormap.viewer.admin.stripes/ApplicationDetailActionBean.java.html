@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationDetailActionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tailormap Admin</a> &gt; <a href="index.source.html" class="el_package">nl.tailormap.viewer.admin.stripes</a> &gt; <span class="el_source">ApplicationDetailActionBean.java</span></div><h1>ApplicationDetailActionBean.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2022 B3Partners B.V.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+package nl.tailormap.viewer.admin.stripes;
+
+import net.sourceforge.stripes.action.*;
+import net.sourceforge.stripes.validation.Validate;
+import nl.tailormap.viewer.config.ClobElement;
+import nl.tailormap.viewer.config.security.Group;
+import org.apache.commons.lang3.StringUtils;
+import org.json.JSONException;
+import org.stripesstuff.stripersist.Stripersist;
+
+import javax.annotation.security.RolesAllowed;
+import javax.persistence.EntityManager;
+
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
+
+@UrlBinding(&quot;/action/applicationdetail&quot;)
+@StrictBinding
+@RolesAllowed({Group.ADMIN,Group.APPLICATION_ADMIN})
+<span class="nc" id="L26">public class ApplicationDetailActionBean extends ApplicationActionBean {</span>
+    @Validate(required = true)
+    private String key;
+
+    @Validate
+    private String value;
+
+    // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Getters and setters&quot;&gt;
+    public String getKey() {
+<span class="nc" id="L35">        return key;</span>
+    }
+
+    public void setKey(String key) {
+<span class="nc" id="L39">        this.key = key;</span>
+<span class="nc" id="L40">    }</span>
+
+    public String getValue() {
+<span class="nc" id="L43">        return value;</span>
+    }
+
+    public void setValue(String value) {
+<span class="nc" id="L47">        this.value = value;</span>
+<span class="nc" id="L48">    }</span>
+    // &lt;/editor-fold&gt;
+
+    @DefaultHandler
+    public Resolution handle() {
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (application == null) {</span>
+<span class="nc" id="L54">            return new ErrorResolution(SC_NOT_FOUND, &quot;Application #&quot; + applicationId + &quot; not found&quot;);</span>
+        }
+
+<span class="nc" id="L57">        String method = getContext().getRequest().getMethod();</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if(&quot;GET&quot;.equals(method)) {</span>
+<span class="nc" id="L59">            ClobElement detail = application.getDetails().get(key);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            return new StreamingResolution(&quot;application/octet-stream&quot;, detail == null ? &quot;&quot; : detail.getValue());</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        } else if (&quot;POST&quot;.equals(method)) {</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            if (StringUtils.isBlank(value)) {</span>
+<span class="nc" id="L63">                application.getDetails().remove(key);</span>
+            } else {
+<span class="nc" id="L65">                application.getDetails().put(key, new ClobElement(value));</span>
+            }
+<span class="nc" id="L67">            Stripersist.getEntityManager().persist(application);</span>
+<span class="nc" id="L68">            Stripersist.getEntityManager().getTransaction().commit();</span>
+<span class="nc" id="L69">            return new ErrorResolution(SC_OK, &quot;OK&quot;);</span>
+        } else {
+<span class="nc" id="L71">            return new ErrorResolution(SC_BAD_REQUEST, &quot;Bad Request&quot;);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
