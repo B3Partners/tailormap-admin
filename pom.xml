@@ -119,7 +119,7 @@
     <skipQA>false</skipQA>
     <!-- docker.b3p.nl or alternatively ghcr.io  -->
     <docker.deploy.repo>ghcr.io</docker.deploy.repo>
-    <maven-fluido-skin.version>1.11.2</maven-fluido-skin.version>
+    <maven-fluido-skin.version>2.0.0-M2</maven-fluido-skin.version>
     <frontend.source.dir>src/main/frontend</frontend.source.dir>
     <node.version>v18.12.1</node.version>
     <npm.version>8.19.2</npm.version>
