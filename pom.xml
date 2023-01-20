@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>nl.b3p.tailormap</groupId>
   <artifactId>tailormap-admin</artifactId>
-  <version>10.0.0</version>
+  <version>10.0.1-SNAPSHOT</version>
   <packaging>war</packaging>
   <name>Tailormap Admin</name>
   <description>Tailormap Admin provides the administration application for Tailormap</description>
@@ -42,7 +41,7 @@
   <scm>
     <connection>scm:git:git@github.com:B3Partners/tailormap-admin.git</connection>
     <developerConnection>scm:git:git@github.com:B3Partners/tailormap-admin.git</developerConnection>
-    <tag>tailormap-admin-10.0.0</tag>
+    <tag>HEAD</tag>
     <url>https://github.com/B3Partners/tailormap-admin/</url>
   </scm>
   <issueManagement>
@@ -76,7 +75,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.build.sourceVersion>${java.version}</project.build.sourceVersion>
     <project.build.targetVersion>${java.version}</project.build.targetVersion>
-    <project.build.outputTimestamp>2023-01-20T18:10:28Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2023-01-20T18:13:33Z</project.build.outputTimestamp>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <spring-security.version>5.8.1</spring-security.version>
@@ -110,7 +109,7 @@
     <dependency-check-maven.version>7.4.4</dependency-check-maven.version>
     <!--    <pmd.version>6.50.0</pmd.version>-->
     <!--    <errorProne.version>2.16</errorProne.version>-->
-    <errorProneFlags/>
+    <errorProneFlags />
     <compiler.lint>deprecation,unchecked</compiler.lint>
     <fmt.action>format</fmt.action>
     <pom.fmt.action>sort</pom.fmt.action>
