@@ -87,7 +87,7 @@
     <hsqldb.version>2.7.1</hsqldb.version>
     <test.persistence.unit>viewer-config-hsqldb</test.persistence.unit>
     <postgresql.version>42.5.2</postgresql.version>
-    <mssql.version>11.2.3.jre11</mssql.version>
+    <mssql.version>12.2.0.jre11</mssql.version>
     <oracle.version>21.8.0.0</oracle.version>
     <jakarta.mail.version>1.6.7</jakarta.mail.version>
     <apache.httpcomponents.version>4.5.14</apache.httpcomponents.version>
